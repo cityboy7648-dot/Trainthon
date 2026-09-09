@@ -1,8 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { CAMPAIGN_PLAN_CUTOFF_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { log } from "@/lib/log";
-import { parseStructuredOutput, generateCampaignImage } from "@/lib/providers/openai";
+import {
+  asCampaignImageUrl,
+  parseStructuredOutput,
+  generateCampaignImage,
+} from "@/lib/providers/openai";
 import { collectSite } from "@/lib/providers/firecrawl";
 import {
   failCampaignTwoRun,
@@ -36,9 +41,9 @@ export async function generateCampaignTwo(
     );
     if (!run.product.image_url)
       throw new AppError("generation_failed", campaignErrors.productImage);
-    const images = [run.product.image_url, ...references];
+    const images = [await asCampaignImageUrl(run.product.image_url), ...references];
     const site = await collectSite(run.profile.source_url, context);
-    if (Date.now() - startedAt > 90_000)
+    if (Date.now() - startedAt > CAMPAIGN_PLAN_CUTOFF_MS)
       throw new AppError("generation_failed", campaignErrors.timeout);
     const { output: plan } = await parseStructuredOutput(
       campaignTwoPlanSchema,
@@ -53,8 +58,7 @@ export async function generateCampaignTwo(
       images,
     );
     let failed = false;
-    // 최대 180초 이미지 요청과 저장 시간을 300초 실행 제한 안에 남긴다.
-    if (Date.now() - startedAt > 90_000)
+    if (Date.now() - startedAt > CAMPAIGN_PLAN_CUTOFF_MS)
       throw new AppError("generation_failed", campaignErrors.timeout);
     const imagesStartedAt = Date.now();
     await Promise.all(

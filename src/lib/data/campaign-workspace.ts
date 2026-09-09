@@ -3,8 +3,9 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { campaigns } from "@/definitions/campaigns";
 import { createSessionReader } from "@/lib/supabase/server";
+import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
-import { signatureSlots } from "@/lib/campaign-workspace";
+import { isGeneratedCampaign, signatureSlots } from "@/lib/campaign-workspace";
 import { toCampaignGalleryCard } from "@/lib/campaign-gallery";
 import {
   campaignPostMetaSchema,
@@ -40,12 +41,21 @@ export async function createSavedCampaign(input: unknown): Promise<string> {
   const parsed = campaignSelectionSchema.parse(input);
   const { client, user } = await session();
   let query = client.from("brands").select("id").eq("user_id", user.id);
+  if (parsed.brandId) query = query.eq("id", parsed.brandId);
   if (parsed.sourceUrl) query = query.eq("source_url", parsed.sourceUrl);
   const { data: brand, error } = await query
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error || !brand) throw new AppError("not_found", campaignErrors.brand);
+  const recent = await client
+    .from("runs")
+    .select("id", { count: "exact", head: true })
+    .eq("brand_id", brand.id)
+    .eq("campaign_key", "signature_grid")
+    .gte("created_at", new Date(Date.now() - 60_000).toISOString());
+  if (recent.error) throw new AppError("network", campaignErrors.create);
+  if ((recent.count ?? 0) >= 2) throw new AppError("generation_failed", campaignErrors.rateLimited);
   const created = await client.from("runs").upsert(
     {
       id: parsed.requestId,
@@ -84,9 +94,9 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
     .eq("kind", "image");
   if (error) throw new AppError("network", campaignErrors.result);
   if (
-    ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
+    isGeneratedCampaign(run.campaign_key) &&
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > 360_000
+    Date.now() - Date.parse(run.created_at) > CAMPAIGN_STALE_MS
   ) {
     for (const asset of data ?? []) {
       if (!["pending", "processing"].includes(asset.status)) continue;

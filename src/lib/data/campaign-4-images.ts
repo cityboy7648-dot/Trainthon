@@ -1,6 +1,7 @@
 import { finishCampaign4Plan, type Campaign4StartedRun } from "@/lib/data/campaign-4";
 import { setCampaignRunStatus, updateCampaignAsset } from "@/lib/data/campaign-assets";
 import { createSessionReader } from "@/lib/supabase/server";
+import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { campaign4ImageMetaSchema, campaign4ResultSchema, type CampaignClient } from "@/lib/types";
 
@@ -106,7 +107,7 @@ export async function getCampaign4Result(runId: string) {
   }
   if (
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > 360_000
+    Date.now() - Date.parse(run.created_at) > CAMPAIGN_STALE_MS
   ) {
     await failCampaign4Images(client, runId, campaignErrors.timeout);
     return getCampaign4Result(runId);

@@ -1,4 +1,5 @@
 import { campaignProductKey, resolveCampaignProduct } from "@/lib/campaign-product";
+import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { createSessionWriter } from "@/lib/supabase/server";
 import {
@@ -150,7 +151,7 @@ export async function getCampaignFiveResult(runId: string) {
   if (!run) throw new AppError("not_found", campaignErrors.result);
   if (
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > 360_000
+    Date.now() - Date.parse(run.created_at) > CAMPAIGN_STALE_MS
   ) {
     await failCampaignFiveRun(client, runId, campaignErrors.timeout);
     run.status = "failed";

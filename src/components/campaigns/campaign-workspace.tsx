@@ -10,7 +10,7 @@ import { CampaignGenerationProgress } from "./campaign-generation-progress";
 import { CampaignPostPreview } from "./campaign-post-preview";
 import { CampaignPostEditor } from "./campaign-post-editor";
 import { CampaignBackButton } from "./campaign-back-button";
-import { campaignDate, previewModes } from "@/lib/campaign-workspace";
+import { campaignDate, isGeneratedCampaign, previewModes } from "@/lib/campaign-workspace";
 import { copy } from "@/lib/copy";
 import { downloadCampaignArchive } from "@/lib/data/campaign-download-client";
 import { showErrorNotice } from "@/lib/error-notice";
@@ -32,7 +32,7 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
           (post) => post.meta.day === selected?.meta.day && post.meta.format === mode,
         );
   const shown = mode === "grid" ? selected : previewPost;
-  const generatedCampaign = ["one_product_three_scenes", "complete_set"].includes(campaign.key);
+  const generatedCampaign = isGeneratedCampaign(campaign.key);
   const editLocked =
     generatedCampaign && !!shown && ["pending", "processing"].includes(shown.status);
   const dateLocked =
@@ -208,7 +208,7 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
                   <Button
                     variant="outline"
                     className="h-10"
-                    disabled={editLocked || ["processing", "failed"].includes(shown.status)}
+                    disabled={editLocked || shown.status === "processing"}
                     onClick={() => setEditing("image")}
                   >
                     <ImageIcon className="size-4" />

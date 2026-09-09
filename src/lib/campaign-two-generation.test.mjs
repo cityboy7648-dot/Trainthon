@@ -45,7 +45,7 @@ registerHooks({
   resolve(specifier, context, nextResolve) {
     const stubs = {
       "@/lib/providers/openai":
-        "export const parseStructuredOutput = globalThis.campaignTwoTest.parse; export const generateCampaignImage = globalThis.campaignTwoTest.image;",
+        "export const parseStructuredOutput = globalThis.campaignTwoTest.parse; export const generateCampaignImage = globalThis.campaignTwoTest.image; export async function asCampaignImageUrl(url){return url;}",
       "@/lib/providers/firecrawl": "export async function collectSite() {return {pages: []};}",
       "@/lib/log": "export const log = {info(){},error(){}};",
       "@/lib/data/campaign-two":
@@ -144,7 +144,7 @@ test("한 장 실패 시 완료 이미지는 보존하고 실패 원인을 저�
 test("요청 시간이 부족하면 추가 유료 생성을 시작하지 않고 실패를 저장한다", async (t) => {
   events.length = 0;
   let calls = 0;
-  t.mock.method(Date, "now", () => (calls++ === 0 ? 0 : 196_000));
+  t.mock.method(Date, "now", () => (calls++ === 0 ? 0 : 250_000));
   await generateCampaignTwo(run, "request-id");
   assert.equal(events.filter((e) => e.kind === "image").length, 0);
   assert.equal(events.at(-1).kind, "failed_run");

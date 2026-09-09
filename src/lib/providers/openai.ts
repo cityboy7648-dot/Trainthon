@@ -1,6 +1,13 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
+import {
+  CAMPAIGN_IMAGE_BUDGET_MS,
+  CAMPAIGN_IMAGE_TIMEOUT_MS,
+  CAMPAIGN_IMAGE_WINDOW_MS,
+  CAMPAIGN_IMAGES_PER_MINUTE,
+  CAMPAIGN_PLAN_TIMEOUT_MS,
+} from "@/lib/campaign-timeouts";
 import { getProviderApiKey } from "@/lib/env";
 import { copy } from "@/lib/copy";
 import { AppError, campaignErrors } from "@/lib/errors";
@@ -9,11 +16,6 @@ import type { TokenUsage, CampaignImageTiming } from "@/lib/types";
 
 const MODEL = "gpt-5.5";
 const IMAGE_MODEL = "gpt-image-2";
-const TIMEOUT_MS = 75_000;
-const IMAGE_TIMEOUT_MS = 180_000;
-const IMAGES_PER_MINUTE = 5;
-const IMAGE_WINDOW_MS = 61_000;
-const RUN_IMAGE_BUDGET_MS = 280_000;
 
 let client: OpenAI | undefined;
 
@@ -21,10 +23,43 @@ function getOpenAiClient(): OpenAI {
   client ??= new OpenAI({
     apiKey: getProviderApiKey("OPENAI_API_KEY"),
     maxRetries: 0,
-    timeout: TIMEOUT_MS,
+    timeout: CAMPAIGN_IMAGE_TIMEOUT_MS,
   });
 
   return client;
+}
+
+function openaiErrorDetail(error: unknown): string | undefined {
+  if (error instanceof OpenAI.APIError) {
+    const nested =
+      error.error && typeof error.error === "object" && "message" in error.error
+        ? error.error.message
+        : null;
+    const detail = [error.message, typeof nested === "string" ? nested : null]
+      .filter((value): value is string => Boolean(value))
+      .find((value, index, values) => values.indexOf(value) === index);
+    return detail;
+  }
+  return error instanceof Error ? error.message : undefined;
+}
+
+export async function asCampaignImageUrl(url: string): Promise<string> {
+  if (!/^https?:\/\//i.test(url)) return url;
+  try {
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(15_000),
+      redirect: "follow",
+      headers: { Accept: "image/*" },
+    });
+    if (!response.ok) return url;
+    const type = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+    if (!type.startsWith("image/")) return url;
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (!bytes.length || bytes.length > 8 * 1024 * 1024) return url;
+    return `data:${type};base64,${bytes.toString("base64")}`;
+  } catch {
+    return url;
+  }
 }
 
 export async function parseStructuredOutput<Schema extends z.ZodType>(
@@ -39,27 +74,30 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
   const startedAt = performance.now();
 
   try {
-    const response = await client.responses.parse({
-      model: MODEL,
-      reasoning: { effort: "low" },
-      input: [
-        { role: "system", content: instructions },
-        {
-          role: "user",
-          content: [
-            { type: "input_text", text: input },
-            ...imageUrls.map((image_url) => ({
-              type: "input_image" as const,
-              image_url,
-              detail: "low" as const,
-            })),
-          ],
+    const response = await client.responses.parse(
+      {
+        model: MODEL,
+        reasoning: { effort: "low" },
+        input: [
+          { role: "system", content: instructions },
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text: input },
+              ...imageUrls.map((image_url) => ({
+                type: "input_image" as const,
+                image_url,
+                detail: "low" as const,
+              })),
+            ],
+          },
+        ],
+        text: {
+          format: zodTextFormat(schema, schemaName),
         },
-      ],
-      text: {
-        format: zodTextFormat(schema, schemaName),
       },
-    });
+      { timeout: CAMPAIGN_PLAN_TIMEOUT_MS },
+    );
 
     if (response.output_parsed === null) {
       throw new AppError("analysis_failed", "AI가 분석 결과 생성을 거부했거나 완료하지 못했다.");
@@ -83,24 +121,34 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
     log.error("openai.error", context, {
       model: MODEL,
       durationMs: Math.round(performance.now() - startedAt),
+      errorType: error instanceof Error ? error.name : "UnknownError",
+      status: error instanceof OpenAI.APIError ? error.status : undefined,
+      code: error instanceof OpenAI.APIError ? error.code : undefined,
     });
 
     if (error instanceof AppError) {
       throw error;
     }
 
+    if (error instanceof OpenAI.APIConnectionTimeoutError) {
+      throw new AppError("analysis_failed", "AI 응답 시간이 초과됐어요.");
+    }
+
     if (error instanceof OpenAI.APIError && error.status === 429) {
       throw new AppError("analysis_failed", copy.brandAnalysis.aiRateLimited);
     }
 
-    throw new AppError("analysis_failed", "AI가 수집된 사이트 정보를 분석하지 못했다.");
+    throw new AppError(
+      "analysis_failed",
+      openaiErrorDetail(error) ?? "AI가 수집된 사이트 정보를 분석하지 못했다.",
+    );
   }
 }
 
 export async function generateCampaignImage(
   prompt: string,
   imageUrls: string[],
-  format: boolean | "pinterest",
+  format: boolean | "pinterest" | "square",
   context: LogContext,
   timing: CampaignImageTiming,
 ): Promise<Buffer> {
@@ -109,12 +157,13 @@ export async function generateCampaignImage(
   const startedAt = performance.now();
   try {
     const scheduledAt =
-      timing.imagesStartedAt + Math.floor(timing.index / IMAGES_PER_MINUTE) * IMAGE_WINDOW_MS;
+      timing.imagesStartedAt +
+      Math.floor(timing.index / CAMPAIGN_IMAGES_PER_MINUTE) * CAMPAIGN_IMAGE_WINDOW_MS;
     const delay = scheduledAt - Date.now();
     if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
     const timeout = Math.min(
-      IMAGE_TIMEOUT_MS,
-      timing.runStartedAt + RUN_IMAGE_BUDGET_MS - Date.now(),
+      CAMPAIGN_IMAGE_TIMEOUT_MS,
+      timing.runStartedAt + CAMPAIGN_IMAGE_BUDGET_MS - Date.now(),
     );
     if (timeout < 30_000) throw new AppError("generation_failed", campaignErrors.timeout);
     const response = await getOpenAiClient().responses.create(
@@ -138,7 +187,14 @@ export async function generateCampaignImage(
             type: "image_generation",
             model: IMAGE_MODEL,
             quality: "high",
-            size: format === "pinterest" ? "1024x1536" : format ? "1152x2048" : "1024x1280",
+            size:
+              format === "pinterest"
+                ? "1024x1536"
+                : format === "square"
+                  ? "1024x1024"
+                  : format
+                    ? "1152x2048"
+                    : "1024x1280",
             output_format: "png",
           },
         ],
@@ -148,7 +204,19 @@ export async function generateCampaignImage(
     );
     const result = response.output.find((item) => item.type === "image_generation_call");
     if (!result || result.type !== "image_generation_call" || !result.result) {
-      throw new AppError("generation_failed", campaignErrors.image);
+      const reason =
+        "incomplete_details" in response &&
+        response.incomplete_details &&
+        typeof response.incomplete_details === "object" &&
+        "reason" in response.incomplete_details
+          ? String(response.incomplete_details.reason)
+          : "status" in response && typeof response.status === "string"
+            ? response.status
+            : null;
+      throw new AppError(
+        "generation_failed",
+        reason ? `${campaignErrors.image} (${reason})` : campaignErrors.image,
+      );
     }
     log.info("campaign.image", context, {
       model: IMAGE_MODEL,
@@ -162,6 +230,7 @@ export async function generateCampaignImage(
       model: IMAGE_MODEL,
       durationMs: Math.round(performance.now() - startedAt),
       errorType: error instanceof Error ? error.name : "UnknownError",
+      message: openaiErrorDetail(error),
       status: error instanceof OpenAI.APIError ? error.status : undefined,
       code: error instanceof OpenAI.APIError ? error.code : undefined,
     });
@@ -173,11 +242,12 @@ export async function generateCampaignImage(
       (error.code === "insufficient_quota" || error.code === "billing_hard_limit_reached")
     )
       throw new AppError("generation_failed", campaignErrors.imageQuota);
+    if (error instanceof OpenAI.APIError && error.status === 429)
+      throw new AppError("generation_failed", campaignErrors.imageRateLimited);
+    const detail = openaiErrorDetail(error);
     throw new AppError(
       "generation_failed",
-      error instanceof OpenAI.APIError && error.status === 429
-        ? campaignErrors.imageRateLimited
-        : campaignErrors.image,
+      detail ? `${campaignErrors.image} ${detail}` : campaignErrors.image,
     );
   }
 }
