@@ -24,6 +24,9 @@ function renderCampaignSelection(component) {
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "next/link") return { url: "test:next-link-interop", shortCircuit: true };
+    if (specifier === "@/lib/data/campaign-4-actions")
+      return { url: "test:campaign-four-action", shortCircuit: true };
     if (specifier === "next/navigation") return { url: "test:navigation", shortCircuit: true };
     if (specifier === "@/lib/data/campaign-workspace-actions")
       return { url: "test:selection-action", shortCircuit: true };
@@ -43,6 +46,18 @@ registerHooks({
     return nextResolve(specifier, context);
   },
   load(url, context, nextLoad) {
+    if (url === "test:next-link-interop")
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `import link from ${JSON.stringify(import.meta.resolve("next/link.js"))}; export default link.default;`,
+      };
+    if (url === "test:campaign-four-action")
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `export async function requestCampaign4Plan() { throw new Error('No paid calls in render tests'); }`,
+      };
     if (url === "test:navigation")
       return {
         format: "module",
@@ -74,12 +89,70 @@ registerHooks({
         format: "module",
         shortCircuit: true,
         source: ts.transpileModule(readFileSync(new URL(url), "utf8"), {
-          compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext },
+          compilerOptions: {
+            jsx: ts.JsxEmit.ReactJSX,
+            module: ts.ModuleKind.ESNext,
+            target: ts.ScriptTarget.ESNext,
+          },
         }).outputText,
       };
     }
     return nextLoad(url, context);
   },
+});
+
+test("갤러리는 진행중·완료만 표시하고 대표 이미지 카드에서 기존 상세로 연결한다", async () => {
+  const { CampaignGalleryView } = await import("../components/campaigns/campaign-gallery-view.tsx");
+  const { toCampaignGalleryCard } = await import("./campaign-gallery.ts");
+  const campaign = toCampaignGalleryCard({
+    id: "saved-run",
+    campaign_key: "signature_grid",
+    status: "done",
+    created_at: "2026-09-10",
+    brands: { profile: { name: "브랜드" } },
+    assets: [],
+  });
+  globalThis.campaignQuery = "status=done";
+  const html = renderCampaignSelection(
+    createElement(CampaignGalleryView, { campaigns: [campaign], preview: false }),
+  );
+  assert.match(html, /진행중/);
+  assert.match(html, /완료/);
+  assert.doesNotMatch(html, /초안/);
+  assert.match(html, /href="\/campaigns\/saved-run"/);
+  assert.match(html, /card-thumbnail-soft/);
+  assert.match(html, /aspect-campaign-image/);
+  globalThis.campaignQuery = "";
+});
+
+test("리얼 사용기는 대표 상품 이미지와 가격을 표시하고 선택 후 생성할 수 있다", async () => {
+  const { Campaign4Planner } = await import("../components/campaigns/campaign-4-planner.tsx");
+  globalThis.campaignQuery = "brandId=brand&productIndex=0";
+  const html = renderCampaignSelection(
+    createElement(Campaign4Planner, {
+      brands: [
+        {
+          brandId: "brand",
+          brandName: "브랜드",
+          products: [
+            {
+              index: 0,
+              name: "대표 상품",
+              price: "10,000원",
+              description: null,
+              image_url: "https://example.com/product.png",
+            },
+          ],
+        },
+      ],
+    }),
+  );
+  assert.match(html, /alt="대표 상품"/);
+  assert.match(html, /10,000원/);
+  assert.match(html, /aria-pressed="true"/);
+  assert.match(html, /캠페인 생성하기/);
+  assert.doesNotMatch(html, /<button[^>]*type="submit"[^>]* disabled=/);
+  globalThis.campaignQuery = "";
 });
 
 test("선택 후에도 카드 세 개 아래에 선택 버튼과 상품 선택 영역을 유지한다", async () => {

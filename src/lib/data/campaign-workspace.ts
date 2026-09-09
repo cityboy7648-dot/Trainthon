@@ -5,6 +5,7 @@ import { campaigns } from "@/definitions/campaigns";
 import { createSessionReader } from "@/lib/supabase/server";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { signatureSlots } from "@/lib/campaign-workspace";
+import { toCampaignGalleryCard } from "@/lib/campaign-gallery";
 import {
   campaignPostMetaSchema,
   campaign4SavedPlanSchema,
@@ -139,36 +140,13 @@ export async function listSavedCampaigns(): Promise<SavedCampaignCard[]> {
   const { data, error } = await client
     .from("runs")
     .select(
-      "id, campaign_key, status, created_at, brands!inner(user_id, profile), assets(storage_path, status)",
+      "id, campaign_key, status, created_at, brands!inner(user_id, profile), assets(kind, status, meta)",
     )
     .eq("brands.user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(100);
   if (error) throw new AppError("network", campaignErrors.result);
-  return Promise.all(
-    (data ?? []).map(async (run) => {
-      const definition = campaigns.find((item) => item.key === run.campaign_key);
-      const profile = z.object({ name: z.string() }).parse(run.brands.profile);
-      const path = run.assets.find(
-        (asset) => asset.status === "done" && asset.storage_path,
-      )?.storage_path;
-      let image: string | null = definition?.image ?? null;
-      if (path) {
-        const signed = await client.storage.from("assets").createSignedUrl(path, 3600);
-        if (signed.error) throw new AppError("network", campaignErrors.result);
-        image = signed.data.signedUrl;
-      }
-      return {
-        id: run.id,
-        key: run.campaign_key,
-        name: definition?.name ?? run.campaign_key,
-        brand: profile.name,
-        status: run.status,
-        createdAt: run.created_at,
-        image,
-      };
-    }),
-  );
+  return (data ?? []).map(toCampaignGalleryCard);
 }
 
 export async function ownedCampaignAsset(runId: string, assetId: string) {

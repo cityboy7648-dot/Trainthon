@@ -166,7 +166,7 @@ export type Campaign4SavedPlan = z.infer<typeof campaign4SavedPlanSchema>;
 export type Campaign4ProductOptions = {
   brandId: string;
   brandName: string;
-  products: { index: number; name: string; description: string | null; price: string | null }[];
+  products: (BrandProduct & { index: number })[];
 }[];
 export type Campaign4PlannerProps = { brands: Campaign4ProductOptions };
 export type Campaign4ActionState = { ok: false; code: ErrorCode; cause?: string } | null;
@@ -464,7 +464,21 @@ export type SavedCampaign = {
 export type SavedCampaignCard = Pick<SavedCampaign, "id" | "key" | "name" | "brand" | "status"> & {
   createdAt: string;
   image: string | null;
+  channels: readonly string[];
+  endDate: string | null;
+  total: number;
+  completed: number;
+  failed: number;
 };
+export type CampaignGalleryRun = {
+  id: string;
+  campaign_key: string;
+  status: string;
+  created_at: string;
+  brands: { profile: unknown };
+  assets: { kind: string; status: string; meta: unknown }[];
+};
+export type CampaignGalleryViewProps = { campaigns: SavedCampaignCard[]; preview: boolean };
 export type CampaignPreviewEdit = (
   kind: "caption" | "image" | "date",
   postId: string,
