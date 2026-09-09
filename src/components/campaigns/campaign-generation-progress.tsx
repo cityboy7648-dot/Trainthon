@@ -23,7 +23,13 @@ export function CampaignGenerationProgress({ campaign }: { campaign: SavedCampai
       aria-live="polite"
     >
       <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-        <span className="font-medium">{progress.percent === 100 ? c.generated : c.generating}</span>
+        <span className="font-medium">
+          {progress.percent === 100
+            ? c.generated
+            : !progress.active && progress.failed
+              ? c.status.failed
+              : c.generating}
+        </span>
         <span className="text-shell-muted">
           {c.generationCount(progress.done, progress.total)} · {progress.percent}%
         </span>

@@ -38,7 +38,7 @@ export async function generateCampaignTwo(
       throw new AppError("generation_failed", campaignErrors.productImage);
     const images = [run.product.image_url, ...references];
     const site = await collectSite(run.profile.source_url, context);
-    if (Date.now() - startedAt > 195_000)
+    if (Date.now() - startedAt > 90_000)
       throw new AppError("generation_failed", campaignErrors.timeout);
     const { output: plan } = await parseStructuredOutput(
       campaignTwoPlanSchema,
@@ -53,45 +53,45 @@ export async function generateCampaignTwo(
       images,
     );
     let failed = false;
-    // 제공자 제한 75초와 결과 저장 시간을 Vercel의 300초 제한 안에 남긴다.
-    for (let offset = 0; offset < run.assets.length; offset += 4) {
-      if (Date.now() - startedAt > 195_000)
-        throw new AppError("generation_failed", campaignErrors.timeout);
-      await Promise.all(
-        run.assets.slice(offset, offset + 4).map(async (asset) => {
-          const assetContext = { ...context, assetId: asset.id };
-          const sceneIndex =
-            asset.meta.format === "carousel" ? asset.meta.position - 8 : asset.meta.day - 2;
-          const brief =
-            asset.meta.day === 1 ? plan.product_brief : plan.scenes[sceneIndex].image_brief;
-          const meta = { ...asset.meta, caption: plan.captions[asset.meta.day - 1] };
-          try {
-            await updateCampaignTwoAsset(run.client, asset.id, { status: "processing", meta });
-            const image = await generateCampaignImage(
-              campaignTwoImagePrompt(
-                plan.concept,
-                brief,
-                JSON.stringify(run.product),
-                meta.format === "story",
-              ),
-              images,
+    // 최대 180초 이미지 요청과 저장 시간을 300초 실행 제한 안에 남긴다.
+    if (Date.now() - startedAt > 90_000)
+      throw new AppError("generation_failed", campaignErrors.timeout);
+    const imagesStartedAt = Date.now();
+    await Promise.all(
+      run.assets.map(async (asset, index) => {
+        const assetContext = { ...context, assetId: asset.id };
+        const sceneIndex =
+          asset.meta.format === "carousel" ? asset.meta.position - 8 : asset.meta.day - 2;
+        const brief =
+          asset.meta.day === 1 ? plan.product_brief : plan.scenes[sceneIndex].image_brief;
+        const meta = { ...asset.meta, caption: plan.captions[asset.meta.day - 1] };
+        try {
+          await updateCampaignTwoAsset(run.client, asset.id, { status: "processing", meta });
+          const image = await generateCampaignImage(
+            campaignTwoImagePrompt(
+              plan.concept,
+              brief,
+              JSON.stringify(run.product),
               meta.format === "story",
-              assetContext,
-            );
-            await saveCampaignTwoImage(run.client, run.runId, asset.id, image, meta);
-          } catch (error) {
-            failed = true;
-            const cause =
-              error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.image;
-            await updateCampaignTwoAsset(run.client, asset.id, {
-              status: "failed",
-              meta: { ...meta, error: cause },
-            });
-            log.error("campaign_two.asset_failed", assetContext, { cause });
-          }
-        }),
-      );
-    }
+            ),
+            images,
+            meta.format === "story",
+            assetContext,
+            { runStartedAt: startedAt, imagesStartedAt, index },
+          );
+          await saveCampaignTwoImage(run.client, run.runId, asset.id, image, meta);
+        } catch (error) {
+          failed = true;
+          const cause =
+            error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.image;
+          await updateCampaignTwoAsset(run.client, asset.id, {
+            status: "failed",
+            meta: { ...meta, error: cause },
+          });
+          log.error("campaign_two.asset_failed", assetContext, { cause });
+        }
+      }),
+    );
     await setCampaignTwoRunStatus(run.client, run.runId, failed ? "failed" : "done");
   } catch (error) {
     const cause = error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.plan;

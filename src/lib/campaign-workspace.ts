@@ -33,6 +33,7 @@ export function signatureSlots(start: string): CampaignPostMeta[] {
 }
 
 export function previewModes(key: string): CampaignPreviewMode[] {
+  if (key === "complete_set") return ["feed", "pinterest", "carousel"];
   return key === "signature_grid" ? ["feed", "grid"] : ["feed", "story", "carousel"];
 }
 

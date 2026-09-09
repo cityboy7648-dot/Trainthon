@@ -65,6 +65,7 @@ export class AppError extends Error {
 export const campaignErrors = {
   upload: "PNG 또는 JPG 이미지(5MB 이하)를 선택해 주세요.",
   conflict: "다른 곳에서 수정됐어요. 새로고침한 뒤 다시 시도해 주세요.",
+  editGenerating: "이 게시물은 생성 중이에요. 생성이 끝난 뒤 수정해 주세요.",
   download: "다운로드할 이미지가 없거나 파일을 가져오지 못했어요.",
   login: "캠페인을 만들려면 로그인해 주세요.",
   brand: "저장된 브랜드를 찾지 못했어요.",
@@ -77,6 +78,9 @@ export const campaignErrors = {
   save: "캠페인 결과를 저장하지 못했어요.",
   plan: "AI가 캠페인 구성을 완료하지 못했어요.",
   image: "AI가 이미지를 생성하지 못했어요.",
+  imageTimeout: "이미지 생성 응답 시간이 초과됐어요. 요청이 자동으로 재실행되지는 않습니다.",
+  imageQuota: "OpenAI API 잔액 또는 사용 한도가 부족해요. 결제·사용 한도를 확인해 주세요.",
+  imageRateLimited: "OpenAI 이미지 생성 요청 한도에 도달했어요. 잠시 뒤 다시 시도해 주세요.",
   timeout: "생성 제한 시간을 초과했어요. 새 캠페인으로 다시 시도해 주세요.",
   request: "요청 형식이 올바르지 않아요.",
   origin: "현재 사이트에서 다시 시도해 주세요.",

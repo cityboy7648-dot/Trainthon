@@ -4,6 +4,8 @@ import { registerHooks } from "node:module";
 
 const events = [];
 let imageFailure = false;
+let elapsed = 0;
+let slowImages = false;
 globalThis.campaignTwoTest = {
   async parse(schema, name, prompt, input, context, images) {
     events.push({ kind: "plan", input: JSON.parse(input), context, images });
@@ -18,6 +20,11 @@ globalThis.campaignTwoTest = {
   },
   async image(prompt, images, story, context) {
     events.push({ kind: "image", prompt, images, story, context });
+    if (slowImages) {
+      const start = elapsed;
+      await new Promise((resolve) => setImmediate(resolve));
+      elapsed = Math.max(elapsed, start + 120000);
+    }
     if (imageFailure && context.assetId === "asset-2") throw new Error("test image failure");
     return Buffer.from("test-image");
   },
@@ -84,6 +91,21 @@ const run = {
     meta: { position: i + 1, day, format, product, product_key: "key", caption: null, error: null },
   })),
 };
+
+test("이미지마다 2분 걸려도 10장 모두 서버 제한 안에 저장한다", async (t) => {
+  events.length = 0;
+  elapsed = 0;
+  slowImages = true;
+  t.mock.method(Date, "now", () => elapsed);
+  try {
+    await generateCampaignTwo(run, "request-id");
+    assert.equal(events.filter((e) => e.kind === "save").length, 10);
+    assert.ok(elapsed < 270000);
+    assert.equal(events.at(-1).status, "done");
+  } finally {
+    slowImages = false;
+  }
+});
 
 test("기획과 10장 생성 모두 선택 상품과 승인 레퍼런스 4장을 전달한다", async () => {
   events.length = 0;

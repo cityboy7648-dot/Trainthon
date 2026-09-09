@@ -102,6 +102,32 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
     .eq("run_id", run.id)
     .eq("kind", "image");
   if (error) throw new AppError("network", campaignErrors.result);
+  if (
+    ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
+    ["pending", "processing"].includes(run.status) &&
+    Date.now() - Date.parse(run.created_at) > 360_000
+  ) {
+    for (const asset of data ?? []) {
+      if (!["pending", "processing"].includes(asset.status)) continue;
+      const meta = { ...campaignPostMetaSchema.parse(asset.meta), error: campaignErrors.timeout };
+      const result = await client
+        .from("assets")
+        .update({ status: "failed", meta })
+        .eq("id", asset.id)
+        .eq("run_id", run.id)
+        .in("status", ["pending", "processing"]);
+      if (result.error) throw new AppError("network", campaignErrors.save);
+      asset.status = "failed";
+      asset.meta = meta;
+    }
+    const result = await client
+      .from("runs")
+      .update({ status: "failed" })
+      .eq("id", run.id)
+      .in("status", ["pending", "processing"]);
+    if (result.error) throw new AppError("network", campaignErrors.save);
+    run.status = "failed";
+  }
   const posts = await Promise.all(
     (data ?? []).map(async (asset) => {
       const meta = campaignPostMetaSchema.parse(asset.meta);
@@ -151,7 +177,7 @@ export async function listSavedCampaigns(): Promise<SavedCampaignCard[]> {
 
 export async function ownedCampaignAsset(runId: string, assetId: string) {
   z.uuid().parse(assetId);
-  const { client } = await ownedCampaign(runId);
+  const { client, run } = await ownedCampaign(runId);
   const { data: asset, error } = await client
     .from("assets")
     .select("id, meta, storage_path, status")
@@ -160,5 +186,5 @@ export async function ownedCampaignAsset(runId: string, assetId: string) {
     .eq("kind", "image")
     .maybeSingle();
   if (error || !asset) throw new AppError("not_found", campaignErrors.result);
-  return { client, asset };
+  return { client, asset, run };
 }

@@ -5,6 +5,7 @@ const runId = "b287625f-65d0-435e-b1fd-55b5c7e912ab";
 const assetId = "b287625f-65d0-435e-b1fd-55b5c7e912ac";
 let stale = false;
 let writes = [];
+globalThis.editRun = { campaign_key: "signature_grid" };
 const original = {
   day: 1,
   position: 9,
@@ -45,7 +46,7 @@ registerHooks({
       return { url: "data:text/javascript,export function revalidatePath(){}", shortCircuit: true };
     if (s === "@/lib/data/campaign-workspace")
       return {
-        url: "data:text/javascript,export async function ownedCampaignAsset(){return {client:globalThis.editClient,asset:globalThis.editAsset}}; export async function createSavedCampaign(){throw new Error()}; export async function getSavedCampaign(){throw new Error()}",
+        url: "data:text/javascript,export async function ownedCampaignAsset(){return {client:globalThis.editClient,asset:globalThis.editAsset,run:globalThis.editRun}}; export async function createSavedCampaign(){throw new Error()}; export async function getSavedCampaign(){throw new Error()}",
         shortCircuit: true,
       };
     if (s.startsWith("@/")) return n(new URL(`../${s.slice(2)}.ts`, import.meta.url).href, c);
@@ -54,6 +55,24 @@ registerHooks({
 });
 const { editCampaignPost, replaceCampaignImage } =
   await import("./data/campaign-workspace-actions.ts");
+test("생성 중인 캠페인 2·5의 수정은 결과에 덮어써지지 않도록 거부한다", async () => {
+  for (const key of ["one_product_three_scenes", "complete_set"]) {
+    globalThis.editRun = { campaign_key: key };
+    for (const status of ["pending", "processing"]) {
+      globalThis.editAsset.status = status;
+      writes = [];
+      for (const [kind, value] of [
+        ["caption", "수정"],
+        ["date", "2026-10-01"],
+      ]) {
+        assert.equal((await editCampaignPost({ runId, assetId, kind, value })).ok, false);
+      }
+      assert.equal(writes.length, 0);
+    }
+  }
+  globalThis.editRun = { campaign_key: "signature_grid" };
+  globalThis.editAsset.status = "done";
+});
 test("캡션 편집은 기획 정보와 날짜를 보존한다", async () => {
   writes = [];
   stale = false;

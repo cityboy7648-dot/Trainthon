@@ -5,8 +5,6 @@ import {
 } from "@/lib/data/campaign-workspace";
 import { campaigns } from "@/definitions/campaigns";
 import { CampaignBackButton } from "./campaign-back-button";
-import { CampaignTwoResult } from "./campaign-two-result";
-import { CampaignFiveResult } from "./campaign-five-result";
 import { Campaign4PlanResult } from "./campaign-4-plan-result";
 import { CampaignWorkspaceLive } from "./campaign-workspace-live";
 import { ErrorState } from "@/components/error-state";
@@ -25,8 +23,7 @@ export async function CampaignWorkspaceResult({ id }: { id: string }) {
     const { run } = await ownedCampaign(id);
     key = run.campaign_key;
     if (key === "real_usage") plan = await getSavedCampaign4Plan(id);
-    else if (!["one_product_three_scenes", "complete_set"].includes(key))
-      campaign = await getSavedCampaign(id);
+    else campaign = await getSavedCampaign(id);
   } catch (error) {
     return (
       <div className="p-8">
@@ -46,8 +43,6 @@ export async function CampaignWorkspaceResult({ id }: { id: string }) {
     >
       <CampaignBackButton />
       <h1 className="text-2xl leading-9 font-semibold tracking-tight">{definition?.name}</h1>
-      {key === "one_product_three_scenes" && <CampaignTwoResult runId={id} />}
-      {key === "complete_set" && <CampaignFiveResult runId={id} />}
       {plan && <Campaign4PlanResult {...plan} />}
     </div>
   );
