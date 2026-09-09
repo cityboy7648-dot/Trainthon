@@ -4,4 +4,4 @@ export const inputClassName =
   "h-shell-create rounded-shell border-shell-border text-shell-ink placeholder:text-shell-muted bg-background px-3 text-sm";
 
 export const submitClassName =
-  "bg-shell-button hover:bg-shell-button-hover rounded-shell h-shell-create disabled:bg-shell-active disabled:text-shell-icon text-xs font-semibold text-white";
+  "bg-shell-button hover:bg-shell-button-hover active:opacity-80 rounded-shell h-shell-create disabled:bg-shell-active disabled:text-shell-icon cursor-pointer text-xs font-semibold text-white";
