@@ -18,7 +18,8 @@ let scrapeQueue: Promise<unknown> = Promise.resolve();
 function getFirecrawlClient(): Firecrawl {
   client ??= new Firecrawl({
     apiKey: getProviderApiKey("FIRECRAWL_API_KEY"),
-    maxRetries: 0,
+    // SDK는 이 값을 재시도가 아니라 시도 횟수로 쓴다. 0이면 요청을 안 보낸다.
+    maxRetries: 1,
     timeoutMs: REQUEST_TIMEOUT_MS,
   });
 
