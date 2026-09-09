@@ -41,7 +41,6 @@ export function CampaignGalleryCard({ campaign }: { campaign: SavedCampaignCard 
           </span>
         )}
       </div>
-      <p className="text-shell-muted mt-3 truncate text-xs">{campaign.brand}</p>
       <div className="text-shell-muted mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
         <span>
           {campaign.total ? text.images(campaign.total) : text.preparing} ·{" "}

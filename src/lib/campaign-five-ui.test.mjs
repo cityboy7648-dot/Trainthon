@@ -68,7 +68,7 @@ registerHooks({
       return {
         format: "module",
         shortCircuit: true,
-        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); }`,
+        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign;`,
       };
     if (url === "test:product-picker")
       return {
@@ -101,6 +101,20 @@ registerHooks({
   },
 });
 
+test("상세 상단은 경로·개발 안내 대신 뒤로가기 버튼을 표시한다", async () => {
+  const { CampaignWorkspace } = await import("../components/campaigns/campaign-workspace.tsx");
+  const { previewCampaign } = await import("../mock/campaign-workspace.ts");
+  globalThis.campaignQuery = "";
+  const html = renderCampaignSelection(
+    createElement(CampaignWorkspace, { campaign: previewCampaign, onPreviewEdit: async () => {} }),
+  );
+  assert.match(html, /href="\/campaigns"/);
+  assert.match(html, /뒤로가기/);
+  assert.doesNotMatch(html, /개발 미리보기/);
+  assert.doesNotMatch(html, /<nav/);
+  assert.match(html, /font-shell/);
+});
+
 test("갤러리는 진행중·완료만 표시하고 대표 이미지 카드에서 기존 상세로 연결한다", async () => {
   const { CampaignGalleryView } = await import("../components/campaigns/campaign-gallery-view.tsx");
   const { toCampaignGalleryCard } = await import("./campaign-gallery.ts");
@@ -122,6 +136,7 @@ test("갤러리는 진행중·완료만 표시하고 대표 이미지 카드에�
   assert.match(html, /href="\/campaigns\/saved-run"/);
   assert.match(html, /card-thumbnail-soft/);
   assert.match(html, /aspect-campaign-image/);
+  assert.doesNotMatch(html, />브랜드</);
   globalThis.campaignQuery = "";
 });
 

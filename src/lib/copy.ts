@@ -304,7 +304,7 @@ export const copy = {
     generationCount: (done: number, total: number) => `${total}장 중 ${done}장 완료`,
     generationFailures: (count: number) =>
       `${count}장 생성 실패 · 해당 게시물에서 원인을 확인해 주세요.`,
-    localPreview: "개발 미리보기 · 변경 내용은 계정에 저장되지 않습니다.",
+    back: "뒤로가기",
     preview: "미리보기",
     modes: { feed: "피드", grid: "전체 그리드", story: "스토리", carousel: "캐러셀" },
     status: { pending: "초안", processing: "생성 중", done: "준비 완료", failed: "생성 실패" },

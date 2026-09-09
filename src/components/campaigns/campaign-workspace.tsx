@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CalendarDays, ChevronRight, Download, ImageIcon, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CampaignGenerationProgress } from "./campaign-generation-progress";
 import { CampaignPostPreview } from "./campaign-post-preview";
 import { CampaignPostEditor } from "./campaign-post-editor";
+import { CampaignBackButton } from "./campaign-back-button";
 import { campaignDate, previewModes } from "@/lib/campaign-workspace";
 import { copy } from "@/lib/copy";
 import { downloadCampaignArchive } from "@/lib/data/campaign-download-client";
@@ -45,26 +45,12 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
   return (
     <div
       data-source={onPreviewEdit ? "mock" : "server"}
-      className="text-shell-ink mx-auto flex h-dvh min-h-0 w-full max-w-screen-2xl flex-col overflow-hidden px-4 py-4 sm:px-6 lg:px-8 lg:py-6"
+      className="font-shell bg-shell-background text-shell-ink mx-auto flex h-dvh min-h-0 w-full max-w-screen-2xl flex-col overflow-hidden px-4 py-4 sm:px-6 lg:px-8 lg:py-6"
     >
-      <nav
-        className="text-shell-muted mb-3 flex shrink-0 items-center gap-2 text-sm"
-        aria-label={copy.campaigns.title}
-      >
-        <Link href="/campaigns" className="hover:text-shell-ink">
-          {copy.campaigns.title}
-        </Link>
-        <span>/</span>
-        <span>{campaign.name}</span>
-      </nav>
-      {onPreviewEdit && (
-        <p className="text-shell-icon mb-3 shrink-0 text-xs">
-          {copy.campaignWorkspace.localPreview}
-        </p>
-      )}
+      <CampaignBackButton />
       <header className="mb-6 flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-5">
-          <h1 className="text-2xl font-semibold tracking-tight lg:text-3xl">{campaign.name}</h1>
+          <h1 className="text-2xl leading-9 font-semibold tracking-tight">{campaign.name}</h1>
           <span className="bg-shell-background text-shell-muted rounded-full px-4 py-1 text-xs font-medium">
             {c.status[campaign.status as keyof typeof c.status] ?? c.status.pending}
           </span>
@@ -72,7 +58,7 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
         <Button
           variant="outline"
           disabled={downloading || !campaign.posts.some((p) => p.image_url)}
-          className="h-11 gap-2 px-5"
+          className="bg-background rounded-shell h-9 gap-2 px-4 text-xs"
           onClick={() =>
             startDownload(async () => {
               const result = await downloadCampaignArchive(
@@ -88,17 +74,17 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
         </Button>
       </header>
       <CampaignGenerationProgress campaign={campaign} />
-      <div className="grid min-h-0 flex-1 grid-rows-2 gap-5 lg:grid-cols-2 lg:grid-rows-1 lg:gap-8">
+      <div className="grid min-h-0 flex-1 grid-rows-2 gap-5 lg:grid-cols-2 lg:grid-rows-1">
         <section
-          className="flex min-h-0 min-w-0 flex-col overflow-hidden"
+          className="border-shell-border rounded-campaign-card bg-background flex min-h-0 min-w-0 flex-col overflow-hidden border p-4 sm:p-5"
           aria-labelledby="schedule-heading"
         >
           <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3">
             <div className="flex items-baseline gap-3">
-              <h2 id="schedule-heading" className="text-xl font-semibold">
+              <h2 id="schedule-heading" className="text-base font-semibold">
                 {copy.campaigns.schedule}
               </h2>
-              <span className="text-shell-icon text-sm">{c.count(campaign.posts.length)}</span>
+              <span className="text-shell-icon text-xs">{c.count(campaign.posts.length)}</span>
             </div>
             <Button variant="outline" disabled={!selected} onClick={() => setEditing("date")}>
               <CalendarDays className="size-4" />
@@ -166,10 +152,10 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
           </div>
         </section>
         <section
-          className="border-shell-border flex min-h-0 min-w-0 flex-col overflow-hidden lg:border-l lg:pl-7"
+          className="border-shell-border rounded-campaign-card bg-background flex min-h-0 min-w-0 flex-col overflow-hidden border p-4 sm:p-5"
           aria-labelledby="preview-heading"
         >
-          <h2 id="preview-heading" className="mb-3 shrink-0 text-xl font-semibold">
+          <h2 id="preview-heading" className="mb-3 shrink-0 text-base font-semibold">
             {c.preview}
           </h2>
           <div
