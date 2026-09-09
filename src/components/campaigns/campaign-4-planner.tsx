@@ -44,10 +44,6 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
     );
   }
 
-  const posts = result?.ok
-    ? [result.plan.day1, result.plan.day2, result.plan.day3, result.plan.day4, result.plan.day5]
-    : [];
-
   return (
     <section data-source="server" className="mt-10 border-t pt-8">
       <h2 className="text-shell-ink text-xl font-semibold">{text.title}</h2>
@@ -96,13 +92,15 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
               </div>
             ))}
         </fieldset>
-        <Button
-          type="submit"
-          disabled={!product || pending}
-          className="bg-shell-button hover:bg-shell-button-hover h-11 text-white"
-        >
-          {pending ? text.pending : text.submit}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={!product || pending}
+            className="bg-shell-button hover:bg-shell-button-hover h-11 text-white"
+          >
+            {pending ? text.pending : copy.campaigns.generateAction}
+          </Button>
+        </div>
       </form>
       <div aria-live="polite" className="mt-6">
         {pending && (
@@ -126,32 +124,6 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
                 : undefined
             }
           />
-        )}
-        {!pending && result?.ok && (
-          <div>
-            <h2 className="text-shell-ink text-xl font-semibold">{text.ready}</h2>
-            <p className="text-shell-ink mt-2 text-sm font-medium">{result.product.name}</p>
-            <p className="text-shell-muted mt-2 text-sm">{text.planOnly}</p>
-            <h3 className="text-shell-ink mt-6 text-sm font-semibold">{text.direction}</h3>
-            <p className="text-shell-muted mt-2 text-sm leading-6">{result.plan.visualDirection}</p>
-            <ol className="divide-shell-border mt-6 divide-y">
-              {posts.map((post, index) => (
-                <li key={index} className="py-5">
-                  <h3 className="text-shell-ink font-semibold">{copy.campaigns.day(index + 1)}</h3>
-                  <dl className="mt-3 space-y-3 text-sm leading-6">
-                    <div>
-                      <dt className="text-shell-muted">{text.scene}</dt>
-                      <dd>{post.scene}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-shell-muted">{text.caption}</dt>
-                      <dd className="whitespace-pre-wrap">{post.caption}</dd>
-                    </div>
-                  </dl>
-                </li>
-              ))}
-            </ol>
-          </div>
         )}
       </div>
     </section>

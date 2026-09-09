@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ErrorState } from "@/components/error-state";
 import { loadCampaignFiveResult } from "@/lib/data/campaign-five-client";
 import { CampaignFiveOutputs } from "./campaign-five-outputs";
@@ -13,8 +13,7 @@ import type {
 } from "@/lib/types";
 
 export function CampaignFiveResult({ runId }: CampaignFiveResultProps) {
-  const pathname = usePathname();
-  const params = useSearchParams();
+  const router = useRouter();
   const [state, setState] = useState<CampaignRequestState<Result> | null>(null);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
@@ -46,9 +45,7 @@ export function CampaignFiveResult({ runId }: CampaignFiveResultProps) {
     <CampaignFiveOutputs
       result={state.data}
       onRetry={() => {
-        const next = new URLSearchParams(params.toString());
-        next.delete("run");
-        window.history.replaceState(null, "", `${pathname}?${next}`);
+        router.push("/campaigns/new?campaign=complete_set");
       }}
     />
   );
