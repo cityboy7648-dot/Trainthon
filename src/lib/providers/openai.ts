@@ -5,11 +5,15 @@ import { getProviderApiKey } from "@/lib/env";
 import { copy } from "@/lib/copy";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { log, type LogContext } from "@/lib/log";
-import type { TokenUsage } from "@/lib/types";
+import type { TokenUsage, CampaignImageTiming } from "@/lib/types";
 
 const MODEL = "gpt-5.5";
 const IMAGE_MODEL = "gpt-image-2";
 const TIMEOUT_MS = 75_000;
+const IMAGE_TIMEOUT_MS = 180_000;
+const IMAGES_PER_MINUTE = 5;
+const IMAGE_WINDOW_MS = 61_000;
+const RUN_IMAGE_BUDGET_MS = 280_000;
 
 let client: OpenAI | undefined;
 
@@ -98,37 +102,50 @@ export async function generateCampaignImage(
   imageUrls: string[],
   format: boolean | "pinterest",
   context: LogContext,
+  timing: CampaignImageTiming,
 ): Promise<Buffer> {
   if (!context.runId || !context.assetId)
     throw new AppError("generation_failed", campaignErrors.create);
   const startedAt = performance.now();
   try {
-    const response = await getOpenAiClient().responses.create({
-      model: MODEL,
-      input: [
-        {
-          role: "user",
-          content: [
-            { type: "input_text", text: prompt },
-            ...imageUrls.map((image_url) => ({
-              type: "input_image" as const,
-              image_url,
-              detail: "high" as const,
-            })),
-          ],
-        },
-      ],
-      tools: [
-        {
-          type: "image_generation",
-          model: IMAGE_MODEL,
-          quality: "high",
-          size: format === "pinterest" ? "1024x1536" : format ? "1152x2048" : "1024x1280",
-          output_format: "png",
-        },
-      ],
-      tool_choice: { type: "image_generation" },
-    });
+    const scheduledAt =
+      timing.imagesStartedAt + Math.floor(timing.index / IMAGES_PER_MINUTE) * IMAGE_WINDOW_MS;
+    const delay = scheduledAt - Date.now();
+    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+    const timeout = Math.min(
+      IMAGE_TIMEOUT_MS,
+      timing.runStartedAt + RUN_IMAGE_BUDGET_MS - Date.now(),
+    );
+    if (timeout < 30_000) throw new AppError("generation_failed", campaignErrors.timeout);
+    const response = await getOpenAiClient().responses.create(
+      {
+        model: MODEL,
+        input: [
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text: prompt },
+              ...imageUrls.map((image_url) => ({
+                type: "input_image" as const,
+                image_url,
+                detail: "high" as const,
+              })),
+            ],
+          },
+        ],
+        tools: [
+          {
+            type: "image_generation",
+            model: IMAGE_MODEL,
+            quality: "high",
+            size: format === "pinterest" ? "1024x1536" : format ? "1152x2048" : "1024x1280",
+            output_format: "png",
+          },
+        ],
+        tool_choice: { type: "image_generation" },
+      },
+      { timeout },
+    );
     const result = response.output.find((item) => item.type === "image_generation_call");
     if (!result || result.type !== "image_generation_call" || !result.result) {
       throw new AppError("generation_failed", campaignErrors.image);
@@ -144,12 +161,22 @@ export async function generateCampaignImage(
     log.error("campaign.image_failed", context, {
       model: IMAGE_MODEL,
       durationMs: Math.round(performance.now() - startedAt),
+      errorType: error instanceof Error ? error.name : "UnknownError",
+      status: error instanceof OpenAI.APIError ? error.status : undefined,
+      code: error instanceof OpenAI.APIError ? error.code : undefined,
     });
     if (error instanceof AppError) throw error;
+    if (error instanceof OpenAI.APIConnectionTimeoutError)
+      throw new AppError("generation_failed", campaignErrors.imageTimeout);
+    if (
+      error instanceof OpenAI.APIError &&
+      (error.code === "insufficient_quota" || error.code === "billing_hard_limit_reached")
+    )
+      throw new AppError("generation_failed", campaignErrors.imageQuota);
     throw new AppError(
       "generation_failed",
       error instanceof OpenAI.APIError && error.status === 429
-        ? copy.brandAnalysis.aiRateLimited
+        ? campaignErrors.imageRateLimited
         : campaignErrors.image,
     );
   }

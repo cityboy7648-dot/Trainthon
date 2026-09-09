@@ -42,7 +42,12 @@ export async function selectSavedCampaign(input: unknown): Promise<CampaignReque
 export async function editCampaignPost(input: unknown): Promise<CampaignRequestState<null>> {
   try {
     const parsed = campaignEditSchema.parse(input);
-    const { client, asset } = await ownedCampaignAsset(parsed.runId, parsed.assetId);
+    const { client, asset, run } = await ownedCampaignAsset(parsed.runId, parsed.assetId);
+    if (
+      ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
+      ["pending", "processing"].includes(asset.status)
+    )
+      throw new AppError("generation_failed", campaignErrors.editGenerating);
     const meta = campaignPostMetaSchema.parse(asset.meta);
     const next =
       parsed.kind === "caption"
@@ -70,7 +75,12 @@ export async function replaceCampaignImage(form: FormData): Promise<CampaignRequ
   try {
     const runId = z.uuid().parse(form.get("runId"));
     const assetId = z.uuid().parse(form.get("assetId"));
-    const { client, asset } = await ownedCampaignAsset(runId, assetId);
+    const { client, asset, run } = await ownedCampaignAsset(runId, assetId);
+    if (
+      ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
+      ["pending", "processing"].includes(asset.status)
+    )
+      throw new AppError("generation_failed", campaignErrors.editGenerating);
     if (asset.status === "processing" || asset.status === "failed")
       throw new AppError("network", campaignErrors.conflict);
     const file = form.get("image");

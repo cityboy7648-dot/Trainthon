@@ -24,6 +24,13 @@ function renderCampaignSelection(component) {
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "@/lib/env")
+      return {
+        url: "data:text/javascript,export const isCampaignPreview=false",
+        shortCircuit: true,
+      };
+    if (specifier === "@/lib/data/campaign-workspace")
+      return { url: "test:workspace-data", shortCircuit: true };
     if (specifier === "next/link") return { url: "test:next-link-interop", shortCircuit: true };
     if (specifier === "@/lib/data/campaign-4-actions")
       return { url: "test:campaign-four-action", shortCircuit: true };
@@ -46,6 +53,12 @@ registerHooks({
     return nextResolve(specifier, context);
   },
   load(url, context, nextLoad) {
+    if (url === "test:workspace-data")
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `export async function ownedCampaign(){return {run:{campaign_key:globalThis.detailCampaign.key}}} export async function getSavedCampaign(){return globalThis.detailCampaign} export async function getSavedCampaign4Plan(){throw new Error('Unexpected plan request')}`,
+      };
     if (url === "test:next-link-interop")
       return {
         format: "module",
@@ -68,7 +81,7 @@ registerHooks({
       return {
         format: "module",
         shortCircuit: true,
-        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign;`,
+        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign; export const refreshSavedCampaign = selectSavedCampaign;`,
       };
     if (url === "test:product-picker")
       return {
@@ -248,8 +261,9 @@ test("동반 상품 한도에 도달해도 선택된 상품은 해제할 수 있
   assert.match(buttons[1], / disabled=""/);
 });
 
-test("결과 화면은 11장과 일자별 캡션 5개, 확인된 상품 주소를 표시한다", async () => {
-  const { CampaignFiveOutputs } = await import("../components/campaigns/campaign-five-outputs.tsx");
+test("세트 상세는 11개 일정과 Pinterest 미리보기·상품 주소를 표시한다", async () => {
+  const { CampaignWorkspaceResult } =
+    await import("../components/campaigns/campaign-workspace-result.tsx");
   const slots = [
     [1, "feed"],
     [2, "feed"],
@@ -269,7 +283,7 @@ test("결과 화면은 11장과 일자별 캡션 5개, 확인된 상품 주소�
     assets: slots.map(([day, format], index) => ({
       id: String(index),
       status: "done",
-      image_url: "https://example.com/result.png",
+      image_url: null,
       meta: {
         position: index + 1,
         day,
@@ -284,10 +298,65 @@ test("결과 화면은 11장과 일자별 캡션 5개, 확인된 상품 주소�
       { key: "b", name: "상품B", url: null },
     ],
   };
-  const html = renderToStaticMarkup(createElement(CampaignFiveOutputs, { result, onRetry() {} }));
-  assert.equal((html.match(/<img /g) ?? []).length, 11);
-  assert.equal((html.match(/일자별본문/g) ?? []).length, 5);
-  assert.equal((html.match(/data-pinterest="true"/g) ?? []).length, 2);
+  globalThis.detailCampaign = {
+    id: "run",
+    key: "complete_set",
+    name: "세트로 완성",
+    brand: "브랜드",
+    startDate: "2026-09-10",
+    status: "done",
+    posts: result.assets.map((a) => ({
+      ...a,
+      meta: { ...a.meta, product_links: result.product_links },
+    })),
+  };
+  globalThis.campaignQuery = "post=2&view=pinterest";
+  const html = renderCampaignSelection(await CampaignWorkspaceResult({ id: "run" }));
+  assert.equal((html.match(/data-selected=/g) ?? []).length, 11);
+  assert.match(html, /게시 일정/);
+  assert.match(html, /미리보기/);
+  assert.match(html, /aspect-campaign-pinterest/);
+  assert.match(html, /일자별본문2/);
   assert.match(html, /href="https:\/\/example.com\/products\/a"/);
   assert.match(html, /상품 상세 주소를 확인하지 못했어요/);
+  globalThis.campaignQuery = "";
+});
+
+test("캠페인 2 상세는 생성 중에도 게시 일정·미리보기·진행 bar를 유지한다", async () => {
+  const { CampaignWorkspaceResult } =
+    await import("../components/campaigns/campaign-workspace-result.tsx");
+  globalThis.campaignQuery = "";
+  globalThis.detailCampaign = {
+    id: "run",
+    key: "one_product_three_scenes",
+    name: "한 상품, 세 장면",
+    brand: "브랜드",
+    startDate: "2026-09-10",
+    status: "processing",
+    posts: [
+      {
+        id: "one",
+        status: "processing",
+        image_url: null,
+        meta: { day: 1, position: 1, format: "feed", caption: null },
+      },
+    ],
+  };
+  const html = renderCampaignSelection(await CampaignWorkspaceResult({ id: "run" }));
+  assert.match(html, /게시 일정/);
+  assert.match(html, /미리보기/);
+  assert.match(html, /<progress/);
+  assert.match(html, /value="0"/);
+  globalThis.detailCampaign = {
+    ...globalThis.detailCampaign,
+    status: "failed",
+    posts: globalThis.detailCampaign.posts.map((p) => ({
+      ...p,
+      status: "failed",
+      meta: { ...p.meta, error: "시간 초과" },
+    })),
+  };
+  const failed = renderCampaignSelection(await CampaignWorkspaceResult({ id: "run" }));
+  assert.match(failed, /시간 초과/);
+  assert.doesNotMatch(failed, />콘텐츠를 생성하고 있어요/);
 });

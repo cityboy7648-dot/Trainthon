@@ -32,6 +32,11 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
           (post) => post.meta.day === selected?.meta.day && post.meta.format === mode,
         );
   const shown = mode === "grid" ? selected : previewPost;
+  const generatedCampaign = ["one_product_three_scenes", "complete_set"].includes(campaign.key);
+  const editLocked =
+    generatedCampaign && !!shown && ["pending", "processing"].includes(shown.status);
+  const dateLocked =
+    generatedCampaign && ["pending", "processing"].includes(campaign.posts[0]?.status);
   const c = copy.campaignWorkspace;
   function choose(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
@@ -86,7 +91,11 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
               </h2>
               <span className="text-shell-icon text-xs">{c.count(campaign.posts.length)}</span>
             </div>
-            <Button variant="outline" disabled={!selected} onClick={() => setEditing("date")}>
+            <Button
+              variant="outline"
+              disabled={!selected || dateLocked}
+              onClick={() => setEditing("date")}
+            >
               <CalendarDays className="size-4" />
               {c.date}
             </Button>
@@ -139,7 +148,8 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
                       </p>
                     )}
                     <p className="text-shell-icon mt-1 text-xs">
-                      {c.channel} · {c.modes[post.meta.format]}
+                      {post.meta.format === "pinterest" ? c.modes.pinterest : c.channel} ·{" "}
+                      {c.modes[post.meta.format]}
                     </p>
                   </div>
                   <span className="bg-shell-active text-shell-muted hidden shrink-0 rounded-full px-3 py-1 text-xs sm:block">
@@ -179,7 +189,13 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
               </button>
             ))}
             <span className="text-shell-icon ml-auto pb-3 text-xs">
-              {campaign.key === "signature_grid" ? "1:1" : mode === "story" ? "9:16" : "4:5"}
+              {campaign.key === "signature_grid"
+                ? "1:1"
+                : mode === "story"
+                  ? "9:16"
+                  : mode === "pinterest"
+                    ? "2:3"
+                    : "4:5"}
             </span>
           </div>
           <div className="@container-size min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
@@ -192,13 +208,18 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
                   <Button
                     variant="outline"
                     className="h-10"
-                    disabled={["processing", "failed"].includes(shown.status)}
+                    disabled={editLocked || ["processing", "failed"].includes(shown.status)}
                     onClick={() => setEditing("image")}
                   >
                     <ImageIcon className="size-4" />
                     {c.image}
                   </Button>
-                  <Button variant="outline" className="h-10" onClick={() => setEditing("caption")}>
+                  <Button
+                    variant="outline"
+                    className="h-10"
+                    disabled={editLocked}
+                    onClick={() => setEditing("caption")}
+                  >
                     <Pencil className="size-4" />
                     {c.caption}
                   </Button>

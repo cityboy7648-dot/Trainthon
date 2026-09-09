@@ -4,11 +4,9 @@ import { z } from "zod";
 import { campaignErrors, errorCodes } from "@/lib/errors";
 import {
   campaignProductsSchema,
-  campaignTwoResultSchema,
   type CampaignRequestState,
   type CampaignProducts,
   type CampaignTwoRequest,
-  type CampaignTwoResult,
 } from "@/lib/types";
 
 export async function requestCampaign<T>(
@@ -49,13 +47,4 @@ export function submitCampaignTwo(input: CampaignTwoRequest) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
-}
-
-export function loadCampaignTwoResult(
-  runId: string,
-): Promise<CampaignRequestState<CampaignTwoResult>> {
-  return requestCampaign(
-    `/api/campaigns/2/runs/${encodeURIComponent(runId)}`,
-    campaignTwoResultSchema,
-  );
 }

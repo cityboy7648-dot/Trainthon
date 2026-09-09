@@ -5,9 +5,11 @@ import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { copy } from "@/lib/copy";
 import type { CampaignPostPreviewProps } from "@/lib/types";
+import { campaignProductLinkSchema } from "@/lib/types";
 
 export function CampaignPostPreview({ campaign, post, mode }: CampaignPostPreviewProps) {
   const c = copy.campaignWorkspace;
+  const links = campaignProductLinkSchema.array().safeParse(post?.meta.product_links);
   if (mode !== "grid" && !post) return <EmptyState title={c.emptyFormat} />;
   return (
     <div
@@ -48,7 +50,7 @@ export function CampaignPostPreview({ campaign, post, mode }: CampaignPostPrevie
       ) : (
         <>
           <div
-            className={`bg-shell-background relative ${mode === "story" ? "aspect-campaign-story" : campaign.key === "signature_grid" ? "aspect-square" : "aspect-campaign-feed"}`}
+            className={`bg-shell-background relative ${mode === "story" ? "aspect-campaign-story" : mode === "pinterest" ? "aspect-campaign-pinterest" : campaign.key === "signature_grid" ? "aspect-square" : "aspect-campaign-feed"}`}
           >
             {post?.image_url ? (
               <Image
@@ -84,6 +86,28 @@ export function CampaignPostPreview({ campaign, post, mode }: CampaignPostPrevie
               <span className="mr-2 font-semibold">{campaign.brand}</span>
               {post?.meta.caption || <span className="text-shell-icon">{c.emptyCaption}</span>}
             </p>
+          )}
+          {links.success && links.data.length > 0 && (
+            <ul aria-label={copy.campaignFive.productLinks} className="mx-3 mb-3 space-y-2 text-xs">
+              {links.data.map((product) => (
+                <li key={product.key}>
+                  {product.url ? (
+                    <a
+                      href={product.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline underline-offset-4"
+                    >
+                      {product.name}
+                    </a>
+                  ) : (
+                    <span>
+                      {product.name} · {copy.campaignFive.productLinkUnavailable}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </>
       )}

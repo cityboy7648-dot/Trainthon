@@ -343,7 +343,7 @@ export const campaignTwoResultSchema = z.object({
   ),
 });
 export type CampaignTwoResult = z.infer<typeof campaignTwoResultSchema>;
-export type CampaignTwoResultProps = { runId: string };
+export type CampaignImageTiming = { runStartedAt: number; imagesStartedAt: number; index: number };
 export const campaignFiveRequestSchema = z
   .object({
     brand_id: z.uuid(),
@@ -408,8 +408,6 @@ export const campaignFiveResultSchema = z.object({
   product_links: z.array(campaignProductLinkSchema),
 });
 export type CampaignFiveResult = z.infer<typeof campaignFiveResultSchema>;
-export type CampaignFiveResultProps = { runId: string };
-export type CampaignFiveOutputsProps = { result: CampaignFiveResult; onRetry: () => void };
 export type CampaignProductPickerProps = { campaignNumber: 2 | 5 };
 export type CampaignProductOptionsProps = {
   products: NonNullable<CampaignProducts>["products"];
@@ -437,7 +435,7 @@ export const campaignPostMetaSchema = z
   .object({
     day: z.number().int().min(1).max(366),
     position: z.number().int().min(1).max(100),
-    format: z.enum(["feed", "story", "carousel"]),
+    format: z.enum(["feed", "story", "carousel", "pinterest"]),
     title: z.string().max(200).optional(),
     caption: z.string().max(2200).nullable().default(null),
     start_date: z.iso.date().optional(),
@@ -445,7 +443,7 @@ export const campaignPostMetaSchema = z
   })
   .catchall(z.json());
 export type CampaignPostMeta = z.infer<typeof campaignPostMetaSchema>;
-export type CampaignPreviewMode = "feed" | "grid" | "story" | "carousel";
+export type CampaignPreviewMode = "feed" | "grid" | "story" | "carousel" | "pinterest";
 export type CampaignPost = {
   id: string;
   status: z.infer<typeof campaignAssetStatusSchema>;

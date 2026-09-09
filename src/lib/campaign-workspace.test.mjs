@@ -37,6 +37,18 @@ test("9개 게시 슬롯은 날짜와 그리드 위치를 분리한다", () => {
 test("시그니처 그리드는 스토리 탭을 표시하지 않는다", () => {
   assert.deepEqual(previewModes("signature_grid"), ["feed", "grid"]);
   assert.deepEqual(previewModes("one_product_three_scenes"), ["feed", "story", "carousel"]);
+  assert.deepEqual(previewModes("complete_set"), ["feed", "pinterest", "carousel"]);
+});
+test("세트 캠페인 메타는 Pinterest와 상품 링크를 보존한다", async () => {
+  const { campaignPostMetaSchema } = await import("./types.ts");
+  const meta = campaignPostMetaSchema.parse({
+    day: 2,
+    position: 3,
+    format: "pinterest",
+    product_links: [{ name: "상품", key: "key", url: "https://example.com" }],
+  });
+  assert.equal(meta.format, "pinterest");
+  assert.equal(meta.product_links[0].name, "상품");
 });
 test("업로드는 파일 확장자가 아니라 내용과 크기를 검사한다", () => {
   assert.throws(() => validateCampaignImage(Buffer.from("<svg></svg>"), "image/png"));
