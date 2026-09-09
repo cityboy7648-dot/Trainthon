@@ -9,6 +9,11 @@ export type AppSidebarProps = {
   user: SessionUser | null;
 };
 
+export type AppAccessProps = {
+  user: SessionUser;
+  children: import("react").ReactNode;
+};
+
 export type NavUserProps = {
   user: SessionUser;
   compact?: boolean;
