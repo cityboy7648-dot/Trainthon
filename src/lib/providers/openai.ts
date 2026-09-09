@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import type { APIError } from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import {
@@ -14,6 +15,9 @@ import type { TokenUsage, CampaignImageTiming } from "@/lib/types";
 
 const MODEL = "gpt-5.5";
 const IMAGE_MODEL = "gpt-image-2";
+// 한 run의 이미지를 동시에 요청하므로 429가 나온다. 한도 초과는 처리도 과금도 안 된 요청이라 예산 안에서 다시 보낸다.
+const IMAGE_RATE_LIMIT_WAIT_MS = 15_000;
+const IMAGE_MIN_TIMEOUT_MS = 30_000;
 
 let client: OpenAI | undefined;
 
@@ -39,6 +43,24 @@ function openaiErrorDetail(error: unknown): string | undefined {
     return detail;
   }
   return error instanceof Error ? error.message : undefined;
+}
+
+function isImageRateLimit(error: unknown): error is APIError {
+  return (
+    error instanceof OpenAI.APIError &&
+    error.status === 429 &&
+    error.code !== "insufficient_quota" &&
+    error.code !== "billing_hard_limit_reached"
+  );
+}
+
+function rateLimitWaitMs(error: APIError, attempt: number): number {
+  const headerMs = Number(error.headers?.get("retry-after-ms"));
+  if (headerMs > 0) return headerMs;
+  const headerSeconds = Number(error.headers?.get("retry-after"));
+  if (headerSeconds > 0) return headerSeconds * 1000;
+  // 같은 run의 요청이 동시에 429를 맞으므로 지터로 재요청 시점을 흩는다.
+  return IMAGE_RATE_LIMIT_WAIT_MS * 2 ** attempt * (1 + Math.random() * 0.5);
 }
 
 export async function asCampaignImageUrl(url: string): Promise<string> {
@@ -153,48 +175,62 @@ export async function generateCampaignImage(
   if (!context.runId || !context.assetId)
     throw new AppError("generation_failed", campaignErrors.create);
   const startedAt = performance.now();
+  const deadline = timing.runStartedAt + CAMPAIGN_IMAGE_BUDGET_MS;
   try {
-    const timeout = Math.min(
-      CAMPAIGN_IMAGE_TIMEOUT_MS,
-      timing.runStartedAt + CAMPAIGN_IMAGE_BUDGET_MS - Date.now(),
-    );
-    if (timeout < 30_000) throw new AppError("generation_failed", campaignErrors.timeout);
-    const response = await getOpenAiClient().responses.create(
-      {
-        model: MODEL,
-        input: [
-          {
-            role: "user",
-            content: [
-              { type: "input_text", text: prompt },
-              ...imageUrls.map((image_url) => ({
-                type: "input_image" as const,
-                image_url,
-                detail: "high" as const,
-              })),
-            ],
-          },
-        ],
-        tools: [
-          {
-            type: "image_generation",
-            model: IMAGE_MODEL,
-            quality: "high",
-            size:
-              format === "pinterest"
-                ? "1024x1536"
-                : format === "square"
-                  ? "1024x1024"
-                  : format
-                    ? "1152x2048"
-                    : "1024x1280",
-            output_format: "png",
-          },
-        ],
-        tool_choice: { type: "image_generation" },
-      },
-      { timeout },
-    );
+    const request: OpenAI.Responses.ResponseCreateParamsNonStreaming = {
+      model: MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: prompt },
+            ...imageUrls.map((image_url) => ({
+              type: "input_image" as const,
+              image_url,
+              detail: "high" as const,
+            })),
+          ],
+        },
+      ],
+      tools: [
+        {
+          type: "image_generation",
+          model: IMAGE_MODEL,
+          quality: "high",
+          size:
+            format === "pinterest"
+              ? "1024x1536"
+              : format === "square"
+                ? "1024x1024"
+                : format
+                  ? "1152x2048"
+                  : "1024x1280",
+          output_format: "png",
+        },
+      ],
+      tool_choice: { type: "image_generation" },
+    };
+    let response;
+    for (let attempt = 0; ; attempt++) {
+      const timeout = Math.min(CAMPAIGN_IMAGE_TIMEOUT_MS, deadline - Date.now());
+      if (timeout < IMAGE_MIN_TIMEOUT_MS)
+        throw new AppError("generation_failed", campaignErrors.timeout);
+      try {
+        response = await getOpenAiClient().responses.create(request, { timeout });
+        break;
+      } catch (error) {
+        if (!isImageRateLimit(error)) throw error;
+        const wait = rateLimitWaitMs(error, attempt);
+        if (Date.now() + wait + IMAGE_MIN_TIMEOUT_MS > deadline)
+          throw new AppError("generation_failed", campaignErrors.imageRateLimited);
+        log.info("campaign.image_rate_limited", context, {
+          model: IMAGE_MODEL,
+          attempt,
+          waitMs: Math.round(wait),
+        });
+        await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+    }
     const result = response.output.find((item) => item.type === "image_generation_call");
     if (!result || result.type !== "image_generation_call" || !result.result) {
       const reason =

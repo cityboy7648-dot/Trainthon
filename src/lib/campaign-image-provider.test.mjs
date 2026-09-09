@@ -10,7 +10,10 @@ const realClient = new OpenAI({ apiKey: "test-only" });
 globalThis.imageProviderTestClient = realClient;
 realClient.responses.create = async (body, options) => {
   calls.push({ body, options, at: Date.now() });
-  if (failure) throw failure;
+  if (typeof failure === "function") {
+    const error = failure(calls.length);
+    if (error) throw error;
+  } else if (failure) throw failure;
   if ((options?.timeout ?? 75000) < 120000) throw new OpenAI.APIConnectionTimeoutError();
   return {
     output: [{ type: "image_generation_call", result: Buffer.from("image").toString("base64") }],
@@ -52,16 +55,12 @@ test("2분 걸리는 이미지는 텍스트 요청 제한으로 중단하지 않
   );
   assert.equal(calls.length, 1);
 });
-test("시간 초과·잔액 부족·요청 한도를 구별하고 자동 재생성하지 않는다", async () => {
+test("시간 초과·잔액 부족은 구별하고 자동 재생성하지 않는다", async () => {
   for (const [error, message] of [
     [new OpenAI.APIConnectionTimeoutError(), /시간/],
     [
       new OpenAI.RateLimitError(429, { code: "insufficient_quota" }, "quota", new Headers()),
       /잔액|사용 한도/,
-    ],
-    [
-      new OpenAI.RateLimitError(429, { code: "rate_limit_exceeded" }, "rate", new Headers()),
-      /요청/,
     ],
   ]) {
     calls = [];
@@ -71,6 +70,51 @@ test("시간 초과·잔액 부족·요청 한도를 구별하고 자동 재생�
     );
     assert.equal(calls.length, 1);
   }
+});
+test("요청 한도 429는 retry-after만큼 기다렸다 다시 보낸다", async (t) => {
+  calls = [];
+  t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 0 });
+  failure = (count) =>
+    count === 1
+      ? new OpenAI.RateLimitError(
+          429,
+          { code: "rate_limit_exceeded" },
+          "rate",
+          new Headers({ "retry-after": "20" }),
+        )
+      : undefined;
+  const pending = generateCampaignImage("prompt", [], false, context, { runStartedAt: 0 });
+  await Promise.resolve();
+  assert.equal(calls.length, 1);
+  t.mock.timers.tick(19_999);
+  await Promise.resolve();
+  assert.equal(calls.length, 1);
+  t.mock.timers.tick(1);
+  assert.equal((await pending).toString(), "image");
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].at, 20_000);
+});
+test("한도가 풀리지 않으면 예산 안에서 멈추고 한도 오류로 알린다", async (t) => {
+  calls = [];
+  t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 0 });
+  failure = () =>
+    new OpenAI.RateLimitError(
+      429,
+      { code: "rate_limit_exceeded" },
+      "rate",
+      new Headers({ "retry-after": "60" }),
+    );
+  const pending = assert.rejects(
+    generateCampaignImage("prompt", [], false, context, { runStartedAt: 0 }),
+    (error) => /요청 한도/.test(error.cause),
+  );
+  for (let i = 0; i < 10; i++) {
+    t.mock.timers.tick(60_000);
+    await Promise.resolve();
+  }
+  await pending;
+  assert.ok(calls.length >= 2);
+  assert.ok(calls.every((call) => call.at + call.options.timeout <= 285000));
 });
 test("이미지 API 실패 원인을 숨기지 않는다", async () => {
   calls = [];
