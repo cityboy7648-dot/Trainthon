@@ -74,7 +74,11 @@ export async function createCampaignTwoRun(input: CampaignTwoRequest) {
     })
     .select("id")
     .single();
-  if (runError || !run) throw new AppError("generation_failed", campaignErrors.create);
+  if (runError || !run)
+    throw new AppError(
+      "generation_failed",
+      runError ? `${campaignErrors.create} ${runError.message}` : campaignErrors.create,
+    );
 
   const slots = [
     { day: 1, format: "feed" },

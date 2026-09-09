@@ -66,7 +66,8 @@ export async function createSavedCampaign(input: unknown): Promise<string> {
     },
     { onConflict: "id", ignoreDuplicates: true },
   );
-  if (created.error) throw new AppError("network", campaignErrors.create);
+  if (created.error)
+    throw new AppError("network", `${campaignErrors.create} ${created.error.message}`);
   const { run } = await ownedCampaign(parsed.requestId);
   if (run.campaign_key !== parsed.key || run.brands.id !== brand.id)
     throw new AppError("not_found", campaignErrors.create);
@@ -79,7 +80,8 @@ export async function createSavedCampaign(input: unknown): Promise<string> {
   const inserted = await client
     .from("assets")
     .upsert(assets, { onConflict: "id", ignoreDuplicates: true });
-  if (inserted.error) throw new AppError("network", campaignErrors.create);
+  if (inserted.error)
+    throw new AppError("network", `${campaignErrors.create} ${inserted.error.message}`);
   return run.id;
 }
 

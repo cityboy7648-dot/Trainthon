@@ -73,7 +73,11 @@ export async function createCampaignFiveRun(input: CampaignFiveRequest) {
     })
     .select("id")
     .single();
-  if (runError || !run) throw new AppError("generation_failed", campaignErrors.create);
+  if (runError || !run)
+    throw new AppError(
+      "generation_failed",
+      runError ? `${campaignErrors.create} ${runError.message}` : campaignErrors.create,
+    );
 
   const { data: assets, error: assetError } = await client
     .from("assets")
