@@ -4,17 +4,16 @@ import { useState } from "react";
 import { ArrowUpIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AuthDialog } from "@/components/auth/auth-dialog";
-import { ErrorState } from "@/components/error-state";
+import { showErrorNotice } from "@/lib/error-notice";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
 import { resolveUrlSubmission } from "@/lib/home";
 import type { UrlFormProps } from "@/lib/types";
 
-export function UrlForm({ authenticated, errorCode, errorCause }: UrlFormProps) {
+export function UrlForm({ authenticated }: UrlFormProps) {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
-  const [invalid, setInvalid] = useState(false);
   const submission = resolveUrlSubmission(value, authenticated);
 
   function requireAuthentication() {
@@ -35,10 +34,9 @@ export function UrlForm({ authenticated, errorCode, errorCause }: UrlFormProps) 
             return;
           }
           if (submission.kind === "invalid") {
-            setInvalid(true);
+            showErrorNotice("invalid_url");
             return;
           }
-          setInvalid(false);
           router.push(submission.href);
         }}
       >
@@ -65,7 +63,6 @@ export function UrlForm({ authenticated, errorCode, errorCause }: UrlFormProps) 
           }}
           onKeyDown={requireAuthentication}
           onChange={(event) => {
-            setInvalid(false);
             setValue(event.target.value);
           }}
           className="placeholder:text-shell-muted text-shell-ink w-full bg-transparent px-4 pt-4 pb-8 text-sm outline-none"
@@ -82,11 +79,6 @@ export function UrlForm({ authenticated, errorCode, errorCause }: UrlFormProps) 
           </Button>
         </div>
       </form>
-      {invalid ? (
-        <ErrorState code="invalid_url" />
-      ) : (
-        errorCode && <ErrorState code={errorCode} cause={errorCause} />
-      )}
       {!authenticated && <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />}
     </div>
   );

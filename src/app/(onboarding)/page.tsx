@@ -3,14 +3,10 @@ import { HomePrompt } from "@/components/home/home-prompt";
 import { copy } from "@/lib/copy";
 import { getSessionUser } from "@/lib/data/session";
 import { isPreviewAnalysis } from "@/lib/env";
-import { homeErrorFromSearch } from "@/lib/home";
-import type { HomePageProps } from "@/lib/types";
 
-export default async function HomePage({ searchParams }: HomePageProps) {
+export default async function HomePage() {
   const user = await getSessionUser();
   const canSubmitUrl = isPreviewAnalysis || Boolean(user);
-  const { error, cause } = await searchParams;
-  const homeError = homeErrorFromSearch(error, cause);
 
   return (
     <main
@@ -19,12 +15,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       className="font-shell relative flex min-h-dvh flex-col items-center justify-center px-6"
     >
       <HomeHeader user={user} />
-      <HomePrompt
-        user={user}
-        canSubmitUrl={canSubmitUrl}
-        errorCode={homeError?.code}
-        errorCause={homeError?.cause}
-      />
+      <HomePrompt user={user} canSubmitUrl={canSubmitUrl} />
     </main>
   );
 }
