@@ -196,6 +196,7 @@ export const copy = {
     colorLabel: (color: string) => `브랜드 색상 ${color}`,
   },
   campaigns: {
+    saving: "캠페인 만드는 중…",
     title: "캠페인",
     galleryTitle: "최근 캠페인",
     newCampaign: "새 캠페인 만들기",
@@ -227,6 +228,51 @@ export const copy = {
     scope: "일정표와 게시물 소재를 만들어요. 자동 게시는 추후 연결돼요.",
     backToSelection: "캠페인 다시 선택",
     selectedCampaign: "선택한 캠페인",
+  },
+  campaignWorkspace: {
+    generating: "캠페인 이미지를 만들고 있어요",
+    generated: "이미지 생성이 완료됐어요",
+    generationCount: (done: number, total: number) => `${total}장 중 ${done}장 완료`,
+    generationFailures: (count: number) =>
+      `${count}장 생성 실패 · 해당 게시물에서 원인을 확인해 주세요.`,
+    localPreview: "개발 미리보기 · 변경 내용은 계정에 저장되지 않습니다.",
+    preview: "미리보기",
+    modes: { feed: "피드", grid: "전체 그리드", story: "스토리", carousel: "캐러셀" },
+    status: { pending: "초안", processing: "생성 중", done: "준비 완료", failed: "생성 실패" },
+    count: (n: number) => `${n}개 게시물`,
+    post: (n: number) => `게시물 ${n}`,
+    date: "시작일 변경",
+    dateLabel: "캠페인 시작일",
+    download: "전체 다운로드",
+    downloading: "다운로드 준비 중…",
+    image: "이미지 수정",
+    caption: "캡션 수정",
+    save: "적용하기",
+    saving: "적용 중…",
+    cancel: "취소",
+    imageHint: "PNG 또는 JPG · 최대 5MB. 기존 이미지를 새 파일로 교체합니다.",
+    dateHint: "게시물 간격은 유지하고 전체 시작일을 바꿉니다.",
+    captionHint: "Instagram 캡션 · 최대 2,200자",
+    emptyImage: "아직 이미지가 없어요",
+    emptyCaption: "아직 캡션이 없어요",
+    emptyCampaigns: "아직 만든 캠페인이 없어요",
+    emptyFormat: "이 날짜에는 해당 형식의 게시물이 없어요",
+    channel: "Instagram",
+    time: "18:00",
+    dateParts: (value: string) => {
+      const date = new Date(`${value}T00:00:00Z`);
+      return {
+        date: new Intl.DateTimeFormat("ko-KR", {
+          month: "long",
+          day: "numeric",
+          timeZone: "UTC",
+        }).format(date),
+        weekday: new Intl.DateTimeFormat("ko-KR", { weekday: "short", timeZone: "UTC" }).format(
+          date,
+        ),
+      };
+    },
+    previewLabel: "Instagram 게시물 미리보기",
   },
   assets: {
     title: "결과물",

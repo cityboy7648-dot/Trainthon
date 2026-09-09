@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { selectSavedCampaign } from "@/lib/data/campaign-workspace-actions";
+import { readActiveBrandUrl } from "@/lib/brand-profile-session";
+import { showErrorNotice } from "@/lib/error-notice";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
 import { CampaignProductPicker } from "@/components/campaigns/campaign-product-picker";
@@ -14,9 +17,12 @@ import { copy } from "@/lib/copy";
 import type { CampaignSelectionProps } from "@/lib/types";
 import { EmptyState } from "@/components/empty-state";
 
-export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
+export function CampaignSelection({ campaigns, previewMode }: CampaignSelectionProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
+  const [saving, startSaving] = useTransition();
+  const requestId = useRef<string | null>(null);
   const [transitioningKey, setTransitioningKey] = useState<string>();
   const selected = catalog.find((campaign) => campaign.key === searchParams.get("campaign"));
   const picked = campaigns.find((campaign) => campaign.key === searchParams.get("picked"));
@@ -35,6 +41,31 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
   }
 
   function selectCampaign(key: string) {
+    if (key === "signature_grid") {
+      if (previewMode) {
+        router.push("/campaigns/preview-signature-grid");
+        return;
+      }
+      if (saving) return;
+      requestId.current ??= crypto.randomUUID();
+      startSaving(async () => {
+        try {
+          const result = await selectSavedCampaign({
+            key,
+            requestId: requestId.current,
+            sourceUrl: readActiveBrandUrl() ?? undefined,
+          });
+          if (!result.ok) {
+            showErrorNotice(result.code, result.cause);
+            return;
+          }
+          router.push(`/campaigns/${result.data}`);
+        } catch {
+          showErrorNotice("network");
+        }
+      });
+      return;
+    }
     function commitSelection() {
       const params = new URLSearchParams(searchParams.toString());
       params.set("campaign", key);
@@ -122,10 +153,10 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
         <div className="fixed right-6 bottom-6 z-20 sm:right-10 sm:bottom-8">
           <Button
             onClick={() => selectCampaign(picked.key)}
-            disabled={Boolean(transitioningKey)}
+            disabled={Boolean(transitioningKey) || saving}
             className="bg-shell-button hover:bg-shell-button-hover rounded-shell h-11 gap-3 px-6 text-white"
           >
-            {copy.campaigns.selectAction}
+            {saving ? copy.campaigns.saving : copy.campaigns.selectAction}
             <ArrowRight className="size-4" aria-hidden="true" />
           </Button>
         </div>

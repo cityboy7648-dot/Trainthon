@@ -58,6 +58,9 @@ export class AppError extends Error {
 }
 
 export const campaignErrors = {
+  upload: "PNG 또는 JPG 이미지(5MB 이하)를 선택해 주세요.",
+  conflict: "다른 곳에서 수정됐어요. 새로고침한 뒤 다시 시도해 주세요.",
+  download: "다운로드할 이미지가 없거나 파일을 가져오지 못했어요.",
   login: "캠페인을 만들려면 로그인해 주세요.",
   brand: "저장된 브랜드를 찾지 못했어요.",
   products: "상품 목록을 불러오지 못했어요.",

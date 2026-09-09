@@ -316,4 +316,77 @@ export type CampaignDetailsProps = {
   onClose: () => void;
 };
 
-export type CampaignSelectionProps = { campaigns: readonly CampaignPreview[] };
+export type CampaignSelectionProps = {
+  campaigns: readonly CampaignPreview[];
+  previewMode?: boolean;
+};
+
+export const campaignPostMetaSchema = z
+  .object({
+    day: z.number().int().min(1).max(366),
+    position: z.number().int().min(1).max(100),
+    format: z.enum(["feed", "story", "carousel"]),
+    title: z.string().max(200).optional(),
+    caption: z.string().max(2200).nullable().default(null),
+    start_date: z.iso.date().optional(),
+    error: z.string().nullable().optional(),
+  })
+  .catchall(z.json());
+export type CampaignPostMeta = z.infer<typeof campaignPostMetaSchema>;
+export type CampaignPreviewMode = "feed" | "grid" | "story" | "carousel";
+export type CampaignPost = {
+  id: string;
+  status: z.infer<typeof campaignAssetStatusSchema>;
+  image_url: string | null;
+  meta: CampaignPostMeta;
+};
+export type SavedCampaign = {
+  id: string;
+  key: string;
+  name: string;
+  brand: string;
+  status: string;
+  startDate: string;
+  posts: CampaignPost[];
+};
+export type SavedCampaignCard = Pick<SavedCampaign, "id" | "key" | "name" | "brand" | "status"> & {
+  createdAt: string;
+  image: string | null;
+};
+export type CampaignPreviewEdit = (
+  kind: "caption" | "image" | "date",
+  postId: string,
+  form: FormData,
+) => Promise<void>;
+export type CampaignWorkspaceProps = {
+  campaign: SavedCampaign;
+  onPreviewEdit?: CampaignPreviewEdit;
+};
+export type CampaignArchiveFile = { name: string; bytes: Uint8Array };
+export type CampaignPostPreviewProps = {
+  campaign: SavedCampaign;
+  post: CampaignPost | undefined;
+  mode: CampaignPreviewMode;
+};
+export type CampaignPostEditorProps = {
+  onPreviewEdit?: CampaignPreviewEdit;
+  campaign: SavedCampaign;
+  post: CampaignPost;
+  kind: "caption" | "image" | "date";
+  onClose: () => void;
+};
+export const campaignSelectionSchema = z
+  .object({
+    requestId: z.uuid(),
+    sourceUrl: z.url().optional(),
+    key: z.literal("signature_grid"),
+  })
+  .strict();
+export const campaignEditSchema = z
+  .object({
+    runId: z.uuid(),
+    assetId: z.uuid(),
+    kind: z.enum(["caption", "date"]),
+    value: z.string().max(2200),
+  })
+  .strict();

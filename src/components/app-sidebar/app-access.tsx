@@ -37,11 +37,11 @@ export function AppAccess({ user, children }: AppAccessProps) {
     };
   }, [owner, pathname, previewReady, router]);
 
-  if (access.owner !== owner || (!access.ready && pathname !== "/analyzing")) {
+  if (!previewReady && (access.owner !== owner || (!access.ready && pathname !== "/analyzing"))) {
     return <HomeSkeleton />;
   }
 
-  if (!access.ready) {
+  if (!previewReady && !access.ready) {
     return (
       <main
         className="font-shell relative flex min-h-dvh flex-col px-6 pt-24"
