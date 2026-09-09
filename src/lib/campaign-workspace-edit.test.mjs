@@ -46,7 +46,7 @@ registerHooks({
       return { url: "data:text/javascript,export function revalidatePath(){}", shortCircuit: true };
     if (s === "@/lib/data/campaign-workspace")
       return {
-        url: "data:text/javascript,export async function ownedCampaignAsset(){return {client:globalThis.editClient,asset:globalThis.editAsset,run:globalThis.editRun}}; export async function createSavedCampaign(){throw new Error()}; export async function getSavedCampaign(){throw new Error()}",
+        url: "data:text/javascript,export async function ownedCampaignAsset(){return {client:globalThis.editClient,asset:globalThis.editAsset,run:globalThis.editRun}}; export async function createSavedCampaign(){throw new Error()}; export async function getSavedCampaign(){throw new Error()}; export async function deleteSavedCampaign(){throw new Error()}",
         shortCircuit: true,
       };
     if (s.startsWith("@/")) return n(new URL(`../${s.slice(2)}.ts`, import.meta.url).href, c);
