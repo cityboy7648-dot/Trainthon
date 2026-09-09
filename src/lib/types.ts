@@ -61,6 +61,17 @@ const httpUrlSchema = z
   .trim()
   .pipe(z.url())
   .refine((value) => /^https?:\/\//i.test(value), "HTTP 또는 HTTPS 주소여야 한다.");
+// LLM 구조화 출력 스키마용. z.url()은 JSON Schema에 format: uri를 남기고 OpenAI가 이를 400으로 거절한다.
+const llmHttpUrlSchema = z
+  .string()
+  .trim()
+  .refine((value) => {
+    try {
+      return /^https?:$/i.test(new URL(value).protocol);
+    } catch {
+      return false;
+    }
+  }, "HTTP 또는 HTTPS 주소여야 한다.");
 
 const brandImageUrlSchema = z.union([
   httpUrlSchema,
@@ -416,7 +427,7 @@ export const signatureGridPlanSchema = z
           upload_order: z.number().int().min(1).max(9),
           purpose: z.string().min(1),
           source_facts: z.array(z.string()),
-          source_image_urls: z.array(httpUrlSchema),
+          source_image_urls: z.array(llmHttpUrlSchema),
           image_brief: z.string().min(1),
           text_in_image: z.string().nullable(),
           caption: z.string().min(1).max(2200),
@@ -458,7 +469,7 @@ export const campaignFiveRequestSchema = z
     }
   });
 export type CampaignFiveRequest = z.infer<typeof campaignFiveRequestSchema>;
-const campaignProductUrlSchema = httpUrlSchema.refine((value) => {
+const campaignProductUrlSchema = llmHttpUrlSchema.refine((value) => {
   const url = new URL(value);
   return !url.username && !url.password;
 }, "인증 정보가 없는 HTTP 또는 HTTPS 주소여야 한다.");
