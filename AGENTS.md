@@ -59,10 +59,14 @@
 src/app/            라우트만. 로직 없음
 src/components/ui/  shadcn 원본
 src/components/     우리 컴포넌트. 화면별 폴더
-src/lib/data/       서버 접근
-src/lib/            유틸, types.ts, errors.ts, copy.ts
+src/lib/data/       DB 접근
+src/lib/providers/  openai.ts, higgsfield.ts
+src/lib/agents/     분석·추천 에이전트. <이름>/prompt.ts
+src/lib/supabase/   클라이언트 생성. admin.ts는 서버 전용
+src/lib/            env.ts, log.ts, types.ts, errors.ts, copy.ts
 src/mock/           예시 데이터
 src/definitions/    레퍼런스·캠페인 정의
+supabase/migrations/ 스키마 변경
 ```
 
 ### 서버/클라이언트 경계
@@ -117,6 +121,60 @@ src/definitions/    레퍼런스·캠페인 정의
 ### 개발용 표시
 
 - mock 여부 배지는 `NODE_ENV=development`에서만 켠다. 배포에는 안 나온다.
+
+## 백엔드
+
+### 스키마
+
+- 테이블은 `PLAN.md`의 "Supabase 테이블"에 있는 것만. 그 표가 스키마의 기준이다.
+- 새 테이블·컬럼이 필요하면 코드 전에 `PLAN.md`를 고치는 PR을 먼저. 왜 필요한지 적는다.
+- 스키마 변경은 `supabase/migrations/` 파일로만. 대시보드에서 손으로 고치지 않는다. 마이그레이션 하나 = 변경 하나.
+- 구조가 안 정해진 값은 새 컬럼 대신 `meta jsonb`에 넣는다. 세 곳 이상에서 쿼리하게 되면 그때 컬럼으로 뺀다.
+- 컬럼 삭제·이름 변경 금지. 새로 만들고 옮긴 뒤 다음 PR에서 지운다.
+- 모든 테이블 공통: `id uuid`, `created_at`. `user_id`는 `brands`에만. `runs`, `assets`는 join으로 소유자를 찾는다. 같은 값을 두 테이블에 복사하지 않는다.
+- 이름: 테이블 복수 snake_case, 컬럼 snake_case, FK는 `<단수>_id`. 상태 컬럼은 `status text` + `check` 제약. Postgres enum 안 쓴다.
+
+### 접근 경계
+
+- DB 접근은 `src/lib/data/` 안에서만. 라우트, 컴포넌트, 에이전트 코드에서 Supabase 클라이언트를 직접 만들지 않는다.
+- `service_role` 키는 `src/lib/supabase/admin.ts`에서만. 웹훅·백그라운드 작업에서만 쓴다. 사용자 요청은 anon + RLS.
+- RLS는 모든 테이블에 켠다. 정책은 마이그레이션에 같이 들어간다. RLS 없는 테이블은 머지하지 않는다.
+
+### 외부 API
+
+- OpenAI는 `src/lib/providers/openai.ts`, Higgsfield는 `src/lib/providers/higgsfield.ts` 한 파일씩. 다른 곳에서 SDK를 직접 import하지 않는다.
+- 모델 이름·엔드포인트 문자열은 그 파일 상단 상수.
+- 제공자 응답을 그대로 밖으로 내보내지 않는다. 우리 타입으로 바꿔서 반환.
+- 타임아웃과 재시도는 provider 파일에서 한 번만 정한다. 호출하는 쪽에서 다시 감싸지 않는다.
+- 비용 나가는 호출(이미지·영상)은 `runs` 없이는 못 부른다. 항상 run에 귀속.
+
+### 비동기 작업
+
+- 상태는 DB(`assets.status`)가 유일한 진실. 메모리·전역 변수에 작업 상태를 두지 않는다. Vercel은 요청마다 프로세스가 다르다.
+- 상태값: `pending → processing → done | failed`. 되돌아가지 않는다. 재시도는 새 `assets` 행.
+- Higgsfield 완료는 웹훅으로 받는다. 시크릿 확인 후 `provider_request_id`로 assets를 찾는다. 폴링은 웹훅 실패 대비 보조.
+- 웹훅·후처리는 멱등하게. 같은 이벤트가 두 번 와도 결과가 같아야 한다.
+
+### 에이전트
+
+- LLM 출력은 항상 구조화 출력(zod 스키마)으로 받는다. 자유 텍스트 파싱 금지.
+- 프롬프트는 `src/lib/agents/<이름>/prompt.ts` 한 파일. 코드 중간에 문자열로 흩어 두지 않는다.
+- 가져온 외부 HTML·이미지는 DB에 저장하지 않는다. 결과 프로필만 저장.
+
+### 에러
+
+- 서버 에러는 `src/lib/errors.ts`의 코드 중 하나로 던진다. 프론트 `ErrorState`가 그 코드로 문구를 찾는다. 새 코드 추가는 그 파일에서만.
+- 사용자에게 보내는 에러에 스택·키·내부 URL을 넣지 않는다. 원인 문구는 넣는다.
+
+### 검증·로깅
+
+- 라우트·Server Action 입력은 전부 zod로 검증. 검증 전 값은 DB에 안 들어간다.
+- 로그는 `src/lib/log.ts` 한 곳. `console.*` 직접 호출 금지. run id, asset id를 항상 같이 찍는다.
+- 비용 호출은 모델·소요시간·(있으면) 비용을 로그에 남긴다.
+
+### 환경변수
+
+- `process.env`는 `src/lib/env.ts`에서만 읽고 zod로 검증. 다른 파일은 여기서 import. 없는 변수는 시작 시점에 실패.
 
 ## 하지 말 것
 
