@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 315" role="img" aria-labelledby="title">
+  <title id="title">우유가 들어간 커피</title>
+  <rect width="560" height="315" fill="#FFFDF8"/>
+  <circle cx="280" cy="156" r="116" fill="#F2E8D5"/>
+  <ellipse cx="280" cy="252" rx="142" ry="17" fill="#26352A" opacity=".1"/>
+  <path d="M178 110h204v92c0 42-34 76-76 76h-52c-42 0-76-34-76-76Z" fill="#FFFFFF" stroke="#D7CBB7" stroke-width="6"/>
+  <ellipse cx="280" cy="111" rx="102" ry="29" fill="#B66C3D"/>
+  <path d="M280 94c20-20 48-4 32 15-11 13-32 20-32 20s-21-7-32-20c-16-19 12-35 32-15Z" fill="#FFFDF8"/>
+  <path d="M380 139h24c38 0 38 67 0 67h-23" fill="none" stroke="#D7CBB7" stroke-width="14" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 315" role="img" aria-labelledby="title">
+  <title id="title">검은 커피</title>
+  <rect width="560" height="315" fill="#F2E8D5"/>
+  <ellipse cx="280" cy="260" rx="150" ry="20" fill="#26352A" opacity=".12"/>
+  <path d="M176 112h220v91c0 44-36 80-80 80h-60c-44 0-80-36-80-80Z" fill="#FFFDF8" stroke="#D7CBB7" stroke-width="6"/>
+  <ellipse cx="286" cy="113" rx="110" ry="30" fill="#6A412B"/>
+  <ellipse cx="286" cy="111" rx="94" ry="20" fill="#252525"/>
+  <path d="M394 138h27c37 0 37 70 0 70h-26" fill="none" stroke="#D7CBB7" stroke-width="15" stroke-linecap="round"/>
+  <path d="M234 67c-18-19 16-28 0-48M287 67c-18-19 16-28 0-48M340 67c-18-19 16-28 0-48" fill="none" stroke="#FFFDF8" stroke-width="7" stroke-linecap="round" opacity=".85"/>
+</svg>

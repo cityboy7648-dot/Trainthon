@@ -1,0 +1,3 @@
+Generated with OpenAI image generation from the approved Trainthon product specification.
+App shell source: https://app.getmargo.com/
+Layout source: https://www.jasper.ai/

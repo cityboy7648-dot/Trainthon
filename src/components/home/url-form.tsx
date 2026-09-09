@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
 
@@ -15,15 +16,19 @@ function isHttpUrl(value: string): boolean {
 }
 
 export function UrlForm() {
+  const router = useRouter();
   const [value, setValue] = useState("");
   const valid = isHttpUrl(value.trim());
 
   return (
     <form
       data-source="mock"
-      className="bg-background rounded-xl border shadow-xs"
+      className="bg-background rounded-shell border-shell-border border"
       onSubmit={(event) => {
-        event.preventDefault(); // MOCK: 분석 요청은 C1에서 연결
+        event.preventDefault();
+        if (!valid) return;
+
+        router.push(`/brands?url=${encodeURIComponent(value.trim())}`); // MOCK
       }}
     >
       <input
@@ -35,17 +40,16 @@ export function UrlForm() {
         placeholder={copy.home.urlPlaceholder}
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        className="placeholder:text-muted-foreground w-full bg-transparent px-4 pt-4 pb-8 text-sm outline-none"
+        className="placeholder:text-shell-muted text-shell-ink w-full bg-transparent px-4 pt-4 pb-8 text-sm outline-none"
       />
       <div className="flex items-center justify-between px-3 pb-3">
-        <span className="text-muted-foreground px-1 text-xs">{copy.home.urlHint}</span>
+        <span className="text-shell-muted text-shell-caption px-1">{copy.home.urlHint}</span>
         <Button
           type="submit"
           size="icon-sm"
-          variant={valid ? "default" : "secondary"}
           disabled={!valid}
           aria-label={copy.home.submit}
-          className="rounded-full"
+          className="bg-shell-button hover:bg-shell-button-hover rounded-shell size-shell-control disabled:bg-shell-active disabled:text-shell-icon text-white"
         >
           <ArrowUpIcon />
         </Button>
