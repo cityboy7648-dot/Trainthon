@@ -3,6 +3,33 @@ import { campaign4 } from "./campaign-4.ts";
 
 export const campaigns: readonly CampaignPreview[] = [
   {
+    key: "complete_set",
+    name: "세트로 완성",
+    goal: "대표 상품과 함께 쓰는 상품을 하나의 조합으로 보여 줘 구매 선택을 돕는다",
+    duration_days: 5,
+    channels: ["Instagram 피드", "캐러셀", "Pinterest"],
+    image: "/campaigns/complete-set/card-thumbnail-soft.png",
+    outputs: [
+      "피드 이미지 3장 · 4:5 (1024×1280)",
+      "캐러셀 2세트 · 각 3장, 4:5 (1024×1280)",
+      "Pinterest 이미지 2장 · 2:3 (1024×1536)",
+      "한국어 캡션 5개 · 일자별 1개",
+      "5일 게시 일정과 확인된 상품 연결 목록",
+    ],
+    schedule: [
+      { day: 1, channel: "Instagram", format: "Feed", purpose: "대표 상품 소개" },
+      { day: 2, channel: "Instagram · Pinterest", format: "Feed · Pin", purpose: "기본 조합" },
+      {
+        day: 3,
+        channel: "Instagram · Pinterest",
+        format: "Feed · Pin",
+        purpose: "다른 상황의 조합",
+      },
+      { day: 4, channel: "Instagram", format: "Carousel", purpose: "구성품별 디테일" },
+      { day: 5, channel: "Instagram", format: "Carousel", purpose: "전체 세트 정리" },
+    ],
+  },
+  {
     key: campaign4.key,
     name: campaign4.name,
     goal: campaign4.goal,

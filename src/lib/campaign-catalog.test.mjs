@@ -3,6 +3,15 @@ import test from "node:test";
 import { campaigns } from "../definitions/campaigns.ts";
 import { getCampaignCandidates } from "./data/campaign-catalog.ts";
 
+test("세트 캠페인을 선택할 수 있고 5일 결과 구성을 안내한다", () => {
+  const completeSet = campaigns.find((item) => item.key === "complete_set");
+  assert.ok(completeSet);
+  assert.equal(completeSet.duration_days, 5);
+  assert.equal(completeSet.schedule.length, 5);
+  assert.ok(completeSet.outputs.some((item) => item.includes("캐러셀 2세트")));
+  assert.ok(completeSet.outputs.some((item) => item.includes("2:3")));
+});
+
 test("캠페인 상세에 확정된 결과물과 비율이 있다", () => {
   const grid = campaigns.find((item) => item.key === "signature_grid");
   const scenes = campaigns.find((item) => item.key === "one_product_three_scenes");

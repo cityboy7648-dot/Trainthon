@@ -1,4 +1,30 @@
 export const copy = {
+  campaignFive: {
+    question: "어떤 상품을 중심으로 조합할까요?",
+    description: "대표 상품 1개를 먼저 선택해 주세요.",
+    companionQuestion: "함께 보여 줄 상품을 골라 주세요",
+    companionDescription: "대표 상품과 함께 쓰는 상품을 1~10개 선택할 수 있어요.",
+    companionList: "함께 쓰는 상품 선택",
+    companionCount: (count: number) => `${count}개 선택 · 최대 10개`,
+    insufficientTitle: "조합할 상품이 부족해요",
+    insufficientDescription:
+      "이미지가 있는 상품이 2개 이상 필요해요. 브랜드 탭에서 상품 추출 결과를 확인해 주세요.",
+    generate: "이 조합으로 캠페인 만들기",
+    generating: "선택한 상품 조합으로 이미지를 만들고 있어요.",
+    day: (day: number) => `D${day}`,
+    caption: "게시물 캡션",
+    captionPending: "캡션을 준비하고 있어요.",
+    captionUnavailable: "캡션을 만들지 못했어요.",
+    productLinks: "상품 연결 목록",
+    productLinkUnavailable: "상품 상세 주소를 확인하지 못했어요.",
+    linksPending: "상품 상세 주소를 확인하고 있어요.",
+    format: (format: string) =>
+      format === "pinterest"
+        ? "Pinterest · 2:3"
+        : format === "carousel"
+          ? "캐러셀 · 4:5"
+          : "피드 · 4:5",
+  },
   campaignTwo: {
     question: "어떤 상품을 홍보할까요?",
     description: "브랜드에서 추출한 상품 중 하나를 선택해 주세요.",

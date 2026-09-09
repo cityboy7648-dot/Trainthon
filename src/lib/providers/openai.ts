@@ -96,7 +96,7 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
 export async function generateCampaignImage(
   prompt: string,
   imageUrls: string[],
-  story: boolean,
+  format: boolean | "pinterest",
   context: LogContext,
 ): Promise<Buffer> {
   if (!context.runId || !context.assetId)
@@ -123,7 +123,7 @@ export async function generateCampaignImage(
           type: "image_generation",
           model: IMAGE_MODEL,
           quality: "high",
-          size: story ? "1152x2048" : "1024x1280",
+          size: format === "pinterest" ? "1024x1536" : format ? "1152x2048" : "1024x1280",
           output_format: "png",
         },
       ],
