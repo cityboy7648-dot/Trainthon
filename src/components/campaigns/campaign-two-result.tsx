@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CampaignTwoResultSkeleton } from "./campaign-two-result-skeleton";
 import { loadCampaignTwoResult } from "@/lib/data/campaign-two-client";
 import { copy } from "@/lib/copy";
@@ -16,8 +16,7 @@ import type {
 } from "@/lib/types";
 
 export function CampaignTwoResult({ runId }: CampaignTwoResultProps) {
-  const pathname = usePathname();
-  const params = useSearchParams();
+  const router = useRouter();
   const [state, setState] = useState<CampaignRequestState<Result> | null>(null);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
@@ -98,9 +97,7 @@ export function CampaignTwoResult({ runId }: CampaignTwoResultProps) {
         <Button
           variant="outline"
           onClick={() => {
-            const next = new URLSearchParams(params.toString());
-            next.delete("run");
-            window.history.replaceState(null, "", `${pathname}?${next}`);
+            router.push("/campaigns/new?campaign=one_product_three_scenes");
           }}
         >
           {copy.campaignTwo.retry}

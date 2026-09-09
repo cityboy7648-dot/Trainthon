@@ -6,9 +6,29 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import ts from "typescript";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { ImageConfigContext } from "next/dist/shared/lib/image-config-context.shared-runtime.js";
+import { imageConfigDefault } from "next/dist/shared/lib/image-config.js";
+import nextConfig from "../../next.config.ts";
+
+function renderCampaignSelection(component) {
+  return renderToStaticMarkup(
+    createElement(
+      ImageConfigContext.Provider,
+      {
+        value: { ...imageConfigDefault, ...nextConfig.images },
+      },
+      component,
+    ),
+  );
+}
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "next/navigation") return { url: "test:navigation", shortCircuit: true };
+    if (specifier === "@/lib/data/campaign-workspace-actions")
+      return { url: "test:selection-action", shortCircuit: true };
+    if (specifier === "@/components/campaigns/campaign-product-picker")
+      return { url: "test:product-picker", shortCircuit: true };
     if (specifier === "next/image") return { url: "test:next-image-interop", shortCircuit: true };
     if (specifier.startsWith("@/") || specifier.startsWith(".")) {
       const base = specifier.startsWith("@/")
@@ -23,6 +43,24 @@ registerHooks({
     return nextResolve(specifier, context);
   },
   load(url, context, nextLoad) {
+    if (url === "test:navigation")
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `export const useSearchParams = () => new URLSearchParams(globalThis.campaignQuery ?? ''); export const usePathname = () => '/campaigns/new'; export const useRouter = () => ({ push() {} });`,
+      };
+    if (url === "test:selection-action")
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); }`,
+      };
+    if (url === "test:product-picker")
+      return {
+        format: "module",
+        shortCircuit: true,
+        source: `import { createElement } from ${JSON.stringify(import.meta.resolve("react"))}; export function CampaignProductPicker({campaignNumber}) { return createElement('section', {'data-picker': campaignNumber}); }`,
+      };
     if (url === "test:next-image-interop") {
       const imageUrl = import.meta.resolve("next/image.js");
       return {
@@ -42,6 +80,39 @@ registerHooks({
     }
     return nextLoad(url, context);
   },
+});
+
+test("선택 후에도 카드 세 개 아래에 선택 버튼과 상품 선택 영역을 유지한다", async () => {
+  const { CampaignSelection } = await import("../components/campaigns/campaign-selection.tsx");
+  const { campaigns } = await import("../definitions/campaigns.ts");
+  globalThis.campaignQuery = "campaign=complete_set";
+  const html = renderCampaignSelection(
+    createElement(CampaignSelection, {
+      campaigns: campaigns.filter((item) => item.key !== "complete_set").slice(0, 3),
+    }),
+  );
+  assert.equal((html.match(/<article /g) ?? []).length, 3);
+  assert.match(html, /md:col-start-3/);
+  assert.match(html, /aria-expanded="true"/);
+  assert.ok(
+    html.lastIndexOf("</article>") < html.indexOf('aria-controls="campaign-product-selection"'),
+  );
+  assert.ok(
+    html.indexOf('aria-controls="campaign-product-selection"') < html.indexOf('data-picker="5"'),
+  );
+  assert.doesNotMatch(html, /campaign-hero-image|fixed right-6/);
+  globalThis.campaignQuery = "";
+});
+
+test("카드를 고르기 전 선택 버튼은 비활성화되고 상품 영역은 닫혀 있다", async () => {
+  const { CampaignSelection } = await import("../components/campaigns/campaign-selection.tsx");
+  const { campaigns } = await import("../definitions/campaigns.ts");
+  globalThis.campaignQuery = "";
+  const html = renderCampaignSelection(
+    createElement(CampaignSelection, { campaigns: campaigns.slice(0, 3) }),
+  );
+  assert.match(html, /<button[^>]*disabled[^>]*aria-expanded="false"/);
+  assert.doesNotMatch(html, /data-picker=/);
 });
 
 test("상품 목록은 선택 상태와 가격을 표시하고 이미지 없는 상품을 비활성화한다", async () => {

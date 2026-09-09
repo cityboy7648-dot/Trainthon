@@ -256,6 +256,7 @@ export const copy = {
     preview: (name: string) => `${name} 상세 보기`,
     imageAlt: (name: string) => `${name} 미리보기`,
     selectAction: "선택하기",
+    generateAction: "캠페인 생성하기",
     close: "상세 창 닫기",
     goal: "목표",
     duration: "기간",
