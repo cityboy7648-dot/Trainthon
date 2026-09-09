@@ -6,7 +6,7 @@ export default function AssetsPage() {
   return (
     <>
       <PageHeader title={copy.assets.title} />
-      <div className="p-6" data-source="mock">
+      <div className="p-6">
         <EmptyState title={copy.assets.emptyTitle} description={copy.assets.emptyDescription} />
       </div>
     </>

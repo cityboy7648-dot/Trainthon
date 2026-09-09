@@ -61,11 +61,8 @@ const httpUrlSchema = z
   .pipe(z.url())
   .refine((value) => /^https?:\/\//i.test(value), "HTTP 또는 HTTPS 주소여야 한다.");
 
-// 로컬 mock 이미지는 http가 아니다.
-const mockAssetUrlSchema = z.string().regex(/^\/mock\/brand-assets\/[A-Za-z0-9._/-]+$/);
 const brandImageUrlSchema = z.union([
   httpUrlSchema,
-  mockAssetUrlSchema,
   z
     .string()
     .max(3_000_000)
@@ -242,41 +239,7 @@ export type CampaignPreview = {
   }[];
 };
 
-export type CampaignStatus = "processing" | "done" | "draft";
-
-export type CreatedCampaignPreview = {
-  id: string;
-  status: CampaignStatus;
-  campaign: CampaignPreview;
-};
-
-export type CampaignStatusCounts = Record<CampaignStatus, number>;
-
-export type CampaignOverviewState =
-  | { mode: "create" }
-  | {
-      mode: "gallery";
-      status: CampaignStatus;
-      campaigns: CreatedCampaignPreview[];
-      counts: CampaignStatusCounts;
-    };
-
-export type CampaignOverviewProps = {
-  searchParams: Promise<{ status?: string }>;
-};
-
-export type CampaignGalleryProps = {
-  status: CampaignStatus;
-  campaigns: CreatedCampaignPreview[];
-  counts: CampaignStatusCounts;
-};
-
-export type CampaignGalleryCardsProps = {
-  campaigns: CreatedCampaignPreview[];
-};
-
 export type CampaignCardProps = {
-  source?: "mock" | "server";
   campaign: CampaignPreview;
   selected: boolean;
   transitioning?: boolean;
@@ -285,7 +248,6 @@ export type CampaignCardProps = {
 };
 
 export type CampaignDetailsProps = {
-  source?: "mock" | "server";
   campaign: CampaignPreview | undefined;
   onClose: () => void;
 };
