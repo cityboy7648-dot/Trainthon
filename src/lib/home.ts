@@ -3,6 +3,10 @@ import type { UrlSubmission } from "./types.ts";
 
 const TRACKING_PARAM = /^(utm_|srsltid$|gclid$|fbclid$|_ga$)/i;
 
+export function shouldRedirectPreviewHome(isProduction: boolean, isPreview: boolean): boolean {
+  return !isProduction && isPreview;
+}
+
 function toHttpUrl(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -47,18 +51,6 @@ export function homeErrorFromSearch(
     return undefined;
   }
   return { code: error, cause: cause || undefined };
-}
-
-export function homeAnalysisFailureHref(cause?: string): string {
-  const params = new URLSearchParams({ error: "analysis_failed" });
-  if (cause) {
-    params.set("cause", cause);
-  }
-  return `/?${params.toString()}`;
-}
-
-export function shouldRedirectPreviewHome(isProduction: boolean, isPreview: boolean): boolean {
-  return !isProduction && isPreview;
 }
 
 // 분석은 원문 URL로 하고, 브랜드로 보이는 주소에서만 광고·검색 추적을 뺀다.

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { ErrorCode } from "./errors";
 
+export type ErrorNoticeData = { code: ErrorCode; cause?: string };
+
 export type SessionUser = {
   name: string;
   email: string;
@@ -27,8 +29,6 @@ export type UsageDialogProps = {
 
 export type UrlFormProps = {
   authenticated: boolean;
-  errorCode?: ErrorCode;
-  errorCause?: string;
 };
 
 export type AuthDialogProps = {
@@ -43,12 +43,6 @@ export type HomeHeaderProps = {
 export type HomePromptProps = {
   user: SessionUser | null;
   canSubmitUrl: boolean;
-  errorCode?: ErrorCode;
-  errorCause?: string;
-};
-
-export type HomePageProps = {
-  searchParams: Promise<{ error?: string; cause?: string }>;
 };
 
 export type PrimaryNavKey = "dashboard" | "campaigns" | "brands";
@@ -286,14 +280,6 @@ export type CampaignCardProps = {
   onPreview: () => void;
 };
 
-export type CampaignBriefProps = {
-  campaign: CampaignPreview;
-};
-
-export type CampaignSelectionProps = {
-  campaigns: CampaignPreview[];
-};
-
 export const campaignTwoRequestSchema = z
   .object({
     brand_id: z.uuid(),
@@ -361,5 +347,6 @@ export type CampaignRequestState<T> =
 export type CampaignDetailsProps = {
   campaign: CampaignPreview | undefined;
   onClose: () => void;
-  onSelect?: () => void;
 };
+
+export type CampaignSelectionProps = { campaigns: readonly CampaignPreview[] };
