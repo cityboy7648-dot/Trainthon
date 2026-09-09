@@ -1,12 +1,15 @@
 import { Firecrawl, JobTimeoutError, SdkError, type Document } from "firecrawl";
+import { listingUrlsFromLinks, samePage } from "@/lib/agents/brand-analysis/listing-urls";
 import { getProviderApiKey } from "@/lib/env";
 import { AppError } from "@/lib/errors";
 import { log, type LogContext } from "@/lib/log";
 import type { CollectedPage, CollectedSite } from "@/lib/types";
 
 const MAX_PAGES = 100;
+const MAX_ENTITY_PAGES = 5;
 const REQUEST_TIMEOUT_MS = 60_000;
 const CRAWL_TIMEOUT_SECONDS = 120;
+const HOMEPAGE_WAIT_MS = 8_000;
 
 let client: Firecrawl | undefined;
 
@@ -42,6 +45,7 @@ async function collectHomepage(url: string): Promise<Document> {
     formats: ["markdown", "links", "images", "branding"],
     onlyMainContent: false,
     blockAds: true,
+    waitFor: HOMEPAGE_WAIT_MS,
     timeout: REQUEST_TIMEOUT_MS,
   });
 
@@ -52,19 +56,32 @@ async function collectHomepage(url: string): Promise<Document> {
   return homepage;
 }
 
-async function collectInteractiveEvidence(url: string, prompt: string): Promise<string> {
-  const client = getFirecrawlClient();
-  const listing = await client.scrape(url, {
+async function scrapePage(url: string): Promise<Document> {
+  return getFirecrawlClient().scrape(url, {
     formats: ["markdown", "links", "images"],
     onlyMainContent: false,
     blockAds: true,
+    waitFor: HOMEPAGE_WAIT_MS,
     timeout: REQUEST_TIMEOUT_MS,
   });
+}
+
+function crawlDeniedOnStart(errors: { url: string; code?: string }[], sourceUrl: string): boolean {
+  return (
+    errors.length > 0 &&
+    errors.every((error) => error.code === "CRAWL_DENIAL" && samePage(error.url, sourceUrl))
+  );
+}
+
+async function collectInteractiveEvidence(url: string, prompt: string): Promise<string> {
+  const listing = await scrapePage(url);
   const scrapeId = listing.metadata?.scrapeId;
 
   if (!scrapeId) {
     throw new AppError("analysis_failed", "동적 제품 목록을 확인할 브라우저 세션이 없다.");
   }
+
+  const client = getFirecrawlClient();
 
   try {
     const interaction = await client.interact(scrapeId, {
@@ -134,31 +151,27 @@ export async function collectSite(url: string, context: LogContext): Promise<Col
     }
 
     const crawlErrors = await client.getCrawlErrors(crawl.id);
-    const browserFallbackRequired =
-      crawl.data.length === 0 &&
-      crawlErrors.errors.length > 0 &&
-      crawlErrors.errors.every((error) => error.code === "CRAWL_DENIAL");
+    const startUrlBlocked = crawl.data.length === 0 && crawlDeniedOnStart(crawlErrors.errors, url);
+    const blockedBeyondStart = crawlErrors.robotsBlocked.filter(
+      (blockedUrl) => !samePage(blockedUrl, url),
+    );
     let dynamicCatalog: string | undefined;
 
-    if (crawlErrors.robotsBlocked.length > 0) {
+    if (blockedBeyondStart.length > 0) {
       throw new AppError(
         "analysis_failed",
-        `robots.txt가 ${crawlErrors.robotsBlocked.length}개 페이지 수집을 차단했다.`,
+        `robots.txt가 ${blockedBeyondStart.length}개 페이지 수집을 차단했다.`,
       );
     }
 
-    if (crawlErrors.errors.length > 0) {
-      if (browserFallbackRequired) {
-        dynamicCatalog = await collectBrowserProfile(url);
-      } else {
-        throw new AppError(
-          "analysis_failed",
-          `${crawlErrors.errors.length}개 페이지를 읽지 못해 전체 목록을 확인할 수 없다.`,
-        );
-      }
+    if (crawlErrors.errors.length > 0 && !startUrlBlocked) {
+      throw new AppError(
+        "analysis_failed",
+        `${crawlErrors.errors.length}개 페이지를 읽지 못해 전체 목록을 확인할 수 없다.`,
+      );
     }
 
-    if (crawl.data.length >= MAX_PAGES || crawl.next) {
+    if (!startUrlBlocked && (crawl.data.length >= MAX_PAGES || crawl.next)) {
       throw new AppError(
         "analysis_failed",
         `사이트가 안전 수집 한도 ${MAX_PAGES}페이지를 넘어 전체 목록을 확인할 수 없다.`,
@@ -180,17 +193,37 @@ export async function collectSite(url: string, context: LogContext): Promise<Col
       }
     }
 
+    if (startUrlBlocked && homepagePage) {
+      const listingUrls = listingUrlsFromLinks(homepagePage.links, url, MAX_ENTITY_PAGES);
+
+      for (const listingUrl of listingUrls) {
+        const page = toCollectedPage(await scrapePage(listingUrl));
+
+        if (page) {
+          pagesByUrl.set(page.url, page);
+        }
+      }
+
+      if (listingUrls.length === 0) {
+        dynamicCatalog = await collectBrowserProfile(url);
+      }
+    }
+
     if (pagesByUrl.size === 0) {
       throw new AppError("analysis_failed", "분석할 사이트 내용을 찾지 못했다.");
     }
 
     const pages = [...pagesByUrl.values()];
-    const dynamicListing = pages.find((page) =>
-      /\b(load more|show more|view more|infinite scroll)\b|더\s*보기/iu.test(page.markdown),
-    );
+    const dynamicListing = startUrlBlocked
+      ? undefined
+      : pages.find((page) =>
+          /\b(load more|show more|view more|infinite scroll)\b|더\s*보기/iu.test(page.markdown),
+        );
     dynamicCatalog ??= dynamicListing
       ? await collectDynamicCatalog(dynamicListing.url)
-      : "수집된 목록에서 더 보기 또는 무한 스크롤 제어를 찾지 못했다. 사이트 크롤 작업은 완료됐다.";
+      : startUrlBlocked
+        ? "시작 페이지 크롤은 robots.txt로 막혔지만 렌더된 페이지와 같은 대상의 목록 페이지를 읽었다."
+        : "수집된 목록에서 더 보기 또는 무한 스크롤 제어를 찾지 못했다. 사이트 크롤 작업은 완료됐다.";
 
     log.info("firecrawl.complete", context, {
       durationMs: Math.round(performance.now() - startedAt),

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { listingUrlsFromLinks } from "./agents/brand-analysis/listing-urls.ts";
 import {
   assertCompleteAnalysis,
   normalizeBrandProfile,
@@ -34,7 +35,10 @@ const draft = {
 };
 
 test("HTTP(S) URL만 분석 요청으로 받는다", () => {
-  assert.equal(brandAnalysisRequestSchema.safeParse({ url: " https://example.com " }).success, true);
+  assert.equal(
+    brandAnalysisRequestSchema.safeParse({ url: " https://example.com " }).success,
+    true,
+  );
   assert.equal(brandAnalysisRequestSchema.safeParse({ url: "ftp://example.com" }).success, false);
   assert.equal(brandAnalysisRequestSchema.safeParse({ url: "not-a-url" }).success, false);
 });
@@ -48,6 +52,21 @@ test("색상과 키워드, 중복 제품을 정규화한다", () => {
   assert.equal(profile.products[0]?.image_url, "https://example.com/a.jpg");
   assert.equal(profile.products[0]?.price, "10,000원");
   assert.equal(brandProfileSchema.safeParse(profile).success, true);
+});
+
+test("지도 장소 페이지에서는 같은 대상의 메뉴 링크만 따라간다", () => {
+  const links = [
+    "https://pcmap.place.naver.com/restaurant/1630421798/menu?fromPanelNum=1",
+    "https://pcmap.place.naver.com/restaurant/1630421798/review/visitor",
+    "https://pcmap.place.naver.com/restaurant/1630421798/photo",
+    "https://pcmap.place.naver.com/restaurant/information",
+    "https://mail.naver.com/",
+  ];
+
+  assert.deepEqual(
+    listingUrlsFromLinks(links, "https://map.naver.com/p/entry/place/1630421798", 5),
+    ["https://pcmap.place.naver.com/restaurant/1630421798/menu"],
+  );
 });
 
 test("전체 수집을 확인하지 못한 결과는 실패한다", () => {
