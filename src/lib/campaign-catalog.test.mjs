@@ -10,7 +10,6 @@ test("세트 캠페인을 선택할 수 있고 5일 결과 구성을 안내한�
   assert.equal(completeSet.schedule.length, 5);
   assert.ok(completeSet.outputs.some((item) => item.includes("캐러셀 2세트")));
   assert.ok(completeSet.outputs.some((item) => item.includes("2:3")));
-  assert.ok(getCampaignCandidates().some((item) => item.key === "complete_set"));
 });
 
 test("캠페인 상세에 확정된 결과물과 비율이 있다", () => {

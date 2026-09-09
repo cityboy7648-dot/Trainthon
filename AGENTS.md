@@ -13,6 +13,7 @@
 ## 시작 전에
 
 1. `README.md`, `docs/PLAN.md`를 읽는다.
+   캠페인 작업은 `campaigns/README.md`와 해당 `campaigns/campaign-N/README.md`도 먼저 읽고 제작 순서를 따른다. 위임받은 에이전트도 같은 문서를 읽는다.
 2. 제품 범위를 `README.md` 밖으로 넓히지 않는다.
 3. 스택, API, 데이터 구조는 `docs/PLAN.md`를 따른다. `docs/PLAN.md`의 "아직 안 정한 것"은 추측해서 코드에 확정으로 넣지 않는다. 물어본다.
 4. 작업은 `docs/PLAN.md`의 "구현 순서"대로. 한 단계 = 한 브랜치.

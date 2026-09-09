@@ -1,4 +1,5 @@
 import type { CampaignPreview } from "@/lib/types";
+import { campaign4 } from "./campaign-4.ts";
 
 export const campaigns: readonly CampaignPreview[] = [
   {
@@ -27,6 +28,20 @@ export const campaigns: readonly CampaignPreview[] = [
       { day: 4, channel: "Instagram", format: "Carousel", purpose: "구성품별 디테일" },
       { day: 5, channel: "Instagram", format: "Carousel", purpose: "전체 세트 정리" },
     ],
+  },
+  {
+    key: campaign4.key,
+    name: campaign4.name,
+    goal: campaign4.goal,
+    duration_days: campaign4.duration_days,
+    channels: [...campaign4.channels],
+    image: campaign4.image,
+    outputs: [campaign4.outputs],
+    schedule: campaign4.schedule.map((slot) => ({
+      ...slot,
+      channel: campaign4.channel,
+      format: "Feed",
+    })),
   },
   {
     key: "one_product_three_scenes",

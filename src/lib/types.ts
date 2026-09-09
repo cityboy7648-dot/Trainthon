@@ -136,6 +136,38 @@ export const tokenUsageSchema = z.object({
 
 export type TokenUsage = z.infer<typeof tokenUsageSchema>;
 
+export const campaign4RequestSchema = z
+  .object({
+    brandId: z.uuid().optional(),
+    productIndex: z.number().int().nonnegative().optional(),
+  })
+  .strict();
+const campaign4PostSchema = z.object({
+  scene: z.string().min(1),
+  imagePrompt: z.string().min(1),
+  caption: z.string().min(1),
+});
+export const campaign4PlanSchema = z.object({
+  visualDirection: z.string().min(1),
+  personContinuity: z.string().min(1),
+  day1: campaign4PostSchema,
+  day2: campaign4PostSchema,
+  day3: campaign4PostSchema,
+  day4: campaign4PostSchema,
+  day5: campaign4PostSchema,
+});
+export type Campaign4Plan = z.infer<typeof campaign4PlanSchema>;
+export type Campaign4ProductOptions = {
+  brandId: string;
+  brandName: string;
+  products: { index: number; name: string; description: string | null; price: string | null }[];
+}[];
+export type Campaign4PlannerProps = { brands: Campaign4ProductOptions };
+export type Campaign4ActionState =
+  | { ok: true; runId: string; product: BrandProduct; plan: Campaign4Plan }
+  | { ok: false; code: ErrorCode; cause?: string }
+  | null;
+
 export type UserUsage = {
   brandCount: number;
   inputTokens: number;
@@ -392,4 +424,7 @@ export type CampaignDetailsProps = {
   onClose: () => void;
 };
 
-export type CampaignSelectionProps = { campaigns: readonly CampaignPreview[] };
+export type CampaignSelectionProps = {
+  campaigns: readonly CampaignPreview[];
+  realUsagePlanner?: import("react").ReactNode;
+};

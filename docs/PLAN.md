@@ -106,6 +106,8 @@ Reel·Carousel·Feed·Story는 채널이 아니라 채널 안의 포맷이다. �
 
 #### 초기 카탈로그
 
+캠페인 번호는 피그마가 기준이다. 캠페인 4는 `real_usage`(리얼 사용기), Instagram 피드 5일, 이미지 5장·캡션 5개다. 세부 계약은 `campaigns/campaign-4/README.md`를 따른다. 기존 `use_cases`와 별도다.
+
 | key                  | 이름              | 설명                                                             | 채널                                 | 기간                | 대상                                  |
 | -------------------- | ----------------- | ---------------------------------------------------------------- | ------------------------------------ | ------------------- | ------------------------------------- |
 | `signature_grid`     | 시그니처 그리드   | 프로필 그리드 9장을 한 세트로 만들어 브랜드가 한눈에 읽히게 한다 | Instagram 피드                       | 9일                 | 전부. 첫 캠페인                       |
@@ -255,6 +257,8 @@ assets      id, run_id, kind, status, storage_path, provider_request_id, meta js
 `status` 값: `pending`, `processing`, `done`, `failed`.
 
 Storage 버킷 `assets`. 이미지·영상 결과는 제공자 URL에서 받아 여기로 옮긴다 (Higgsfield 결과 보관 7일).
+
+공개 캠페인 소개 일러스트는 `campaign-covers` 버킷에 저장한다. 사용자 생성물용 `assets`는 비공개로 유지한다.
 RLS: 본인 `user_id` 행만.
 
 ## 분석 에이전트
