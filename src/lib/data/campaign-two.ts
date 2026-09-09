@@ -193,7 +193,7 @@ export async function getCampaignTwoResult(runId: string) {
   if (!run) throw new AppError("not_found", campaignErrors.result);
   if (
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > 720_000
+    Date.now() - Date.parse(run.created_at) > 360_000
   ) {
     await failCampaignTwoRun(client, runId, campaignErrors.timeout);
     run.status = "failed";

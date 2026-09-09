@@ -38,6 +38,8 @@ export async function generateCampaignTwo(
       throw new AppError("generation_failed", campaignErrors.productImage);
     const images = [run.product.image_url, ...references];
     const site = await collectSite(run.profile.source_url, context);
+    if (Date.now() - startedAt > 195_000)
+      throw new AppError("generation_failed", campaignErrors.timeout);
     const { output: plan } = await parseStructuredOutput(
       campaignTwoPlanSchema,
       "campaign_two_plan",
@@ -51,12 +53,12 @@ export async function generateCampaignTwo(
       images,
     );
     let failed = false;
-    // 요청 전체 제한 안에서 종료되도록 두 장씩 생성한다.
-    for (let offset = 0; offset < run.assets.length; offset += 2) {
-      if (Date.now() - startedAt > 540_000)
+    // 제공자 제한 75초와 결과 저장 시간을 Vercel의 300초 제한 안에 남긴다.
+    for (let offset = 0; offset < run.assets.length; offset += 4) {
+      if (Date.now() - startedAt > 195_000)
         throw new AppError("generation_failed", campaignErrors.timeout);
       await Promise.all(
-        run.assets.slice(offset, offset + 2).map(async (asset) => {
+        run.assets.slice(offset, offset + 4).map(async (asset) => {
           const assetContext = { ...context, assetId: asset.id };
           const sceneIndex =
             asset.meta.format === "carousel" ? asset.meta.position - 8 : asset.meta.day - 2;

@@ -30,6 +30,9 @@ globalThis.campaignTwoTest = {
   async status(client, runId, status) {
     events.push({ kind: "status", runId, status });
   },
+  async fail(client, runId, cause) {
+    events.push({ kind: "failed_run", runId, cause });
+  },
 };
 registerHooks({
   resolve(specifier, context, nextResolve) {
@@ -39,7 +42,7 @@ registerHooks({
       "@/lib/providers/firecrawl": "export async function collectSite() {return {pages: []};}",
       "@/lib/log": "export const log = {info(){},error(){}};",
       "@/lib/data/campaign-two":
-        "export const setCampaignTwoRunStatus = globalThis.campaignTwoTest.status; export const updateCampaignTwoAsset = globalThis.campaignTwoTest.update; export const saveCampaignTwoImage = globalThis.campaignTwoTest.save; export async function failCampaignTwoRun(){ throw new Error('Unexpected whole run failure'); }",
+        "export const setCampaignTwoRunStatus = globalThis.campaignTwoTest.status; export const updateCampaignTwoAsset = globalThis.campaignTwoTest.update; export const saveCampaignTwoImage = globalThis.campaignTwoTest.save; export const failCampaignTwoRun = globalThis.campaignTwoTest.fail;",
     };
     if (stubs[specifier])
       return {
@@ -114,4 +117,14 @@ test("한 장 실패 시 완료 이미지는 보존하고 실패 원인을 저�
   assert.ok(failure.values.meta.error);
   assert.equal(events.at(-1).status, "failed");
   imageFailure = false;
+});
+
+test("요청 시간이 부족하면 추가 유료 생성을 시작하지 않고 실패를 저장한다", async (t) => {
+  events.length = 0;
+  let calls = 0;
+  t.mock.method(Date, "now", () => (calls++ === 0 ? 0 : 196_000));
+  await generateCampaignTwo(run, "request-id");
+  assert.equal(events.filter((e) => e.kind === "image").length, 0);
+  assert.equal(events.at(-1).kind, "failed_run");
+  assert.ok(events.at(-1).cause);
 });
