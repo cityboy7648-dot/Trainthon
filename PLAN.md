@@ -72,11 +72,15 @@ outputs[]              // 이 캠페인이 만드는 산출물 선언
 
 ### Supabase 테이블
 
+이 표가 스키마의 기준이다. 테이블·컬럼을 추가하려면 이 표를 먼저 고친다.
+
 ```
 brands      id, user_id, source_url, profile jsonb, created_at
 runs        id, brand_id, campaign_key, reference_key, status, created_at
 assets      id, run_id, kind, status, storage_path, provider_request_id, meta jsonb, created_at
 ```
+
+`status` 값: `pending`, `processing`, `done`, `failed`.
 
 Storage 버킷 `assets`. 이미지·영상 결과는 제공자 URL에서 받아 여기로 옮긴다 (Higgsfield 결과 보관 7일).
 RLS: 본인 `user_id` 행만.
