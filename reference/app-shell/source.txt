@@ -1,0 +1,3 @@
+https://github.com/cityboy7648-dot/Margo/blob/c7bc5b2b017aa109bc9dfda3ef27008b7d397bfc/apps/margo/src/margo-app/components/AppShell.tsx
+Styles: components/shell.css + margo.css
+Reference image: original AppShell rendered with empty children, enabled navigation and guest login.
