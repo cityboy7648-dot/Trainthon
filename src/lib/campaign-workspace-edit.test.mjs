@@ -55,8 +55,8 @@ registerHooks({
 });
 const { editCampaignPost, replaceCampaignImage } =
   await import("./data/campaign-workspace-actions.ts");
-test("생성 중인 캠페인 2·5의 수정은 결과에 덮어써지지 않도록 거부한다", async () => {
-  for (const key of ["one_product_three_scenes", "complete_set"]) {
+test("생성 중인 캠페인의 수정은 결과에 덮어써지지 않도록 거부한다", async () => {
+  for (const key of ["signature_grid", "one_product_three_scenes", "complete_set"]) {
     globalThis.editRun = { campaign_key: key };
     for (const status of ["pending", "processing"]) {
       globalThis.editAsset.status = status;
@@ -110,4 +110,19 @@ test("가짜 이미지 파일은 Storage 경로 예약 전에 차단한다", asy
   form.set("image", new File(["<script>"], "image.png", { type: "image/png" }));
   assert.equal((await replaceCampaignImage(form)).ok, false);
   assert.equal(writes.length, 0);
+});
+test("실패한 이미지는 파일 검사 전에 충돌로 막지 않는다", async () => {
+  globalThis.editAsset.status = "failed";
+  globalThis.editAsset.storage_path = null;
+  writes = [];
+  const form = new FormData();
+  form.set("runId", runId);
+  form.set("assetId", assetId);
+  form.set("image", new File(["<script>"], "image.png", { type: "image/png" }));
+  const result = await replaceCampaignImage(form);
+  assert.equal(result.ok, false);
+  assert.match(result.cause ?? "", /PNG|JPG/);
+  assert.equal(writes.length, 0);
+  globalThis.editAsset.status = "done";
+  globalThis.editAsset.storage_path = "original.png";
 });

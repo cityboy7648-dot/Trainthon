@@ -7,7 +7,7 @@ import {
   getSavedCampaign,
   ownedCampaignAsset,
 } from "@/lib/data/campaign-workspace";
-import { campaignDate, validateCampaignImage } from "@/lib/campaign-workspace";
+import { campaignDate, isGeneratedCampaign, validateCampaignImage } from "@/lib/campaign-workspace";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { campaignEditSchema, campaignPostMetaSchema, type CampaignRequestState } from "@/lib/types";
 
@@ -32,6 +32,11 @@ export async function refreshSavedCampaign(id: string) {
 export async function selectSavedCampaign(input: unknown): Promise<CampaignRequestState<string>> {
   try {
     const id = await createSavedCampaign(input);
+    const { after } = await import("next/server");
+    after(async () => {
+      const { generateSignatureGrid } = await import("@/lib/agents/signature-grid/generate");
+      await generateSignatureGrid(id);
+    });
     revalidatePath("/campaigns");
     return { ok: true, data: id };
   } catch (error) {
@@ -43,10 +48,7 @@ export async function editCampaignPost(input: unknown): Promise<CampaignRequestS
   try {
     const parsed = campaignEditSchema.parse(input);
     const { client, asset, run } = await ownedCampaignAsset(parsed.runId, parsed.assetId);
-    if (
-      ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
-      ["pending", "processing"].includes(asset.status)
-    )
+    if (isGeneratedCampaign(run.campaign_key) && ["pending", "processing"].includes(asset.status))
       throw new AppError("generation_failed", campaignErrors.editGenerating);
     const meta = campaignPostMetaSchema.parse(asset.meta);
     const next =
@@ -76,13 +78,9 @@ export async function replaceCampaignImage(form: FormData): Promise<CampaignRequ
     const runId = z.uuid().parse(form.get("runId"));
     const assetId = z.uuid().parse(form.get("assetId"));
     const { client, asset, run } = await ownedCampaignAsset(runId, assetId);
-    if (
-      ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
-      ["pending", "processing"].includes(asset.status)
-    )
+    if (isGeneratedCampaign(run.campaign_key) && ["pending", "processing"].includes(asset.status))
       throw new AppError("generation_failed", campaignErrors.editGenerating);
-    if (asset.status === "processing" || asset.status === "failed")
-      throw new AppError("network", campaignErrors.conflict);
+    if (asset.status === "processing") throw new AppError("network", campaignErrors.conflict);
     const file = form.get("image");
     if (!(file instanceof File) || file.size > 5 * 1024 * 1024)
       throw new AppError("generation_failed", campaignErrors.upload);
@@ -114,14 +112,33 @@ export async function replaceCampaignImage(form: FormData): Promise<CampaignRequ
       if (rollback.error || !rollback.data) throw new AppError("network", campaignErrors.conflict);
       throw new AppError("network", campaignErrors.save);
     }
+    const meta = campaignPostMetaSchema.safeParse(asset.meta);
     const saved = await client
       .from("assets")
-      .update({ status: "done" })
+      .update({
+        status: "done",
+        ...(meta.success ? { meta: { ...meta.data, error: null } } : {}),
+      })
       .eq("id", assetId)
       .eq("storage_path", path)
       .select("id")
       .maybeSingle();
     if (saved.error || !saved.data) throw new AppError("network", campaignErrors.save);
+    const remaining = await client
+      .from("assets")
+      .select("id")
+      .eq("run_id", runId)
+      .eq("kind", "image")
+      .neq("status", "done");
+    if (remaining.error) throw new AppError("network", campaignErrors.save);
+    if (!remaining.data?.length) {
+      const finished = await client
+        .from("runs")
+        .update({ status: "done" })
+        .eq("id", runId)
+        .in("status", ["pending", "processing", "failed"]);
+      if (finished.error) throw new AppError("network", campaignErrors.save);
+    }
     revalidatePath(`/campaigns/${runId}`);
     revalidatePath("/campaigns");
     return { ok: true, data: null };

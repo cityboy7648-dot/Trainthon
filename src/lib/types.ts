@@ -414,6 +414,49 @@ export const campaignTwoResultSchema = z.object({
 });
 export type CampaignTwoResult = z.infer<typeof campaignTwoResultSchema>;
 export type CampaignImageTiming = { runStartedAt: number; imagesStartedAt: number; index: number };
+export const signatureGridPlanSchema = z
+  .object({
+    campaign_key: z.literal("signature_grid"),
+    concept: z.string().min(1),
+    reference_direction: z.object({
+      colors: z.array(z.string()),
+      lighting: z.string(),
+      photography: z.string(),
+      typography: z.string(),
+      layout: z.string(),
+    }),
+    posts: z
+      .array(
+        z.object({
+          position: z.number().int().min(1).max(9),
+          upload_order: z.number().int().min(1).max(9),
+          purpose: z.string().min(1),
+          source_facts: z.array(z.string()),
+          source_image_urls: z.array(httpUrlSchema),
+          image_brief: z.string().min(1),
+          text_in_image: z.string().nullable(),
+          caption: z.string().min(1).max(2200),
+        }),
+      )
+      .length(9),
+  })
+  .superRefine((plan, context) => {
+    if (
+      new Set(plan.posts.map((post) => post.position)).size !== 9 ||
+      new Set(plan.posts.map((post) => post.upload_order)).size !== 9 ||
+      plan.posts.some((post) => post.upload_order !== 10 - post.position)
+    )
+      context.addIssue({
+        code: "custom",
+        message: "게시물 위치와 업로드 순서는 각각 1~9여야 합니다.",
+      });
+  });
+export type SignatureGridPlan = z.infer<typeof signatureGridPlanSchema>;
+export const signatureGridRequestSchema = z
+  .object({
+    brand_id: z.uuid(),
+  })
+  .strict();
 export const campaignFiveRequestSchema = z
   .object({
     brand_id: z.uuid(),
@@ -573,6 +616,7 @@ export const campaignSelectionSchema = z
   .object({
     requestId: z.uuid(),
     sourceUrl: z.url().optional(),
+    brandId: z.uuid().optional(),
     key: z.literal("signature_grid"),
   })
   .strict();

@@ -32,6 +32,16 @@ export function signatureSlots(start: string): CampaignPostMeta[] {
   }));
 }
 
+export const generatedCampaignKeys = [
+  "signature_grid",
+  "one_product_three_scenes",
+  "complete_set",
+] as const;
+
+export function isGeneratedCampaign(key: string) {
+  return (generatedCampaignKeys as readonly string[]).includes(key);
+}
+
 export function previewModes(key: string): CampaignPreviewMode[] {
   if (key === "complete_set") return ["feed", "pinterest", "carousel"];
   return key === "signature_grid" ? ["feed", "grid"] : ["feed", "story", "carousel"];

@@ -43,7 +43,7 @@ registerHooks({
   resolve(specifier, context, nextResolve) {
     const stubs = {
       "@/lib/providers/openai":
-        "export const parseStructuredOutput=globalThis.campaignFiveTest.parse; export const generateCampaignImage=globalThis.campaignFiveTest.image;",
+        "export const parseStructuredOutput=globalThis.campaignFiveTest.parse; export const generateCampaignImage=globalThis.campaignFiveTest.image; export async function asCampaignImageUrl(url){return url;}",
       "@/lib/providers/firecrawl":
         "export async function collectSite(){return {pages:[{url:'https://example.com/',links:['https://example.com/products/primary','https://evil.example/product','javascript:alert(1)']} ]};}",
       "@/lib/log": "export const log={info(){},error(){}};",

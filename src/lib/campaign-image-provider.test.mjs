@@ -72,7 +72,20 @@ test("시간 초과·잔액 부족·요청 한도를 구별하고 자동 재생�
     assert.equal(calls.length, 1);
   }
 });
-test("11장을 분당 5장 이하로 요청하고 마지막 요청도 서버 종료 전에 끝낸다", async (t) => {
+test("이미지 API 실패 원인을 숨기지 않는다", async () => {
+  calls = [];
+  failure = new OpenAI.APIError(
+    400,
+    { message: "invalid_image_url" },
+    "Could not process image",
+    new Headers(),
+  );
+  await assert.rejects(generateCampaignImage("prompt", [], false, context, timing()), (e) =>
+    /Could not process image|invalid_image_url/.test(e.cause),
+  );
+  assert.equal(calls.length, 1);
+});
+test("11장을 분당 2장 이하로 요청하고 마지막 요청도 서버 종료 전에 끝낸다", async (t) => {
   calls = [];
   failure = undefined;
   t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 0 });
@@ -84,7 +97,19 @@ test("11장을 분당 5장 이하로 요청하고 마지막 요청도 서버 종
     }),
   );
   await Promise.resolve();
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 2);
+  t.mock.timers.tick(61000);
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(calls.length, 4);
+  t.mock.timers.tick(61000);
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(calls.length, 6);
+  t.mock.timers.tick(61000);
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(calls.length, 8);
   t.mock.timers.tick(61000);
   await Promise.resolve();
   await Promise.resolve();
@@ -94,5 +119,5 @@ test("11장을 분당 5장 이하로 요청하고 마지막 요청도 서버 종
   await Promise.resolve();
   await Promise.all(pending);
   assert.equal(calls.length, 11);
-  assert.ok(calls.every((call) => call.at + call.options.timeout <= 280000));
+  assert.ok(calls.every((call) => call.at + call.options.timeout <= 770000));
 });

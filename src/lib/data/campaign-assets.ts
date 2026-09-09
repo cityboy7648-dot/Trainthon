@@ -5,6 +5,7 @@ import type {
   CampaignFiveAssetMeta,
   CampaignTwoAssetMeta,
   Campaign4ImageMeta,
+  CampaignPostMeta,
 } from "@/lib/types";
 
 export async function setCampaignRunStatus(
@@ -38,7 +39,7 @@ export async function saveCampaignImage(
   runId: string,
   assetId: string,
   image: Buffer,
-  meta: CampaignTwoAssetMeta | CampaignFiveAssetMeta | Campaign4ImageMeta,
+  meta: CampaignTwoAssetMeta | CampaignFiveAssetMeta | Campaign4ImageMeta | CampaignPostMeta,
 ) {
   const path = `${runId}/${assetId}.png`;
   await updateCampaignAsset(client, assetId, { storage_path: path });

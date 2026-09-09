@@ -65,8 +65,8 @@ registerHooks({
   },
 });
 const { getSavedCampaign } = await import("./data/campaign-workspace.ts");
-test("중단된 캠페인 2·5는 완료 이미지를 보존하고 남은 항목만 실패 처리한다", async () => {
-  for (const key of ["one_product_three_scenes", "complete_set"]) {
+test("중단된 생성 캠페인은 완료 이미지를 보존하고 남은 항목만 실패 처리한다", async () => {
+  for (const key of ["signature_grid", "one_product_three_scenes", "complete_set"]) {
     run = {
       id: "b287625f-65d0-435e-b1fd-55b5c7e912ab",
       campaign_key: key,

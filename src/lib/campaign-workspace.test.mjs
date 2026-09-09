@@ -7,7 +7,7 @@ registerHooks({
     return n(s, c);
   },
 });
-const { campaignDate, signatureSlots, previewModes, validateCampaignImage } =
+const { campaignDate, isGeneratedCampaign, signatureSlots, previewModes, validateCampaignImage } =
   await import("./campaign-workspace.ts");
 test("진행률은 완료된 서버 항목만 세고 실패는 완료로 계산하지 않는다", async () => {
   const { campaignProgress } = await import("./campaign-workspace.ts");
@@ -35,6 +35,7 @@ test("9개 게시 슬롯은 날짜와 그리드 위치를 분리한다", () => {
   assert.throws(() => campaignDate("2026-02-30", 1));
 });
 test("시그니처 그리드는 스토리 탭을 표시하지 않는다", () => {
+  assert.equal(isGeneratedCampaign("signature_grid"), true);
   assert.deepEqual(previewModes("signature_grid"), ["feed", "grid"]);
   assert.deepEqual(previewModes("one_product_three_scenes"), ["feed", "story", "carousel"]);
   assert.deepEqual(previewModes("complete_set"), ["feed", "pinterest", "carousel"]);

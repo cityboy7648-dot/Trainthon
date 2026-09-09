@@ -1,10 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { CAMPAIGN_PLAN_CUTOFF_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { campaignProductKey } from "@/lib/campaign-product";
 import { log } from "@/lib/log";
 import { collectSite } from "@/lib/providers/firecrawl";
-import { generateCampaignImage, parseStructuredOutput } from "@/lib/providers/openai";
+import {
+  asCampaignImageUrl,
+  generateCampaignImage,
+  parseStructuredOutput,
+} from "@/lib/providers/openai";
 import {
   failCampaignFiveRun,
   saveCampaignFiveImage,
@@ -36,10 +41,12 @@ export async function generateCampaignFive(
       throw new AppError("generation_failed", campaignErrors.productImage);
     const images = [
       `data:image/jpeg;base64,${reference.toString("base64")}`,
-      ...selected.map(({ product }) => product.image_url as string),
+      ...(await Promise.all(
+        selected.map(({ product }) => asCampaignImageUrl(product.image_url as string)),
+      )),
     ];
     const site = await collectSite(run.profile.source_url, context);
-    if (Date.now() - startedAt > 90_000)
+    if (Date.now() - startedAt > CAMPAIGN_PLAN_CUTOFF_MS)
       throw new AppError("generation_failed", campaignErrors.timeout);
     const { output: plan } = await parseStructuredOutput(
       campaignFivePlanSchema,
@@ -82,8 +89,7 @@ export async function generateCampaignFive(
       };
     });
     let failed = false;
-    // 최대 180초 이미지 요청과 저장 시간을 300초 실행 제한 안에 남긴다.
-    if (Date.now() - startedAt > 90_000)
+    if (Date.now() - startedAt > CAMPAIGN_PLAN_CUTOFF_MS)
       throw new AppError("generation_failed", campaignErrors.timeout);
     const imagesStartedAt = Date.now();
     await Promise.all(
