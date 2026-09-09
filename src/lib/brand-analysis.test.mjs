@@ -54,6 +54,15 @@ test("색상과 키워드, 중복 제품을 정규화한다", () => {
   assert.equal(brandProfileSchema.safeParse(profile).success, true);
 });
 
+test("브랜드 주소에서 광고·검색 추적 파라미터를 뺀다", () => {
+  const profile = normalizeBrandProfile(
+    draft,
+    "https://havehad.kr/?srsltid=AfmBOop9Lvk98_xcjaceL1sIzACnaISfr4JQtcmgrqUfV4BpmbtFNZRj",
+  );
+
+  assert.equal(profile.source_url, "https://havehad.kr/");
+});
+
 test("지도 장소 페이지에서는 같은 대상의 메뉴 링크만 따라간다", () => {
   const links = [
     "https://pcmap.place.naver.com/restaurant/1630421798/menu?fromPanelNum=1",

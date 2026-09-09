@@ -3,6 +3,7 @@
 import { analyzeBrand } from "@/lib/agents/brand-analysis/analyze-brand";
 import { copy } from "@/lib/copy";
 import { AppError } from "@/lib/errors";
+import { toBrandSourceUrl } from "@/lib/home";
 import type { LogContext } from "@/lib/log";
 import {
   brandAnalysisRequestSchema,
@@ -10,24 +11,12 @@ import {
   type BrandProfileRequestResult,
 } from "@/lib/types";
 
-const TRACKING_PARAM = /^(utm_|srsltid$|gclid$|fbclid$|_ga$)/i;
 // 데모 서버 프로세스 안에서만 같은 URL 재수집을 막는다.
 const profilesByUrl = new Map<string, BrandProfileData>();
 const inflightByUrl = new Map<string, Promise<BrandProfileData>>();
 
-function analysisCacheKey(url: string): string {
-  const parsed = new URL(url);
-  for (const key of [...parsed.searchParams.keys()]) {
-    if (TRACKING_PARAM.test(key)) {
-      parsed.searchParams.delete(key);
-    }
-  }
-  parsed.hash = "";
-  return parsed.toString();
-}
-
 export async function getBrandProfile(sourceUrl: string): Promise<BrandProfileData> {
-  const key = analysisCacheKey(sourceUrl);
+  const key = toBrandSourceUrl(sourceUrl);
   const cached = profilesByUrl.get(key);
   if (cached) {
     return cached;

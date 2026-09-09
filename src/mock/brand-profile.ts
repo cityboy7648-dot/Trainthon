@@ -1,4 +1,5 @@
 // MOCK: 예시 데이터. 서버 연결 전 임시.
+import { toBrandSourceUrl } from "@/lib/home";
 import type { BrandProfileData } from "@/lib/types";
 
 const mockBrandProfile = {
@@ -96,6 +97,6 @@ export async function getMockBrandProfile(sourceUrl: string): Promise<BrandProfi
 
   return {
     ...mockBrandProfile,
-    source_url: sourceUrl,
+    source_url: toBrandSourceUrl(sourceUrl),
   };
 }
