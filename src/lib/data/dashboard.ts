@@ -87,6 +87,7 @@ export async function getDashboardData(): Promise<CampaignRequestState<Dashboard
       campaigns.push({
         id: run.id,
         name: definition.name,
+        campaignKey: run.campaign_key,
         completedTasks: completed.length,
         totalTasks: definition.schedule.length,
         failed: run.status === "failed" || images.some((asset) => asset.status === "failed"),

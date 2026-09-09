@@ -165,6 +165,14 @@ export type Campaign4ProductOptions = {
 }[];
 export type Campaign4PlannerProps = { brands: Campaign4ProductOptions };
 export type Campaign4ActionState = { ok: false; code: ErrorCode; cause?: string } | null;
+export const campaign4PlanningMetaSchema = z.object({
+  stage: z.literal("planning"),
+  productIndex: z.number().int().nonnegative(),
+  product: brandProductSchema.optional(),
+  plan: campaign4PlanSchema.optional(),
+  cause: z.string().optional(),
+  code: z.string().optional(),
+});
 
 export type UserUsage = {
   brandCount: number;
@@ -351,9 +359,15 @@ export type DashboardTask = {
 export type DashboardCampaign = {
   id: string;
   name: string;
+  campaignKey: string;
   completedTasks: number;
   totalTasks: number;
   failed: boolean;
+  href: string | null;
+};
+export type DashboardCampaignFailureProps = {
+  runId: string;
+  campaignKey: string;
   href: string | null;
 };
 
@@ -555,12 +569,14 @@ export type CampaignPreviewEdit = (
 export type CampaignWorkspaceProps = {
   campaign: SavedCampaign;
   onPreviewEdit?: CampaignPreviewEdit;
+  onRetryAsset?: (assetId: string) => void;
 };
 export type CampaignArchiveFile = { name: string; bytes: Uint8Array };
 export type CampaignPostPreviewProps = {
   campaign: SavedCampaign;
   post: CampaignPost | undefined;
   mode: CampaignPreviewMode;
+  onRetry?: () => void;
 };
 export type CampaignPostEditorProps = {
   onPreviewEdit?: CampaignPreviewEdit;

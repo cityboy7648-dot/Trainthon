@@ -16,7 +16,11 @@ import { downloadCampaignArchive } from "@/lib/data/campaign-download-client";
 import { showErrorNotice } from "@/lib/error-notice";
 import type { CampaignWorkspaceProps } from "@/lib/types";
 
-export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspaceProps) {
+export function CampaignWorkspace({
+  campaign,
+  onPreviewEdit,
+  onRetryAsset,
+}: CampaignWorkspaceProps) {
   const params = useSearchParams();
   const pathname = usePathname();
   const [editing, setEditing] = useState<"caption" | "image" | "date" | null>(null);
@@ -202,7 +206,16 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
             <div
               className={`mx-auto max-w-full ${mode === "story" ? "w-campaign-preview-story" : campaign.key === "signature_grid" || mode === "grid" ? "w-campaign-preview" : "w-campaign-preview-portrait"}`}
             >
-              <CampaignPostPreview campaign={campaign} post={shown} mode={mode} />
+              <CampaignPostPreview
+                campaign={campaign}
+                post={shown}
+                mode={mode}
+                onRetry={
+                  shown?.status === "failed" && onRetryAsset
+                    ? () => onRetryAsset(shown.id)
+                    : undefined
+                }
+              />
               {shown && mode !== "grid" && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <Button

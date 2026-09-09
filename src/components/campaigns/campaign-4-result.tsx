@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,13 @@ import { Campaign4ResultSkeleton } from "./campaign-4-result-skeleton";
 import { loadCampaign4Result } from "@/lib/data/campaign-4-client";
 import { copy } from "@/lib/copy";
 import { campaignErrors } from "@/lib/errors";
+import { showErrorNotice } from "@/lib/error-notice";
 import type { Campaign4ResultProps, Campaign4ResultData, CampaignRequestState } from "@/lib/types";
 
 export function Campaign4Result({ runId }: Campaign4ResultProps) {
   const [state, setState] = useState<CampaignRequestState<Campaign4ResultData> | null>(null);
   const [revision, setRevision] = useState(0);
+  const [retrying, startRetry] = useTransition();
   const router = useRouter();
   const text = copy.campaigns.realUsage;
   useEffect(() => {
@@ -40,6 +42,22 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
     router.push("/campaigns/new?campaign=real_usage");
   }
 
+  function retry(assetId?: string) {
+    if (retrying) return;
+    startRetry(async () => {
+      const { retryFailedCampaign, retryFailedCampaignAsset } =
+        await import("@/lib/data/campaign-retry-actions");
+      const result = assetId
+        ? await retryFailedCampaignAsset(runId, assetId)
+        : await retryFailedCampaign(runId);
+      if (!result.ok) {
+        showErrorNotice(result.code, result.cause);
+        return;
+      }
+      setRevision((value) => value + 1);
+    });
+  }
+
   if (!state) return <Campaign4ResultSkeleton />;
   if (!state.ok)
     return (
@@ -57,7 +75,11 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
     return (
       <div data-source="server" className="mt-8 space-y-4">
         {result.status === "failed" ? (
-          <ErrorState code="generation_failed" cause={result.cause ?? undefined} />
+          <ErrorState
+            code="generation_failed"
+            cause={result.cause ?? undefined}
+            onRetry={() => retry()}
+          />
         ) : (
           <EmptyState title={text.legacyPlan} />
         )}
@@ -103,7 +125,7 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
                 <ErrorState
                   code="generation_failed"
                   cause={asset.meta.error ?? undefined}
-                  onRetry={startAgain}
+                  onRetry={() => retry(asset.id)}
                 />
               ) : (
                 <Skeleton className="size-full" />

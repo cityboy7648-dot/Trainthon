@@ -7,7 +7,7 @@ import { copy } from "@/lib/copy";
 import type { CampaignPostPreviewProps } from "@/lib/types";
 import { campaignProductLinkSchema } from "@/lib/types";
 
-export function CampaignPostPreview({ campaign, post, mode }: CampaignPostPreviewProps) {
+export function CampaignPostPreview({ campaign, post, mode, onRetry }: CampaignPostPreviewProps) {
   const c = copy.campaignWorkspace;
   const links = campaignProductLinkSchema.array().safeParse(post?.meta.product_links);
   if (mode !== "grid" && !post) return <EmptyState title={c.emptyFormat} />;
@@ -66,7 +66,11 @@ export function CampaignPostPreview({ campaign, post, mode }: CampaignPostPrevie
             ) : (
               <div className="absolute inset-0 flex items-center justify-center p-6">
                 {post?.status === "failed" ? (
-                  <ErrorState code="generation_failed" cause={post.meta.error ?? undefined} />
+                  <ErrorState
+                    code="generation_failed"
+                    cause={post.meta.error ?? undefined}
+                    onRetry={onRetry}
+                  />
                 ) : (
                   <EmptyState title={c.emptyImage} />
                 )}

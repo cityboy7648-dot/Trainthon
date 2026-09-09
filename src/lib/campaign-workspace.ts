@@ -2,6 +2,32 @@ import { z } from "zod";
 import { AppError, campaignErrors } from "@/lib/errors";
 import type { CampaignPost, CampaignPostMeta, CampaignPreviewMode } from "@/lib/types";
 
+const GENERATION_LIMIT_MS = 360_000;
+
+export function campaignGenerationTimedOut(
+  runCreatedAt: string,
+  assets: { status: string; created_at?: string }[],
+) {
+  const active = assets.filter(
+    (asset) => asset.status === "pending" || asset.status === "processing",
+  );
+  const startedAt = active
+    .map((asset) => asset.created_at)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1);
+  return Date.now() - Date.parse(startedAt ?? runCreatedAt) > GENERATION_LIMIT_MS;
+}
+
+export function latestAssetsByPosition<
+  T extends { id: string; created_at?: string; meta: { position?: number | null } },
+>(assets: T[]): T[] {
+  const ordered = [...assets].sort(
+    (a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? "") || a.id.localeCompare(b.id),
+  );
+  return [...new Map(ordered.map((asset) => [asset.meta.position ?? asset.id, asset])).values()];
+}
+
 export function campaignProgress(posts: Pick<CampaignPost, "status">[]) {
   const total = posts.length;
   const done = posts.filter((post) => post.status === "done").length;

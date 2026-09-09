@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CircleCheck } from "lucide-react";
+import { DashboardCampaignFailure } from "@/components/dashboard/dashboard-campaign-failure";
 import { EmptyState } from "@/components/empty-state";
-import { ErrorState } from "@/components/error-state";
 import { copy } from "@/lib/copy";
 import type { DashboardCampaignListProps } from "@/lib/types";
 
@@ -46,7 +46,13 @@ export function DashboardCampaignList({ campaigns, completed }: DashboardCampaig
                 )}
                 className="accent-shell-ink h-2 w-full"
               />
-              {campaign.failed && <ErrorState code="generation_failed" />}
+              {campaign.failed && (
+                <DashboardCampaignFailure
+                  runId={campaign.id}
+                  campaignKey={campaign.campaignKey}
+                  href={campaign.href}
+                />
+              )}
             </>
           )}
         </li>

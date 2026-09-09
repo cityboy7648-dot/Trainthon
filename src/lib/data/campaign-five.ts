@@ -1,3 +1,4 @@
+import { campaignGenerationTimedOut, latestAssetsByPosition } from "@/lib/campaign-workspace";
 import { campaignProductKey, resolveCampaignProduct } from "@/lib/campaign-product";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { createSessionWriter } from "@/lib/supabase/server";
@@ -148,20 +149,26 @@ export async function getCampaignFiveResult(runId: string) {
     .maybeSingle();
   if (error) throw new AppError("network", campaignErrors.result);
   if (!run) throw new AppError("not_found", campaignErrors.result);
+  const { data: assets, error: assetsError } = await client
+    .from("assets")
+    .select("id, status, storage_path, meta, created_at")
+    .eq("run_id", runId);
+  if (assetsError) throw new AppError("network", campaignErrors.result);
   if (
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > 360_000
+    campaignGenerationTimedOut(run.created_at, assets ?? [])
   ) {
     await failCampaignFiveRun(client, runId, campaignErrors.timeout);
     run.status = "failed";
   }
-  const { data: assets, error: assetsError } = await client
-    .from("assets")
-    .select("id, status, storage_path, meta")
-    .eq("run_id", runId);
-  if (assetsError) throw new AppError("network", campaignErrors.result);
+  const latest = latestAssetsByPosition(
+    (assets ?? []).map((asset) => ({
+      ...asset,
+      meta: campaignFiveAssetMetaSchema.parse(asset.meta),
+    })),
+  );
   const results = await Promise.all(
-    (assets ?? []).map(async (asset) => {
+    latest.map(async (asset) => {
       let image_url: string | null = null;
       if (asset.status === "done" && asset.storage_path) {
         const signed = await client.storage
@@ -174,7 +181,7 @@ export async function getCampaignFiveResult(runId: string) {
         id: asset.id,
         status: asset.status,
         image_url,
-        meta: campaignFiveAssetMetaSchema.parse(asset.meta),
+        meta: asset.meta,
       };
     }),
   );

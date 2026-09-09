@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { CampaignWorkspace } from "./campaign-workspace";
 import { refreshSavedCampaign } from "@/lib/data/campaign-workspace-actions";
 import { campaignProgress } from "@/lib/campaign-workspace";
@@ -9,6 +9,7 @@ import type { SavedCampaign } from "@/lib/types";
 
 export function CampaignWorkspaceLive({ campaign: initial }: { campaign: SavedCampaign }) {
   const [snapshot, setSnapshot] = useState({ initial, campaign: initial });
+  const [, startRetry] = useTransition();
   if (snapshot.initial !== initial) setSnapshot({ initial, campaign: initial });
   const campaign = snapshot.initial === initial ? snapshot.campaign : initial;
   const active = campaignProgress(campaign.posts).active;
@@ -43,5 +44,22 @@ export function CampaignWorkspaceLive({ campaign: initial }: { campaign: SavedCa
       clearTimeout(timer);
     };
   }, [initial, active]);
-  return <CampaignWorkspace campaign={campaign} />;
+  return (
+    <CampaignWorkspace
+      campaign={campaign}
+      onRetryAsset={(assetId) => {
+        startRetry(async () => {
+          const { retryFailedCampaignAsset } = await import("@/lib/data/campaign-retry-actions");
+          const result = await retryFailedCampaignAsset(initial.id, assetId);
+          if (!result.ok) {
+            showErrorNotice(result.code, result.cause);
+            return;
+          }
+          const latest = await refreshSavedCampaign(initial.id);
+          if (latest.ok) setSnapshot({ initial, campaign: latest.data });
+          else showErrorNotice(latest.code, latest.cause);
+        });
+      }}
+    />
+  );
 }

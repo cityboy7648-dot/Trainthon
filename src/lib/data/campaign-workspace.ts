@@ -4,7 +4,11 @@ import { z } from "zod";
 import { campaigns } from "@/definitions/campaigns";
 import { createSessionReader } from "@/lib/supabase/server";
 import { AppError, campaignErrors } from "@/lib/errors";
-import { signatureSlots } from "@/lib/campaign-workspace";
+import {
+  campaignGenerationTimedOut,
+  latestAssetsByPosition,
+  signatureSlots,
+} from "@/lib/campaign-workspace";
 import { toCampaignGalleryCard } from "@/lib/campaign-gallery";
 import {
   campaignPostMetaSchema,
@@ -79,14 +83,14 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
   if (!definition) throw new AppError("not_found", campaignErrors.result);
   const { data, error } = await client
     .from("assets")
-    .select("id, status, storage_path, meta")
+    .select("id, status, storage_path, meta, created_at")
     .eq("run_id", run.id)
     .eq("kind", "image");
   if (error) throw new AppError("network", campaignErrors.result);
   if (
     ["one_product_three_scenes", "complete_set"].includes(run.campaign_key) &&
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > 360_000
+    campaignGenerationTimedOut(run.created_at, data ?? [])
   ) {
     for (const asset of data ?? []) {
       if (!["pending", "processing"].includes(asset.status)) continue;
@@ -109,9 +113,14 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
     if (result.error) throw new AppError("network", campaignErrors.save);
     run.status = "failed";
   }
+  const latest = latestAssetsByPosition(
+    (data ?? []).map((asset) => ({
+      ...asset,
+      meta: campaignPostMetaSchema.parse(asset.meta),
+    })),
+  );
   const posts = await Promise.all(
-    (data ?? []).map(async (asset) => {
-      const meta = campaignPostMetaSchema.parse(asset.meta);
+    latest.map(async (asset) => {
       let image_url: string | null = null;
       if (asset.storage_path && asset.status === "done") {
         const signed = await client.storage
@@ -123,7 +132,7 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
       return {
         id: asset.id,
         status: z.enum(["pending", "processing", "done", "failed"]).parse(asset.status),
-        meta,
+        meta: asset.meta,
         image_url,
       };
     }),

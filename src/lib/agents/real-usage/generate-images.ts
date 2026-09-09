@@ -28,7 +28,7 @@ export async function generateCampaign4(started: Campaign4StartedRun) {
 }
 
 export async function generateCampaign4Images(
-  run: Awaited<ReturnType<typeof prepareCampaign4Images>>,
+  run: Awaited<ReturnType<typeof prepareCampaign4Images>> & { anchor?: Buffer },
 ) {
   const context = { requestId: crypto.randomUUID(), runId: run.runId, assetId: null };
   try {
@@ -62,11 +62,11 @@ export async function generateCampaign4Images(
       return image;
     }
     // 인물이 분명히 보이는 D2를 나머지 장의 동일 인물 기준으로 쓴다.
-    const anchorAsset = run.assets[1];
-    const anchor = await generate(anchorAsset);
+    const day2 = run.assets.find((asset) => asset.meta.day === 2);
+    const anchor = day2 ? await generate(day2) : run.anchor;
     const outcomes = await Promise.allSettled(
       run.assets
-        .filter((asset) => asset.id !== anchorAsset.id)
+        .filter((asset) => asset.id !== day2?.id)
         .map(async (asset) => {
           try {
             await generate(asset, anchor);
