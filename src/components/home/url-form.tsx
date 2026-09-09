@@ -4,17 +4,18 @@ import { useState } from "react";
 import { ArrowUpIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AuthDialog } from "@/components/auth/auth-dialog";
+import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
 import { resolveUrlSubmission } from "@/lib/home";
 import type { UrlFormProps } from "@/lib/types";
 
-export function UrlForm({ authenticated }: UrlFormProps) {
+export function UrlForm({ authenticated, errorCode, errorCause }: UrlFormProps) {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [authOpen, setAuthOpen] = useState(false);
+  const [invalid, setInvalid] = useState(false);
   const submission = resolveUrlSubmission(value, authenticated);
-  const valid = submission.kind === "navigate";
 
   function requireAuthentication() {
     if (!authenticated) {
@@ -23,7 +24,7 @@ export function UrlForm({ authenticated }: UrlFormProps) {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-3">
       <form
         className="bg-background rounded-shell border-shell-border border"
         onSubmit={(event) => {
@@ -33,9 +34,12 @@ export function UrlForm({ authenticated }: UrlFormProps) {
             setAuthOpen(true);
             return;
           }
-          if (submission.kind === "navigate") {
-            router.push(submission.href);
+          if (submission.kind === "invalid") {
+            setInvalid(true);
+            return;
           }
+          setInvalid(false);
+          router.push(submission.href);
         }}
       >
         <input
@@ -60,7 +64,10 @@ export function UrlForm({ authenticated }: UrlFormProps) {
             }
           }}
           onKeyDown={requireAuthentication}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={(event) => {
+            setInvalid(false);
+            setValue(event.target.value);
+          }}
           className="placeholder:text-shell-muted text-shell-ink w-full bg-transparent px-4 pt-4 pb-8 text-sm outline-none"
         />
         <div className="flex items-center justify-between px-3 pb-3">
@@ -68,15 +75,19 @@ export function UrlForm({ authenticated }: UrlFormProps) {
           <Button
             type="submit"
             size="icon-sm"
-            disabled={authenticated && !valid}
             aria-label={copy.home.submit}
-            className="bg-shell-button hover:bg-shell-button-hover rounded-shell size-shell-control disabled:bg-shell-active disabled:text-shell-icon text-white"
+            className="bg-shell-button hover:bg-shell-button-hover rounded-shell size-shell-control text-white"
           >
             <ArrowUpIcon />
           </Button>
         </div>
       </form>
+      {invalid ? (
+        <ErrorState code="invalid_url" />
+      ) : (
+        errorCode && <ErrorState code={errorCode} cause={errorCause} />
+      )}
       {!authenticated && <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />}
-    </>
+    </div>
   );
 }

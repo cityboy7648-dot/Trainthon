@@ -1,4 +1,5 @@
-import type { UrlSubmission } from "@/lib/types";
+import { errorCodes, type ErrorCode } from "./errors.ts";
+import type { UrlSubmission } from "./types.ts";
 
 const TRACKING_PARAM = /^(utm_|srsltid$|gclid$|fbclid$|_ga$)/i;
 
@@ -17,13 +18,43 @@ function toHttpUrl(value: string): string | null {
     if (url.protocol !== "http:" && url.protocol !== "https:") {
       return null;
     }
-    if (!url.hostname) {
+    if (!isSiteHost(url.hostname)) {
       return null;
     }
     return url.toString();
   } catch {
     return null;
   }
+}
+
+function isSiteHost(hostname: string): boolean {
+  const host = hostname.replace(/\.$/, "").toLowerCase();
+  if (host === "localhost") {
+    return true;
+  }
+  return host.includes(".") && !host.startsWith(".") && !host.includes("..");
+}
+
+function isErrorCode(value: string): value is ErrorCode {
+  return errorCodes.some((code) => code === value);
+}
+
+export function homeErrorFromSearch(
+  error?: string,
+  cause?: string,
+): { code: ErrorCode; cause?: string } | undefined {
+  if (!error || !isErrorCode(error)) {
+    return undefined;
+  }
+  return { code: error, cause: cause || undefined };
+}
+
+export function homeAnalysisFailureHref(cause?: string): string {
+  const params = new URLSearchParams({ error: "analysis_failed" });
+  if (cause) {
+    params.set("cause", cause);
+  }
+  return `/?${params.toString()}`;
 }
 
 // 분석은 원문 URL로 하고, 브랜드로 보이는 주소에서만 광고·검색 추적을 뺀다.

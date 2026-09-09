@@ -2,7 +2,9 @@ export const errorCodes = [
   "network",
   "auth",
   "sign_up_failed",
+  "invalid_url",
   "analysis_failed",
+  "analysis_partial",
   "generation_failed",
   "not_found",
 ] as const;
@@ -22,9 +24,17 @@ export const errorMessages: Record<ErrorCode, { title: string; description: stri
     title: "회원가입하지 못했어요",
     description: "입력한 내용을 확인해 주세요.",
   },
+  invalid_url: {
+    title: "사이트 주소가 아니에요",
+    description: "https://example.com 처럼 보이는 주소를 입력해 주세요.",
+  },
   analysis_failed: {
     title: "사이트를 분석하지 못했어요",
     description: "URL이 맞는지, 사이트가 열리는지 확인해 주세요.",
+  },
+  analysis_partial: {
+    title: "이 항목을 확인하지 못했어요",
+    description: "사이트에서 해당 정보를 찾지 못했어요.",
   },
   generation_failed: {
     title: "생성하지 못했어요",

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ErrorCode } from "./errors";
 
 export type SessionUser = {
   name: string;
@@ -21,6 +22,8 @@ export type NavUserProps = {
 
 export type UrlFormProps = {
   authenticated: boolean;
+  errorCode?: ErrorCode;
+  errorCause?: string;
 };
 
 export type AuthDialogProps = {
@@ -35,6 +38,12 @@ export type HomeHeaderProps = {
 export type HomePromptProps = {
   user: SessionUser | null;
   canSubmitUrl: boolean;
+  errorCode?: ErrorCode;
+  errorCause?: string;
+};
+
+export type HomePageProps = {
+  searchParams: Promise<{ error?: string; cause?: string }>;
 };
 
 export type PrimaryNavKey = "dashboard" | "campaigns" | "brands";

@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { ImageOff, LinkIcon } from "lucide-react";
+import { LinkIcon } from "lucide-react";
+import { ErrorState } from "@/components/error-state";
 import { copy } from "@/lib/copy";
 import type { BrandSummaryProps } from "@/lib/types";
 
@@ -9,9 +10,9 @@ export function BrandSummary({ name, industry, tagline, logoUrl, sourceUrl }: Br
       <h2 id="brand-summary-title" className="text-shell-ink text-base font-semibold">
         {copy.brandAnalysis.basicInfo}
       </h2>
-      <div className="mt-5 flex items-center gap-6">
-        <div className="bg-shell-background border-shell-border flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border">
-          {logoUrl ? (
+      <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-start">
+        {logoUrl ? (
+          <div className="bg-shell-background border-shell-border flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border">
             <Image
               src={logoUrl}
               alt={copy.brandAnalysis.logoAlt(name)}
@@ -19,21 +20,28 @@ export function BrandSummary({ name, industry, tagline, logoUrl, sourceUrl }: Br
               height={112}
               unoptimized={logoUrl.startsWith("http")}
             />
-          ) : (
-            <ImageOff
-              className="text-shell-icon size-6"
-              aria-label={copy.brandAnalysis.unavailable}
-            />
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="min-w-0 sm:max-w-xs">
+            <ErrorState code="analysis_partial" cause={copy.brandAnalysis.logoMissing} />
+          </div>
+        )}
         <div className="min-w-0">
           <h3 className="text-shell-ink text-2xl font-semibold tracking-tight">{name}</h3>
-          <p className="text-shell-ink mt-1 text-sm font-medium">
-            {industry ?? copy.brandAnalysis.unavailable}
-          </p>
-          <p className="text-shell-muted mt-2 text-sm leading-6">
-            {tagline ?? copy.brandAnalysis.unavailable}
-          </p>
+          {industry ? (
+            <p className="text-shell-ink mt-1 text-sm font-medium">{industry}</p>
+          ) : (
+            <div className="mt-2">
+              <ErrorState code="analysis_partial" cause={copy.brandAnalysis.industryMissing} />
+            </div>
+          )}
+          {tagline ? (
+            <p className="text-shell-muted mt-2 text-sm leading-6">{tagline}</p>
+          ) : (
+            <div className="mt-2">
+              <ErrorState code="analysis_partial" cause={copy.brandAnalysis.taglineMissing} />
+            </div>
+          )}
           <a
             href={sourceUrl}
             target="_blank"
