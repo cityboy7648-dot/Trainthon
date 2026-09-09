@@ -13,9 +13,32 @@ export type NavUserProps = {
   user: SessionUser;
 };
 
-export type SignInResult = { email: string; cause: string } | null;
+export type UrlFormProps = {
+  authenticated: boolean;
+};
 
-export type SignUpResult = { name: string; email: string; cause: string } | null;
+export type AuthDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export type HomeHeaderProps = {
+  user: SessionUser | null;
+};
+
+export type HomePromptProps = {
+  user: SessionUser | null;
+  canSubmitUrl: boolean;
+};
+
+export type PrimaryNavKey = "dashboard" | "campaigns" | "brands";
+
+export type UrlSubmission =
+  { kind: "authenticate" } | { kind: "invalid" } | { kind: "navigate"; href: string };
+
+export type SignInResult = { email: string; cause?: string } | null;
+
+export type SignUpResult = { name: string; email: string; cause?: string } | null;
 
 const nullableTextSchema = z.string().trim().min(1).nullable();
 const httpUrlSchema = z

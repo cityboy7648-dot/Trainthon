@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { env } from "@/lib/env";
+import { authCookieOptions } from "@/lib/supabase/cookie-options";
 
 // 서버 컴포넌트는 쿠키를 쓸 수 없다. 갱신된 액세스 토큰은 여기서만 저장된다.
 export async function proxy(request: NextRequest) {
@@ -9,6 +10,7 @@ export async function proxy(request: NextRequest) {
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      cookieOptions: authCookieOptions,
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {

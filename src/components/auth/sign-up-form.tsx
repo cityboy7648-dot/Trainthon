@@ -27,6 +27,7 @@ export function SignUpForm() {
             autoComplete="name"
             placeholder={copy.signUp.namePlaceholder}
             defaultValue={result?.name}
+            maxLength={50}
             required
             className={inputClassName}
           />
@@ -56,12 +57,29 @@ export function SignUpForm() {
             name="password"
             type="password"
             autoComplete="new-password"
+            minLength={8}
+            maxLength={72}
             required
             className={inputClassName}
           />
           <FieldDescription className="text-shell-icon text-shell-caption">
             {copy.signUp.passwordHint}
           </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="passwordConfirm" className={labelClassName}>
+            {copy.signUp.passwordConfirm}
+          </FieldLabel>
+          <Input
+            id="passwordConfirm"
+            name="passwordConfirm"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            maxLength={72}
+            required
+            className={inputClassName}
+          />
         </Field>
         <Field orientation="horizontal" className="items-start">
           <Checkbox
