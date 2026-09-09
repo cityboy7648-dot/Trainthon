@@ -27,7 +27,7 @@ export async function getCampaign4Products(): Promise<Campaign4ProductOptions> {
       brandName: parsed.data.name,
       products: parsed.data.products.flatMap((product, index) =>
         product.image_url && /^(https:\/\/|data:image\/)/.test(product.image_url)
-          ? [{ index, name: product.name, description: product.description, price: product.price }]
+          ? [{ index, ...product }]
           : [],
       ),
     };

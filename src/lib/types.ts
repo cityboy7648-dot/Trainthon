@@ -14,6 +14,7 @@ export type AppSidebarProps = {
 
 export type AppAccessProps = {
   user: SessionUser | null;
+  savedProfile: BrandProfileData | null;
   children: import("react").ReactNode;
 };
 
@@ -157,14 +158,18 @@ export const campaign4PlanSchema = z.object({
   day5: campaign4PostSchema,
 });
 export type Campaign4Plan = z.infer<typeof campaign4PlanSchema>;
+export const campaign4SavedPlanSchema = z.object({
+  product: brandProductSchema,
+  plan: campaign4PlanSchema,
+});
+export type Campaign4SavedPlan = z.infer<typeof campaign4SavedPlanSchema>;
 export type Campaign4ProductOptions = {
   brandId: string;
   brandName: string;
-  products: { index: number; name: string; description: string | null; price: string | null }[];
+  products: (BrandProduct & { index: number })[];
 }[];
 export type Campaign4PlannerProps = { brands: Campaign4ProductOptions };
-export type Campaign4ActionState =
-  { ok: true; runId: string } | { ok: false; code: ErrorCode; cause?: string } | null;
+export type Campaign4ActionState = { ok: false; code: ErrorCode; cause?: string } | null;
 
 export type UserUsage = {
   brandCount: number;
@@ -413,7 +418,7 @@ export const campaignTwoResultSchema = z.object({
   ),
 });
 export type CampaignTwoResult = z.infer<typeof campaignTwoResultSchema>;
-export type CampaignTwoResultProps = { runId: string };
+export type CampaignImageTiming = { runStartedAt: number; imagesStartedAt: number; index: number };
 export const campaignFiveRequestSchema = z
   .object({
     brand_id: z.uuid(),
@@ -478,8 +483,6 @@ export const campaignFiveResultSchema = z.object({
   product_links: z.array(campaignProductLinkSchema),
 });
 export type CampaignFiveResult = z.infer<typeof campaignFiveResultSchema>;
-export type CampaignFiveResultProps = { runId: string };
-export type CampaignFiveOutputsProps = { result: CampaignFiveResult; onRetry: () => void };
 export type CampaignProductPickerProps = { campaignNumber: 2 | 5 };
 export type CampaignProductOptionsProps = {
   products: NonNullable<CampaignProducts>["products"];
@@ -499,5 +502,90 @@ export type CampaignDetailsProps = {
 
 export type CampaignSelectionProps = {
   campaigns: readonly CampaignPreview[];
+  previewMode?: boolean;
   realUsagePlanner?: import("react").ReactNode;
 };
+
+export const campaignPostMetaSchema = z
+  .object({
+    day: z.number().int().min(1).max(366),
+    position: z.number().int().min(1).max(100),
+    format: z.enum(["feed", "story", "carousel", "pinterest"]),
+    title: z.string().max(200).optional(),
+    caption: z.string().max(2200).nullable().default(null),
+    start_date: z.iso.date().optional(),
+    error: z.string().nullable().optional(),
+  })
+  .catchall(z.json());
+export type CampaignPostMeta = z.infer<typeof campaignPostMetaSchema>;
+export type CampaignPreviewMode = "feed" | "grid" | "story" | "carousel" | "pinterest";
+export type CampaignPost = {
+  id: string;
+  status: z.infer<typeof campaignAssetStatusSchema>;
+  image_url: string | null;
+  meta: CampaignPostMeta;
+};
+export type SavedCampaign = {
+  id: string;
+  key: string;
+  name: string;
+  brand: string;
+  status: string;
+  startDate: string;
+  posts: CampaignPost[];
+};
+export type SavedCampaignCard = Pick<SavedCampaign, "id" | "key" | "name" | "brand" | "status"> & {
+  createdAt: string;
+  image: string | null;
+  channels: readonly string[];
+  endDate: string | null;
+  total: number;
+  completed: number;
+  failed: number;
+};
+export type CampaignGalleryRun = {
+  id: string;
+  campaign_key: string;
+  status: string;
+  created_at: string;
+  brands: { profile: unknown };
+  assets: { kind: string; status: string; meta: unknown }[];
+};
+export type CampaignGalleryViewProps = { campaigns: SavedCampaignCard[]; preview: boolean };
+export type CampaignPreviewEdit = (
+  kind: "caption" | "image" | "date",
+  postId: string,
+  form: FormData,
+) => Promise<void>;
+export type CampaignWorkspaceProps = {
+  campaign: SavedCampaign;
+  onPreviewEdit?: CampaignPreviewEdit;
+};
+export type CampaignArchiveFile = { name: string; bytes: Uint8Array };
+export type CampaignPostPreviewProps = {
+  campaign: SavedCampaign;
+  post: CampaignPost | undefined;
+  mode: CampaignPreviewMode;
+};
+export type CampaignPostEditorProps = {
+  onPreviewEdit?: CampaignPreviewEdit;
+  campaign: SavedCampaign;
+  post: CampaignPost;
+  kind: "caption" | "image" | "date";
+  onClose: () => void;
+};
+export const campaignSelectionSchema = z
+  .object({
+    requestId: z.uuid(),
+    sourceUrl: z.url().optional(),
+    key: z.literal("signature_grid"),
+  })
+  .strict();
+export const campaignEditSchema = z
+  .object({
+    runId: z.uuid(),
+    assetId: z.uuid(),
+    kind: z.enum(["caption", "date"]),
+    value: z.string().max(2200),
+  })
+  .strict();

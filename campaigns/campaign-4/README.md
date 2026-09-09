@@ -48,7 +48,7 @@
 
 ### 구현 계약
 
-선택 화면 `/campaigns/new?campaign=real_usage`에서 본인 소유의 저장 브랜드와 이미지가 있는 상품 목록을 표시한다. 상품 선택은 URL의 `brandId`, `productIndex`에 기록한다. 선택 전 버튼은 비활성화하며, Server Action과 HTTP API가 동일한 기획·이미지 준비 함수를 호출한다. 요청 중 스켈레톤, 실패 시 공용 ErrorState와 재시도, 상품이 없으면 EmptyState를 표시한다. 생성 요청 후 `run`을 URL에 기록해 결과를 다시 조회할 수 있다.
+선택 화면 `/campaigns/new?campaign=real_usage`에서 본인 소유의 저장 브랜드와 이미지가 있는 상품 목록을 표시한다. 상품 선택은 URL의 `brandId`, `productIndex`에 기록한다. 선택 전 버튼은 비활성화하며, Server Action과 HTTP API가 동일한 기획·이미지 준비 함수를 호출한다. 요청 중 스켈레톤, 실패 시 공용 ErrorState와 재시도, 상품이 없으면 EmptyState를 표시한다. 생성 요청 후 `/campaigns/{runId}` 상세 화면으로 이동하며 같은 주소에서 결과를 다시 조회할 수 있다.
 
 - `POST /api/campaigns/4/runs`, 로그인 세션 필요. JSON `{}` 또는 `{ "brandId": "UUID", "productIndex": 0 }`.
 - 브랜드 생략 시 현재 계정의 최신 저장 브랜드, 상품 생략 시 이미지가 있는 첫 상품을 선택한다. admin에서 임의 상품 선택을 사용자가 승인했다. 다른 계정의 브랜드는 선택할 수 없다.

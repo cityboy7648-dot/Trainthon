@@ -39,7 +39,7 @@ export async function generateCampaignFive(
       ...selected.map(({ product }) => product.image_url as string),
     ];
     const site = await collectSite(run.profile.source_url, context);
-    if (Date.now() - startedAt > 195_000)
+    if (Date.now() - startedAt > 90_000)
       throw new AppError("generation_failed", campaignErrors.timeout);
     const { output: plan } = await parseStructuredOutput(
       campaignFivePlanSchema,
@@ -82,43 +82,44 @@ export async function generateCampaignFive(
       };
     });
     let failed = false;
-    for (let offset = 0; offset < run.assets.length; offset += 4) {
-      if (Date.now() - startedAt > 195_000)
-        throw new AppError("generation_failed", campaignErrors.timeout);
-      await Promise.all(
-        run.assets.slice(offset, offset + 4).map(async (asset) => {
-          const assetContext = { ...context, assetId: asset.id };
-          const meta = {
-            ...asset.meta,
-            caption: plan.captions[asset.meta.day - 1],
-            product_links: productLinks,
-          };
-          try {
-            await updateCampaignFiveAsset(run.client, asset.id, { status: "processing", meta });
-            const image = await generateCampaignImage(
-              campaignFiveImagePrompt(
-                plan.concept,
-                plan.image_briefs[asset.meta.position - 1],
-                JSON.stringify(selected.map(({ product }) => product)),
-              ),
-              images,
-              asset.meta.format === "pinterest" ? "pinterest" : false,
-              assetContext,
-            );
-            await saveCampaignFiveImage(run.client, run.runId, asset.id, image, meta);
-          } catch (error) {
-            failed = true;
-            const cause =
-              error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.image;
-            await updateCampaignFiveAsset(run.client, asset.id, {
-              status: "failed",
-              meta: { ...meta, error: cause },
-            });
-            log.error("campaign_five.asset_failed", assetContext, { cause });
-          }
-        }),
-      );
-    }
+    // 최대 180초 이미지 요청과 저장 시간을 300초 실행 제한 안에 남긴다.
+    if (Date.now() - startedAt > 90_000)
+      throw new AppError("generation_failed", campaignErrors.timeout);
+    const imagesStartedAt = Date.now();
+    await Promise.all(
+      run.assets.map(async (asset, index) => {
+        const assetContext = { ...context, assetId: asset.id };
+        const meta = {
+          ...asset.meta,
+          caption: plan.captions[asset.meta.day - 1],
+          product_links: productLinks,
+        };
+        try {
+          await updateCampaignFiveAsset(run.client, asset.id, { status: "processing", meta });
+          const image = await generateCampaignImage(
+            campaignFiveImagePrompt(
+              plan.concept,
+              plan.image_briefs[asset.meta.position - 1],
+              JSON.stringify(selected.map(({ product }) => product)),
+            ),
+            images,
+            asset.meta.format === "pinterest" ? "pinterest" : false,
+            assetContext,
+            { runStartedAt: startedAt, imagesStartedAt, index },
+          );
+          await saveCampaignFiveImage(run.client, run.runId, asset.id, image, meta);
+        } catch (error) {
+          failed = true;
+          const cause =
+            error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.image;
+          await updateCampaignFiveAsset(run.client, asset.id, {
+            status: "failed",
+            meta: { ...meta, error: cause },
+          });
+          log.error("campaign_five.asset_failed", assetContext, { cause });
+        }
+      }),
+    );
     await setCampaignFiveRunStatus(run.client, run.runId, failed ? "failed" : "done");
   } catch (error) {
     const cause = error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.plan;

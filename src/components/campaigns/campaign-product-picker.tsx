@@ -2,14 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { ErrorState } from "@/components/error-state";
 import { EmptyState } from "@/components/empty-state";
 import { CampaignProductPickerSkeleton } from "./campaign-product-picker-skeleton";
-import { CampaignTwoResult } from "./campaign-two-result";
-import { CampaignFiveResult } from "./campaign-five-result";
 import { CampaignProductOptions } from "./campaign-product-options";
 import { CampaignFivePickerSkeleton } from "./campaign-five-picker-skeleton";
 import { submitCampaignFive } from "@/lib/data/campaign-five-client";
@@ -26,6 +24,7 @@ import type {
 export function CampaignProductPicker({ campaignNumber }: CampaignProductPickerProps) {
   const params = useSearchParams();
   const pathname = usePathname();
+  const router = useRouter();
   const [state, setState] = useState<CampaignRequestState<CampaignProducts> | null>(null);
   const [submission, setSubmission] = useState<CampaignRequestState<{ run_id: string }> | null>(
     null,
@@ -35,7 +34,7 @@ export function CampaignProductPicker({ campaignNumber }: CampaignProductPickerP
   const [authOpen, setAuthOpen] = useState(false);
   const locked = useRef(false);
   const selectedKey = params.get("product");
-  const runId = params.get("run");
+  const mounted = useRef(true);
   const products = state?.ok ? state.data : null;
   const selected = products?.products.find((item) => item.key === selectedKey);
   const companionKeys = (params.get("companions") ?? "").split(",").filter(Boolean);
@@ -48,6 +47,13 @@ export function CampaignProductPicker({ campaignNumber }: CampaignProductPickerP
       companionProducts.some((item) => item.key === key && item.product.image_url),
     );
   const isSet = campaignNumber === 5;
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -77,22 +83,15 @@ export function CampaignProductPicker({ campaignNumber }: CampaignProductPickerP
     const result = isSet
       ? await submitCampaignFive({ ...input, companion_product_keys: companionKeys })
       : await submitCampaignTwo(input);
+    if (!mounted.current) return;
     setSubmission(result);
     setPending(false);
     locked.current = false;
     if (result.ok) {
-      const next = new URLSearchParams(params.toString());
-      next.set("run", result.data.run_id);
-      window.history.pushState(null, "", `${pathname}?${next}`);
+      router.push(`/campaigns/${result.data.run_id}`);
     }
   }
 
-  if (runId)
-    return isSet ? (
-      <CampaignFiveResult key={runId} runId={runId} />
-    ) : (
-      <CampaignTwoResult key={runId} runId={runId} />
-    );
   if (!state) return isSet ? <CampaignFivePickerSkeleton /> : <CampaignProductPickerSkeleton />;
   if (!state.ok)
     return (
@@ -181,17 +180,15 @@ export function CampaignProductPicker({ campaignNumber }: CampaignProductPickerP
           />
         </div>
       )}
-      <Button
-        onClick={generate}
-        disabled={!selected?.product.image_url || pending || (isSet && !companionsValid)}
-        className="bg-shell-button hover:bg-shell-button-hover mt-6 h-11 w-full text-white"
-      >
-        {pending
-          ? copy.campaignTwo.submitting
-          : isSet
-            ? copy.campaignFive.generate
-            : copy.campaignTwo.generate}
-      </Button>
+      <div className="mt-6 flex justify-end">
+        <Button
+          onClick={generate}
+          disabled={!selected?.product.image_url || pending || (isSet && !companionsValid)}
+          className="bg-shell-button hover:bg-shell-button-hover h-11 px-6 text-white"
+        >
+          {pending ? copy.campaignTwo.submitting : copy.campaigns.generateAction}
+        </Button>
+      </div>
       {submission && !submission.ok && (
         <div className="mt-4">
           <ErrorState

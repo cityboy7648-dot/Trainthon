@@ -2,12 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  experimental: { serverActions: { bodySizeLimit: "6mb" } },
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "deucsyzcrllgnvbxlqlq.supabase.co",
-        pathname: "/storage/v1/object/public/campaign-covers/**",
+        pathname: "/storage/v1/**",
       },
     ],
   },

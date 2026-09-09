@@ -26,11 +26,9 @@ export async function generateCampaign4Images(
       ),
     );
     const inputs = [...references, run.product.image_url];
+    const imagesStartedAt = Date.now();
     const posts = [run.plan.day1, run.plan.day2, run.plan.day3, run.plan.day4, run.plan.day5];
     async function generate(asset: (typeof run.assets)[number], anchor?: Buffer) {
-      // 제공자 제한 75초와 Storage 저장 시간을 300초 실행 제한 안에 남긴다.
-      if (Date.now() - run.startedAt > 210_000)
-        throw new AppError("generation_failed", campaignErrors.timeout);
       await updateCampaignAsset(run.client, asset.id, { status: "processing" });
       const image = await generateCampaignImage(
         realUsageImagePrompt(
@@ -43,6 +41,7 @@ export async function generateCampaign4Images(
         anchor ? [...inputs, `data:image/png;base64,${anchor.toString("base64")}`] : inputs,
         false,
         { ...context, assetId: asset.id },
+        { runStartedAt: run.startedAt, imagesStartedAt, index: asset.meta.position - 1 },
       );
       await saveCampaignImage(run.client, run.runId, asset.id, image, asset.meta);
       return image;

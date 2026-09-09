@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -16,8 +16,7 @@ import type { Campaign4ResultProps, Campaign4ResultData, CampaignRequestState } 
 export function Campaign4Result({ runId }: Campaign4ResultProps) {
   const [state, setState] = useState<CampaignRequestState<Campaign4ResultData> | null>(null);
   const [revision, setRevision] = useState(0);
-  const pathname = usePathname();
-  const params = useSearchParams();
+  const router = useRouter();
   const text = copy.campaigns.realUsage;
   useEffect(() => {
     let active = true;
@@ -42,9 +41,7 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
   }, [runId, revision]);
 
   function startAgain() {
-    const next = new URLSearchParams(params.toString());
-    next.delete("run");
-    window.history.replaceState(null, "", `${pathname}?${next}`);
+    router.push("/campaigns/new?campaign=real_usage");
   }
 
   if (!state) return <Campaign4ResultSkeleton />;
