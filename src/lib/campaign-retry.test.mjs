@@ -128,6 +128,11 @@ registerHooks({
         url: "data:text/javascript,export async function generateCampaignFive(){}",
         shortCircuit: true,
       };
+    if (s === "@/lib/agents/real-usage/generate-images")
+      return {
+        url: "data:text/javascript,export async function generateCampaign4(){}",
+        shortCircuit: true,
+      };
     if (s.startsWith("@/")) return n(new URL(`../${s.slice(2)}.ts`, import.meta.url).href, c);
     return n(s, c);
   },

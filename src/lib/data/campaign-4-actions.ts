@@ -15,12 +15,12 @@ export async function requestCampaign4Images(
   try {
     const index = formData.get("productIndex");
     if (typeof index !== "string" || !/^\d+$/.test(index)) throw new AppError("invalid_request");
-    const started = await startCampaign4Run({
+    const run = await startCampaign4Run({
       brandId: formData.get("brandId"),
       productIndex: Number(index),
     });
-    after(() => generateCampaign4(started));
-    runId = started.runId;
+    after(() => generateCampaign4(run, crypto.randomUUID()));
+    runId = run.runId;
   } catch (error) {
     const failure = error instanceof AppError ? error : new AppError("generation_failed");
     return { ok: false, code: failure.code, cause: failure.cause };

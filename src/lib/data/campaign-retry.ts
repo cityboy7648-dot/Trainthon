@@ -1,5 +1,6 @@
 import { generateCampaignFive } from "@/lib/agents/complete-set/generate";
 import { generateCampaignTwo } from "@/lib/agents/one-product-three-scenes/generate";
+import { generateCampaign4 } from "@/lib/agents/real-usage/generate-images";
 import { generateSignatureGrid } from "@/lib/agents/signature-grid/generate";
 import { generatedCampaignKeys, latestAssetsByPosition } from "@/lib/campaign-workspace";
 import { setCampaignRunStatus, syncCampaignRunStatus } from "@/lib/data/campaign-assets";
@@ -7,6 +8,7 @@ import { ownedCampaign } from "@/lib/data/campaign-workspace";
 import { AppError, campaignErrors } from "@/lib/errors";
 import {
   brandProfileSchema,
+  campaign4ImageMetaSchema,
   campaignFiveAssetMetaSchema,
   campaignPostMetaSchema,
   campaignTwoAssetMetaSchema,
@@ -142,6 +144,26 @@ export async function prepareCampaignRetry(runId: string) {
     };
   }
 
+  if (run.campaign_key === "real_usage") {
+    const latest = latestAssetsByPosition(
+      images.map((asset) => ({ ...asset, meta: campaign4ImageMetaSchema.parse(asset.meta) })),
+    );
+    const rows = await replaceFailedImages(writer, run.id, latest, run.status);
+    return {
+      kind: "real_usage" as const,
+      run: {
+        client: writer,
+        runId: run.id,
+        profile,
+        product: latest[0].meta.product,
+        assets: rows.map((asset) => ({
+          id: asset.id,
+          meta: campaign4ImageMetaSchema.parse(asset.meta),
+        })),
+      },
+    };
+  }
+
   const latest = latestAssetsByPosition(
     images.map((asset) => ({ ...asset, meta: campaignFiveAssetMetaSchema.parse(asset.meta) })),
   );
@@ -171,6 +193,11 @@ export async function executeCampaignRetry(job: Awaited<ReturnType<typeof prepar
   }
   if (job.kind === "one_product_three_scenes") {
     await generateCampaignTwo(job.run, crypto.randomUUID());
+    await syncCampaignRunStatus(job.run.client, job.run.runId);
+    return;
+  }
+  if (job.kind === "real_usage") {
+    await generateCampaign4(job.run, crypto.randomUUID());
     await syncCampaignRunStatus(job.run.client, job.run.runId);
     return;
   }

@@ -45,6 +45,7 @@ test("시그니처 그리드는 스토리 탭을 표시하지 않는다", () => 
   assert.equal(isGeneratedCampaign("signature_grid"), true);
   assert.deepEqual(previewModes("signature_grid"), ["feed", "grid"]);
   assert.deepEqual(previewModes("one_product_three_scenes"), ["feed", "story", "carousel"]);
+  assert.deepEqual(previewModes("real_usage"), ["feed"]);
   assert.deepEqual(previewModes("complete_set"), ["feed", "pinterest", "carousel"]);
 });
 test("세트 캠페인 메타는 Pinterest와 상품 링크를 보존한다", async () => {
