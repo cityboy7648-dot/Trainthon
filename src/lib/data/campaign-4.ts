@@ -1,6 +1,6 @@
 import { campaign4 } from "@/definitions/campaign-4";
 import { planCampaign4 } from "@/lib/agents/real-usage/plan-campaign";
-import { AppError } from "@/lib/errors";
+import { AppError, campaignErrors } from "@/lib/errors";
 import { log } from "@/lib/log";
 import { createSessionReader } from "@/lib/supabase/server";
 import { brandProfileSchema, campaign4RequestSchema } from "@/lib/types";
@@ -72,6 +72,14 @@ export async function createCampaign4Plan(input: unknown) {
     runId: crypto.randomUUID(),
     assetId: crypto.randomUUID(),
   };
+  const recent = await supabase
+    .from("runs")
+    .select("id", { count: "exact", head: true })
+    .eq("brand_id", brand.id)
+    .eq("campaign_key", campaign4.key)
+    .gte("created_at", new Date(Date.now() - 60_000).toISOString());
+  if (recent.error) throw new AppError("network", campaignErrors.create);
+  if ((recent.count ?? 0) >= 2) throw new AppError("generation_failed", campaignErrors.rateLimited);
   const { error: runError } = await supabase.from("runs").insert({
     id: context.runId,
     brand_id: brand.id,
@@ -111,7 +119,7 @@ export async function createCampaign4Plan(input: unknown) {
       .select("id")
       .single();
     if (saveError || !saved) throw new AppError("network", "기획 결과를 저장하지 못했습니다.");
-    // 이미지 생성은 후속 단계다. run은 pending으로 남고 기획 asset만 완료된다.
+    // 이미지 저장이 끝나기 전에는 캠페인을 완료로 표시하지 않는다.
     return {
       runId: context.runId,
       assetId: context.assetId,
@@ -122,6 +130,11 @@ export async function createCampaign4Plan(input: unknown) {
     };
   } catch (error) {
     const failure = error instanceof AppError ? error : new AppError("generation_failed");
+    const { error: runFailureError } = await supabase
+      .from("runs")
+      .update({ status: "failed" })
+      .eq("id", context.runId)
+      .in("status", ["pending", "processing"]);
     const { error: failureError } = await supabase
       .from("assets")
       .update({
@@ -132,9 +145,9 @@ export async function createCampaign4Plan(input: unknown) {
       .in("status", ["pending", "processing"]);
     log.error("campaign4.plan_failed", context, {
       code: failure.code,
-      statusSaveFailed: Boolean(failureError),
+      statusSaveFailed: Boolean(failureError || runFailureError),
     });
-    if (failureError)
+    if (failureError || runFailureError)
       throw new AppError("network", "기획에 실패했고 실패 상태도 저장하지 못했습니다.");
     throw failure;
   }

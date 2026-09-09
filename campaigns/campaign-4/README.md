@@ -1,6 +1,6 @@
 # 캠페인 4: 리얼 사용기
 
-상태: 승인 레퍼런스·시안·대표 이미지 확정 및 Storage 업로드 완료. 카드·상세 등록과 상품 선택 → 기획 요청 → 5일 장면/캡션 표시 코드 연결 완료. 사용자 요청에 따라 실행 테스트와 배포는 미실행. 실제 이미지 생성 연결은 후속 단계.
+상태: 승인 레퍼런스·시안·대표 이미지 등록 완료. 상품 선택 → 5일 기획 → 이미지 5장 생성·비공개 Storage 저장 → 결과 조회 코드 연결. 사용자 요청에 따라 앱 실행·유료 생성 테스트와 배포는 미실행.
 
 ## 기준
 
@@ -48,15 +48,18 @@
 
 ### 구현 계약
 
-선택 화면 `/campaigns/new?campaign=real_usage`에서 본인 소유의 저장 브랜드와 이미지가 있는 상품 목록을 표시한다. 상품 선택은 URL의 `brandId`, `productIndex`에 기록한다. 선택 전 버튼은 비활성화하며, Server Action이 HTTP 기획 API와 동일한 `createCampaign4Plan`을 호출한다. 요청 중 스켈레톤, 실패 시 공용 ErrorState와 재시도, 상품이 없으면 EmptyState를 표시한다. 결과는 생성 당시 상품명과 1~5일차 장면·캡션을 표시하며 실제 이미지 생성 완료로 표현하지 않는다.
+선택 화면 `/campaigns/new?campaign=real_usage`에서 본인 소유의 저장 브랜드와 이미지가 있는 상품 목록을 표시한다. 상품 선택은 URL의 `brandId`, `productIndex`에 기록한다. 선택 전 버튼은 비활성화하며, Server Action과 HTTP API가 동일한 기획·이미지 준비 함수를 호출한다. 요청 중 스켈레톤, 실패 시 공용 ErrorState와 재시도, 상품이 없으면 EmptyState를 표시한다. 생성 요청 후 `run`을 URL에 기록해 결과를 다시 조회할 수 있다.
 
 - `POST /api/campaigns/4/runs`, 로그인 세션 필요. JSON `{}` 또는 `{ "brandId": "UUID", "productIndex": 0 }`.
 - 브랜드 생략 시 현재 계정의 최신 저장 브랜드, 상품 생략 시 이미지가 있는 첫 상품을 선택한다. admin에서 임의 상품 선택을 사용자가 승인했다. 다른 계정의 브랜드는 선택할 수 없다.
 - key는 `real_usage`, 승인 묶음은 `real_usage_approved_20260909`. 승인 이미지 3개와 상품 이미지를 기획 모델에 전달한다.
-- 응답은 `runId`, `assetId`, `stage: planned`, 선택 상품, `plan`. plan에는 공통 촬영 방향·인물 연속성·day1~day5의 장면·이미지 프롬프트·캡션이 있다.
-- `runs`를 먼저 생성하고 `assets`의 `kind: caption`, `meta.stage: planning`에 기획 결과를 저장한다. 기획 asset은 pending → processing → done/failed. 이미지 생성 전이라 run은 pending이다. 재요청은 새 run/asset이다.
+- 생성 응답은 HTTP 202 `{ runId, stage: "generating" }`. 기획에는 공통 촬영 방향·인물 연속성·day1~day5의 장면·이미지 프롬프트·캡션이 있다.
+- `runs`를 먼저 생성하고 `assets`의 `kind: caption`, `meta.stage: planning`에 기획 결과를 저장한다. 이후 일자별 `kind: image` 5개를 pending으로 만들고, Next.js `after`에서 이미지 생성을 실행한다. 각각 processing → done/failed이며 5장 모두 저장되면 run도 done이다. 이미지 메타에 day, position, format, 상품, 장면, 캡션, 오류, 완료 시각을 기록한다.
+- 기존 OpenAI provider의 `gpt-image-2`를 사용해 PNG 1024×1280(4:5)을 생성한다. 승인 레퍼런스 3장과 대표 상품을 전달하고, D2 착용 이미지를 먼저 만든 뒤 동일 인물 기준으로 나머지 4장에도 전달한다. 실제 저장 순서와 무관하게 결과는 D1~D5로 표시한다.
+- `GET /api/campaigns/4/runs/{runId}`는 본인 소유 run만 조회하며 이미지별 상태·비공개 Storage 서명 URL·장면·캡션을 반환한다. 화면은 4초마다 실제 상태를 조회하고 완성된 장부터 표시한다. 생성 실패는 공용 ErrorState와 새 캠페인으로 다시 만들기를 표시한다.
+- 요청당 최대 실행 시간은 300초다. 6분을 넘긴 미완료 이미지 작업은 조회 시 failed로 처리한다. 영구 작업 큐는 아직 없다. 이전 기획 전용 run은 이미지가 없다는 안내를 표시하며 자동으로 유료 생성을 시작하지 않는다.
 
-`src/definitions/campaign-4.ts`가 번호·일정·비율의 기준이다. DB 테이블은 기존 PLAN 스키마를 사용한다. 현재 작업에서는 원격 테이블·RLS·API 동작을 검증하지 않았다. 기획 API는 실제 이미지 5장을 생성하지 않는다.
+`src/definitions/campaign-4.ts`가 번호·일정·비율의 기준이다. DB 테이블은 기존 PLAN 스키마를 사용한다. 이미지 생성 API 코드 연결과 실제 유료 생성 성공 검증은 구분한다. 현재 실제 유료 생성은 검증하지 않았다.
 
 ## 카드와 상세 등록
 

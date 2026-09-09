@@ -90,7 +90,7 @@ export async function getDashboardData(): Promise<CampaignRequestState<Dashboard
         completedTasks: completed.length,
         totalTasks: definition.schedule.length,
         failed: run.status === "failed" || images.some((asset) => asset.status === "failed"),
-        href: ["one_product_three_scenes", "complete_set"].includes(run.campaign_key)
+        href: ["one_product_three_scenes", "complete_set", "real_usage"].includes(run.campaign_key)
           ? `/campaigns/new?${new URLSearchParams({ campaign: run.campaign_key, run: run.id })}`
           : null,
       });

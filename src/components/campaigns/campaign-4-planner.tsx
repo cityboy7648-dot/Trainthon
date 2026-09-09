@@ -1,18 +1,19 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { Campaign4PlannerSkeleton } from "@/components/campaigns/campaign-4-planner-skeleton";
-import { requestCampaign4Plan } from "@/lib/data/campaign-4-actions";
+import { requestCampaign4Images } from "@/lib/data/campaign-4-actions";
+import { Campaign4Result } from "@/components/campaigns/campaign-4-result";
 import { copy } from "@/lib/copy";
 import type { Campaign4PlannerProps } from "@/lib/types";
 
 export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
-  const [result, action, pending] = useActionState(requestCampaign4Plan, null);
+  const [result, action, pending] = useActionState(requestCampaign4Images, null);
   const params = useSearchParams();
   const pathname = usePathname();
   const selectedBrand = params.get("brandId");
@@ -20,6 +21,14 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
   const brand = brands.find((item) => item.brandId === selectedBrand);
   const product = brand?.products.find((item) => String(item.index) === selectedIndex);
   const text = copy.campaigns.realUsage;
+  const runId = params.get("run");
+
+  useEffect(() => {
+    if (!result?.ok) return;
+    const next = new URLSearchParams(window.location.search);
+    next.set("run", result.runId);
+    window.history.pushState(null, "", `${pathname}?${next}`);
+  }, [result, pathname]);
 
   function selectProduct(brandId: string, index: number) {
     const next = new URLSearchParams(params.toString());
@@ -27,6 +36,8 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
     next.set("productIndex", String(index));
     window.history.replaceState(null, "", `${pathname}?${next.toString()}`);
   }
+
+  if (runId) return <Campaign4Result key={runId} runId={runId} />;
 
   if (!brands.some((item) => item.products.length > 0)) {
     return (
@@ -43,10 +54,6 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
       </section>
     );
   }
-
-  const posts = result?.ok
-    ? [result.plan.day1, result.plan.day2, result.plan.day3, result.plan.day4, result.plan.day5]
-    : [];
 
   return (
     <section data-source="server" className="mt-10 border-t pt-8">
@@ -126,32 +133,6 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
                 : undefined
             }
           />
-        )}
-        {!pending && result?.ok && (
-          <div>
-            <h2 className="text-shell-ink text-xl font-semibold">{text.ready}</h2>
-            <p className="text-shell-ink mt-2 text-sm font-medium">{result.product.name}</p>
-            <p className="text-shell-muted mt-2 text-sm">{text.planOnly}</p>
-            <h3 className="text-shell-ink mt-6 text-sm font-semibold">{text.direction}</h3>
-            <p className="text-shell-muted mt-2 text-sm leading-6">{result.plan.visualDirection}</p>
-            <ol className="divide-shell-border mt-6 divide-y">
-              {posts.map((post, index) => (
-                <li key={index} className="py-5">
-                  <h3 className="text-shell-ink font-semibold">{copy.campaigns.day(index + 1)}</h3>
-                  <dl className="mt-3 space-y-3 text-sm leading-6">
-                    <div>
-                      <dt className="text-shell-muted">{text.scene}</dt>
-                      <dd>{post.scene}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-shell-muted">{text.caption}</dt>
-                      <dd className="whitespace-pre-wrap">{post.caption}</dd>
-                    </div>
-                  </dl>
-                </li>
-              ))}
-            </ol>
-          </div>
         )}
       </div>
     </section>

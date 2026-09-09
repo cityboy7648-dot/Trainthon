@@ -164,9 +164,7 @@ export type Campaign4ProductOptions = {
 }[];
 export type Campaign4PlannerProps = { brands: Campaign4ProductOptions };
 export type Campaign4ActionState =
-  | { ok: true; runId: string; product: BrandProduct; plan: Campaign4Plan }
-  | { ok: false; code: ErrorCode; cause?: string }
-  | null;
+  { ok: true; runId: string } | { ok: false; code: ErrorCode; cause?: string } | null;
 
 export type UserUsage = {
   brandCount: number;
@@ -304,6 +302,32 @@ export type CampaignClient = Awaited<
   ReturnType<typeof import("./supabase/server").createSessionWriter>
 >;
 export const campaignAssetStatusSchema = z.enum(["pending", "processing", "done", "failed"]);
+
+export const campaign4ImageMetaSchema = z.object({
+  day: z.number().int().min(1).max(5),
+  position: z.number().int().min(1).max(5),
+  format: z.literal("feed"),
+  product: brandProductSchema,
+  scene: z.string().min(1),
+  caption: z.string().min(1),
+  error: z.string().nullable().default(null),
+});
+export type Campaign4ImageMeta = z.infer<typeof campaign4ImageMetaSchema>;
+export const campaign4ResultSchema = z.object({
+  runId: z.uuid(),
+  status: campaignAssetStatusSchema,
+  cause: z.string().nullable(),
+  assets: z.array(
+    z.object({
+      id: z.uuid(),
+      status: campaignAssetStatusSchema,
+      imageUrl: z.url().nullable(),
+      meta: campaign4ImageMetaSchema,
+    }),
+  ),
+});
+export type Campaign4ResultData = z.infer<typeof campaign4ResultSchema>;
+export type Campaign4ResultProps = { runId: string };
 
 export const dashboardAssetMetaSchema = z.object({
   day: z.number().int().positive().nullish(),

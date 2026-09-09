@@ -1,4 +1,6 @@
-import { createCampaign4Plan } from "@/lib/data/campaign-4";
+import { after } from "next/server";
+import { prepareCampaign4Images } from "@/lib/data/campaign-4-images";
+import { generateCampaign4Images } from "./generate-images";
 import { AppError, errorMessages } from "@/lib/errors";
 
 export async function handleCampaign4Request(request: Request) {
@@ -12,11 +14,18 @@ export async function handleCampaign4Request(request: Request) {
     }
     let input: unknown;
     try {
-      input = await request.json();
+      const body = await request.text();
+      if (body.length > 4096) throw new AppError("invalid_request");
+      input = JSON.parse(body);
     } catch {
       throw new AppError("invalid_request");
     }
-    return Response.json(await createCampaign4Plan(input), { status: 201 });
+    const run = await prepareCampaign4Images(input);
+    after(() => generateCampaign4Images(run));
+    return Response.json(
+      { runId: run.runId, stage: "generating" },
+      { status: 202, headers: { "Cache-Control": "no-store" } },
+    );
   } catch (error) {
     const failure = error instanceof AppError ? error : new AppError("generation_failed");
     const status =
