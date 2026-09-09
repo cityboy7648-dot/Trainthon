@@ -4,6 +4,10 @@ const storageKey = (url: string) => `brand-profile:${url}`;
 const activeKey = "brand-profile:active";
 const ownerKey = "brand-profile:owner";
 
+export function shouldAllowPreviewAccess(isProduction: boolean, isPreview: boolean) {
+  return !isProduction && isPreview;
+}
+
 export function initializeBrandSession(owner: string) {
   if (sessionStorage.getItem(ownerKey) !== owner) {
     for (const key of Object.keys(sessionStorage)) {

@@ -49,3 +49,10 @@ test("분석 완료 여부를 확인하고 계정 변경 시 이전 브랜드를
     else globalThis.window = oldWindow;
   }
 });
+
+test("개발 미리보기는 로그인한 브랜드가 없어도 앱 화면을 연다", async () => {
+  const { shouldAllowPreviewAccess } = await import("./brand-profile-session.ts");
+
+  assert.equal(shouldAllowPreviewAccess(false, true), true);
+  assert.equal(shouldAllowPreviewAccess(true, true), false);
+});

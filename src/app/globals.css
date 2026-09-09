@@ -182,3 +182,19 @@
 .analysis-progress::-moz-progress-bar {
   background: var(--color-shell-button);
 }
+
+.campaign-card-image[data-transitioning="true"],
+.campaign-hero-image {
+  view-transition-name: selected-campaign-image;
+}
+
+::view-transition-group(selected-campaign-image) {
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(selected-campaign-image) {
+    animation-duration: 1ms;
+  }
+}
