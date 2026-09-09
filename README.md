@@ -19,5 +19,16 @@
 3. 사용자가 방향 선택
 4. 산출물 생성
 
-구현 계획: [PLAN.md](PLAN.md)
+구현 계획: [PLAN.md](docs/PLAN.md)
 에이전트 지시: [AGENTS.md](AGENTS.md)
+
+## Figma
+
+- 제품 디자인: [Trainthon 제품 디자인](https://www.figma.com/design/eBAgVuj8yDUEX9zGc6F60s)
+- 사용자 흐름: [Trainthon 제품 플로우 FigJam](https://www.figma.com/board/lDjJ4Hm4o5gRf6lOIsMMNx)
+
+## 스킬 명세
+
+여기서 스킬은 Codex나 AI 에이전트용 스킬이 아니다. Trainthon이 수행하는 제품 기능의 이름이다. 각 기능 명세는 `skills/`에 둔다.
+
+- [1번 스킬: 브랜드 정보 수집](skills/01-brand-extraction/README.md)
