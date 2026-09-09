@@ -1,4 +1,5 @@
 import { AppError } from "../../errors.ts";
+import { toBrandSourceUrl } from "../../home.ts";
 import {
   brandProfileSchema,
   type BrandAnalysisOutput,
@@ -53,7 +54,7 @@ export function normalizeBrandProfile(
       ...new Map(profile.mood_keywords.map((keyword) => [normalizeKey(keyword), keyword])).values(),
     ],
     products: deduplicateProducts(profile.products),
-    source_url: sourceUrl,
+    source_url: toBrandSourceUrl(sourceUrl),
     analyzed_at: new Date().toISOString(),
   });
 }

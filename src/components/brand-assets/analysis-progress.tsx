@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ErrorState } from "@/components/error-state";
-import { saveAnalyzedBrandProfile, readAnalyzedBrandProfile } from "@/lib/brand-profile-session";
+import { readAnalyzedBrandProfile, saveAnalyzedBrandProfile } from "@/lib/brand-profile-session";
 import { copy } from "@/lib/copy";
 import { requestBrandProfile } from "@/lib/data/brand-profile";
 import { isPreviewAnalysis } from "@/lib/env";
 import { AppError } from "@/lib/errors";
+import { toBrandSourceUrl } from "@/lib/home";
 import type { AnalysisProgressProps, BrandProfileData } from "@/lib/types";
 import { getMockBrandProfile } from "@/mock/brand-profile"; // MOCK
 
@@ -52,8 +53,11 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (readAnalyzedBrandProfile(url)) {
-      router.replace(`/brands?url=${encodeURIComponent(url)}`);
+    const brandUrl = toBrandSourceUrl(url);
+    const cached = readAnalyzedBrandProfile(brandUrl) ?? readAnalyzedBrandProfile(url);
+    if (cached) {
+      saveAnalyzedBrandProfile(brandUrl, { ...cached, source_url: brandUrl });
+      router.replace(`/brands?url=${encodeURIComponent(brandUrl)}`);
       return;
     }
 
@@ -67,11 +71,11 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
       .then((profile) => {
         if (cancelled) return;
         window.clearInterval(tick);
-        saveAnalyzedBrandProfile(url, profile);
+        saveAnalyzedBrandProfile(profile.source_url, profile);
         setProgress(100);
         window.setTimeout(() => {
           if (!cancelled) {
-            router.replace(`/brands?url=${encodeURIComponent(url)}`);
+            router.replace(`/brands?url=${encodeURIComponent(profile.source_url)}`);
           }
         }, COMPLETE_PAUSE_MS);
       })
