@@ -6,11 +6,15 @@ import { BrandSummary } from "@/components/brand-assets/brand-summary";
 import { ProductCatalog } from "@/components/brand-assets/product-catalog";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
+import { isPreviewAnalysis } from "@/lib/env";
 import type { BrandProfileProps } from "@/lib/types";
 
 export function BrandProfile({ profile }: BrandProfileProps) {
   return (
-    <div data-source="mock" className="font-shell mx-auto w-full max-w-7xl px-6 py-8 lg:px-10">
+    <div
+      data-source={isPreviewAnalysis ? "server" : "mock"}
+      className="font-shell mx-auto w-full max-w-7xl px-6 py-8 lg:px-10"
+    >
       <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <a

@@ -13,7 +13,7 @@ import { assertCompleteAnalysis, normalizeBrandProfile } from "./normalize-brand
 import { extractBrandEvidencePrompt, mergeBrandProfilePrompt } from "./prompt";
 
 const MAX_CHUNK_CHARACTERS = 240_000;
-const MAX_PAGE_CHARACTERS = 500_000;
+const MAX_PAGE_CHARACTERS = 180_000;
 const MAX_MERGE_CHARACTERS = 2_500_000;
 
 function serializePage(page: CollectedPage): string {
@@ -26,20 +26,34 @@ function serializePage(page: CollectedPage): string {
   });
 }
 
+function compactPage(page: CollectedPage): CollectedPage {
+  const compact: CollectedPage = {
+    ...page,
+    links: page.links.slice(0, 80),
+    images: page.images.slice(0, 80),
+  };
+  const serialized = serializePage(compact);
+
+  if (serialized.length <= MAX_PAGE_CHARACTERS) {
+    return compact;
+  }
+
+  const overflow = serialized.length - MAX_PAGE_CHARACTERS;
+  const keep = Math.max(20_000, compact.markdown.length - overflow - 1_000);
+
+  return {
+    ...compact,
+    markdown: compact.markdown.slice(-keep),
+  };
+}
+
 function createPageChunks(pages: CollectedPage[]): string[] {
   const chunks: string[] = [];
   let current: string[] = [];
   let currentLength = 0;
 
   for (const page of pages) {
-    const serialized = serializePage(page);
-
-    if (serialized.length > MAX_PAGE_CHARACTERS) {
-      throw new AppError(
-        "analysis_failed",
-        `한 페이지의 내용이 안전 분석 한도 ${MAX_PAGE_CHARACTERS}자를 넘는다.`,
-      );
-    }
+    const serialized = serializePage(compactPage(page));
 
     if (current.length > 0 && currentLength + serialized.length > MAX_CHUNK_CHARACTERS) {
       chunks.push(current.join("\n"));
@@ -64,9 +78,11 @@ export async function analyzeBrand(
 ): Promise<BrandProfileData> {
   const collected = await collectSite(sourceUrl, context);
   const chunks = createPageChunks(collected.pages);
-  const evidence: BrandEvidence[] = await Promise.all(
-    chunks.map((chunk, index) =>
-      parseStructuredOutput(
+  const evidence: BrandEvidence[] = [];
+
+  for (const [index, chunk] of chunks.entries()) {
+    evidence.push(
+      await parseStructuredOutput(
         brandEvidenceSchema,
         "brand_evidence",
         extractBrandEvidencePrompt,
@@ -79,8 +95,8 @@ export async function analyzeBrand(
         }),
         context,
       ),
-    ),
-  );
+    );
+  }
 
   const mergeInput = JSON.stringify({
     source_url: sourceUrl,

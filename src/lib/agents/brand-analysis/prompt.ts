@@ -16,10 +16,10 @@ ${sharedRules}
 `.trim();
 
 export const mergeBrandProfilePrompt = `
-너는 브랜드 분석 결과 병합기다. 여러 페이지 묶음에서 추출한 결과, 홈페이지 브랜딩 정보, 브라우저로 끝까지 확인한 동적 목록을 하나로 합쳐라.
-더 보기나 무한 스크롤 제어가 없고 사이트 크롤이 완료됐다는 수집 결과는 정상적인 완전 수집 근거로 인정해라.
-시작 페이지 크롤만 robots.txt로 막혔고, 렌더된 페이지와 같은 대상의 목록 페이지를 읽었다는 수집 결과도 완전한 수집으로 인정해라.
-동적 목록의 끝을 확인하지 못했거나 수집 정보끼리 충돌해 전체성을 판단할 수 없으면 collection_complete를 false로 하고 incomplete_reason에 구체적인 이유를 적어라.
+너는 브랜드 분석 결과 병합기다. 여러 페이지 묶음에서 추출한 결과, 홈페이지 브랜딩 정보, 수집된 목록 설명을 하나로 합쳐라.
+이번 수집은 홈페이지와 거기서 연결된 목록 페이지만 읽는다. 사이트 전체 크롤이나 더 보기·무한 스크롤 확인은 하지 않는다.
+그 범위에서 확인한 항목이면 collection_complete를 true로 해라.
+홈페이지조차 읽지 못했거나 수집 정보끼리 충돌해 브랜드를 특정할 수 없으면 collection_complete를 false로 하고 incomplete_reason에 구체적인 이유를 적어라.
 collection_complete가 false여도 스키마를 위해 확인 가능한 profile은 작성하되, 호출자는 이 profile을 사용자에게 반환하지 않는다.
 ${sharedRules}
 `.trim();

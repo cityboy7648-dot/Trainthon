@@ -176,3 +176,22 @@
     @apply font-sans;
   }
 }
+
+.analysis-progress {
+  appearance: none;
+  border: none;
+  overflow: hidden;
+  border-radius: var(--radius-shell);
+}
+
+.analysis-progress::-webkit-progress-bar {
+  background: var(--color-shell-active);
+}
+
+.analysis-progress::-webkit-progress-value {
+  background: var(--color-shell-button);
+}
+
+.analysis-progress::-moz-progress-bar {
+  background: var(--color-shell-button);
+}

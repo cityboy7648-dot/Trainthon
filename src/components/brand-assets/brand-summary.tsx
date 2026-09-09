@@ -12,7 +12,13 @@ export function BrandSummary({ name, industry, tagline, logoUrl, sourceUrl }: Br
       <div className="mt-5 flex items-center gap-6">
         <div className="bg-shell-background border-shell-border flex size-28 shrink-0 items-center justify-center overflow-hidden rounded-full border">
           {logoUrl ? (
-            <Image src={logoUrl} alt={copy.brandAnalysis.logoAlt(name)} width={112} height={112} />
+            <Image
+              src={logoUrl}
+              alt={copy.brandAnalysis.logoAlt(name)}
+              width={112}
+              height={112}
+              unoptimized={logoUrl.startsWith("http")}
+            />
           ) : (
             <ImageOff
               className="text-shell-icon size-6"
