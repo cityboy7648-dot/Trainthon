@@ -3,9 +3,13 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { campaigns } from "@/definitions/campaigns";
 import { createSessionReader } from "@/lib/supabase/server";
-import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
-import { isGeneratedCampaign, signatureSlots } from "@/lib/campaign-workspace";
+import {
+  campaignGenerationTimedOut,
+  isGeneratedCampaign,
+  latestAssetsByPosition,
+  signatureSlots,
+} from "@/lib/campaign-workspace";
 import { toCampaignGalleryCard } from "@/lib/campaign-gallery";
 import {
   campaignPostMetaSchema,
@@ -91,14 +95,14 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
   if (!definition) throw new AppError("not_found", campaignErrors.result);
   const { data, error } = await client
     .from("assets")
-    .select("id, status, storage_path, meta")
+    .select("id, status, storage_path, created_at, meta")
     .eq("run_id", run.id)
     .eq("kind", "image");
   if (error) throw new AppError("network", campaignErrors.result);
   if (
     isGeneratedCampaign(run.campaign_key) &&
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > CAMPAIGN_STALE_MS
+    campaignGenerationTimedOut(run.created_at, data ?? [])
   ) {
     for (const asset of data ?? []) {
       if (!["pending", "processing"].includes(asset.status)) continue;
@@ -122,8 +126,13 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
     run.status = "failed";
   }
   const posts = await Promise.all(
-    (data ?? []).map(async (asset) => {
-      const meta = campaignPostMetaSchema.parse(asset.meta);
+    latestAssetsByPosition(
+      (data ?? []).map((asset) => ({
+        ...asset,
+        meta: campaignPostMetaSchema.parse(asset.meta),
+      })),
+    ).map(async (asset) => {
+      const meta = asset.meta;
       let image_url: string | null = null;
       if (asset.storage_path && asset.status === "done") {
         const signed = await client.storage
@@ -159,7 +168,7 @@ export async function listSavedCampaigns(): Promise<SavedCampaignCard[]> {
   const { data, error } = await client
     .from("runs")
     .select(
-      "id, campaign_key, status, created_at, brands!inner(user_id, profile), assets(kind, status, meta)",
+      "id, campaign_key, status, created_at, brands!inner(user_id, profile), assets(id, kind, status, created_at, meta)",
     )
     .eq("brands.user_id", user.id)
     .order("created_at", { ascending: false })

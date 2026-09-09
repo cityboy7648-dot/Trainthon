@@ -1,7 +1,7 @@
 import "server-only";
 import { ownedCampaign } from "@/lib/data/campaign-workspace";
 import { setCampaignRunStatus, updateCampaignAsset } from "@/lib/data/campaign-assets";
-import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
+import { campaignGenerationTimedOut, latestAssetsByPosition } from "@/lib/campaign-workspace";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { brandProfileSchema, campaignPostMetaSchema, type CampaignClient } from "@/lib/types";
 
@@ -66,22 +66,30 @@ export async function failSignatureGridRun(client: CampaignClient, id: string, c
 export async function getSignatureGridResult(runId: string) {
   const { client, run } = await ownedCampaign(runId);
   if (run.campaign_key !== "signature_grid") throw new AppError("not_found", campaignErrors.result);
-  if (
-    ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > CAMPAIGN_STALE_MS
-  ) {
-    await failSignatureGridRun(client, runId, campaignErrors.timeout);
-    run.status = "failed";
-  }
   const { data: assets, error } = await client
     .from("assets")
-    .select("id, status, storage_path, meta")
+    .select("id, status, storage_path, created_at, meta")
     .eq("run_id", runId)
     .eq("kind", "image");
   if (error) throw new AppError("network", campaignErrors.result);
+  if (
+    ["pending", "processing"].includes(run.status) &&
+    campaignGenerationTimedOut(run.created_at, assets ?? [])
+  ) {
+    await failSignatureGridRun(client, runId, campaignErrors.timeout);
+    run.status = "failed";
+    for (const asset of assets ?? []) {
+      if (asset.status === "pending" || asset.status === "processing") asset.status = "failed";
+    }
+  }
   const posts = await Promise.all(
-    (assets ?? []).map(async (asset) => {
-      const meta = campaignPostMetaSchema.parse(asset.meta);
+    latestAssetsByPosition(
+      (assets ?? []).map((asset) => ({
+        ...asset,
+        meta: campaignPostMetaSchema.parse(asset.meta),
+      })),
+    ).map(async (asset) => {
+      const meta = asset.meta;
       let image_url: string | null = null;
       if (asset.status === "done" && asset.storage_path) {
         const signed = await client.storage

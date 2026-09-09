@@ -41,6 +41,36 @@ test("갤러리 표지는 생성 콘텐츠가 아니라 캠페인 대표 이미�
   assert.equal(set.endDate, "2026-09-14");
 });
 
+test("갤러리 진행 숫자는 같은 위치의 마지막 재시도만 센다", async () => {
+  const { toCampaignGalleryCard } = await import("./campaign-gallery.ts");
+  const card = toCampaignGalleryCard({
+    id: "run",
+    campaign_key: "signature_grid",
+    status: "processing",
+    created_at: "2026-09-10T00:00:00Z",
+    brands: { profile: { name: "브랜드" } },
+    assets: [
+      {
+        id: "old",
+        kind: "image",
+        status: "failed",
+        created_at: "2026-09-10T00:00:00Z",
+        meta: { position: 1 },
+      },
+      {
+        id: "retry",
+        kind: "image",
+        status: "pending",
+        created_at: "2026-09-10T00:01:00Z",
+        meta: { position: 1 },
+      },
+    ],
+  });
+  assert.equal(card.total, 1);
+  assert.equal(card.completed, 0);
+  assert.equal(card.failed, 0);
+});
+
 test("완료 외 캠페인은 진행중에 남기고 검색·채널 필터를 적용한다", async () => {
   const { filterCampaignGallery } = await import("./campaign-gallery.ts");
   const cards = ["pending", "processing", "failed", "done"].map((status, i) => ({

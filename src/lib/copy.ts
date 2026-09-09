@@ -323,6 +323,8 @@ export const copy = {
     dateLabel: "캠페인 시작일",
     download: "전체 다운로드",
     downloading: "다운로드 준비 중…",
+    retry: "재시도",
+    retrying: "다시 만드는 중…",
     image: "이미지 수정",
     caption: "캡션 수정",
     save: "적용하기",
