@@ -65,10 +65,9 @@ export async function generateSignatureGrid(id: string) {
       throw new AppError("generation_failed", campaignErrors.timeout);
     if (plan.posts.some((post) => post.source_image_urls.some((url) => !sourceImages.has(url))))
       throw new AppError("generation_failed", campaignErrors.plan);
-    const imagesStartedAt = Date.now();
     let failed = false;
     const results = await Promise.allSettled(
-      plan.posts.map(async (post, index) => {
+      plan.posts.map(async (post) => {
         const asset = assets.find((item) => item.meta.position === post.position);
         if (!asset) throw new AppError("generation_failed", campaignErrors.plan);
         const meta = {
@@ -94,7 +93,7 @@ export async function generateSignatureGrid(id: string) {
             ],
             "square",
             { ...context, assetId: asset.id },
-            { runStartedAt: startedAt, imagesStartedAt, index },
+            { runStartedAt: startedAt },
           );
           await saveCampaignImage(client, id, asset.id, image, meta);
         } catch (error) {

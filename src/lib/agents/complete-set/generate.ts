@@ -91,9 +91,8 @@ export async function generateCampaignFive(
     let failed = false;
     if (Date.now() - startedAt > CAMPAIGN_PLAN_CUTOFF_MS)
       throw new AppError("generation_failed", campaignErrors.timeout);
-    const imagesStartedAt = Date.now();
     await Promise.all(
-      run.assets.map(async (asset, index) => {
+      run.assets.map(async (asset) => {
         const assetContext = { ...context, assetId: asset.id };
         const meta = {
           ...asset.meta,
@@ -111,7 +110,7 @@ export async function generateCampaignFive(
             images,
             asset.meta.format === "pinterest" ? "pinterest" : false,
             assetContext,
-            { runStartedAt: startedAt, imagesStartedAt, index },
+            { runStartedAt: startedAt },
           );
           await saveCampaignFiveImage(run.client, run.runId, asset.id, image, meta);
         } catch (error) {
