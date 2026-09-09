@@ -1,5 +1,8 @@
-import { analyzeBrand } from "@/lib/agents/brand-analysis/analyze-brand";
-import { AppError } from "@/lib/errors";
+import { copy } from "@/lib/copy";
+import { getBrandProfile } from "@/lib/data/brand-profile";
+import { getSessionUser } from "@/lib/data/session";
+import { isPreviewAnalysis } from "@/lib/env";
+import { AppError, type ErrorCode } from "@/lib/errors";
 import { log, type LogContext } from "@/lib/log";
 import { brandAnalysisRequestSchema } from "@/lib/types";
 
@@ -8,11 +11,11 @@ export const maxDuration = 300;
 
 const MAX_REQUEST_CHARACTERS = 4_096;
 
-function errorResponse(status: number, cause: string) {
+function errorResponse(status: number, cause: string, code: ErrorCode = "analysis_failed") {
   return Response.json(
     {
       error: {
-        code: "analysis_failed",
+        code,
         cause,
       },
     },
@@ -26,6 +29,11 @@ export async function POST(request: Request) {
     runId: null,
     assetId: null,
   };
+
+  const user = await getSessionUser();
+  if (!user && !isPreviewAnalysis) {
+    return errorResponse(401, copy.login.required, "auth");
+  }
 
   const body = await request.text();
 
@@ -48,7 +56,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const profile = await analyzeBrand(parsed.data.url, context);
+    const profile = await getBrandProfile(parsed.data.url);
     return Response.json({ profile });
   } catch (error) {
     if (error instanceof AppError) {

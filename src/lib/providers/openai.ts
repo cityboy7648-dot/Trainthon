@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import { getProviderApiKey } from "@/lib/env";
+import { copy } from "@/lib/copy";
 import { AppError } from "@/lib/errors";
 import { log, type LogContext } from "@/lib/log";
 
@@ -13,7 +14,7 @@ let client: OpenAI | undefined;
 function getOpenAiClient(): OpenAI {
   client ??= new OpenAI({
     apiKey: getProviderApiKey("OPENAI_API_KEY"),
-    maxRetries: 1,
+    maxRetries: 0,
     timeout: TIMEOUT_MS,
   });
 
@@ -66,7 +67,7 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
     }
 
     if (error instanceof OpenAI.APIError && error.status === 429) {
-      throw new AppError("analysis_failed", "AI 사용량 한도를 초과했다.");
+      throw new AppError("analysis_failed", copy.brandAnalysis.aiRateLimited);
     }
 
     throw new AppError("analysis_failed", "AI가 수집된 사이트 정보를 분석하지 못했다.");

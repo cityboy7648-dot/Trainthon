@@ -125,6 +125,17 @@ export type BrandProfileRouteProps = {
   searchParams: Promise<{ url?: string }>;
 };
 
+export type AnalysisProgressProps = {
+  url: string;
+};
+
+export type BrandProfileResultProps = {
+  url: string;
+};
+
+export type BrandProfileRequestResult =
+  { ok: true; profile: BrandProfileData } | { ok: false; cause?: string };
+
 export type BrandSummaryProps = {
   name: BrandProfileData["name"];
   industry: BrandProfileData["industry"];

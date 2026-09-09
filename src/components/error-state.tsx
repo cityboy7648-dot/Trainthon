@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
 import { errorMessages, type ErrorCode } from "@/lib/errors";
