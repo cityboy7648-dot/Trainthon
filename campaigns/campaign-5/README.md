@@ -1,6 +1,6 @@
 # 캠페인 5: 세트로 완성
 
-상태: 피그마 기획 확인 완료. 후보 2 승인, 이미지 저장·시각 검수 완료. API 구현 전. 제품 기능 명세이며 Codex 스킬이 아니다.
+상태: 후보 2 승인, 레퍼런스·카드 저장 완료. 상품 선택·생성 API·결과 화면 구현. 실제 유료 생성은 미검증. 제품 기능 명세이며 Codex 스킬이 아니다.
 
 ## 기준
 
@@ -76,3 +76,11 @@
 - 생성: 2026-09-10, 내장 이미지 생성 도구. 앱의 유료 생성 API 테스트 결과가 아니다.
 - 스타일 입력: 승인된 캠페인 1·2의 `card-thumbnail-soft.png`.
 - 프롬프트: 두 카드와 같은 가로 비율·흰색과 연한 하늘색·낮은 대비·얇은 테두리·회색 스켈레톤 막대·희미한 그림자와 아래쪽 흰색 페이드. 겹친 하나의 둥근 패널 안에 셔츠·바지·가방을 하늘색 아이콘으로 배치해 세트 조합을 표현한다. 글자·숫자·로고·실사 상품·진한 색은 넣지 않는다.
+
+## 연결 위치
+
+- 선택 화면: `/campaigns/new?campaign=complete_set`
+- 생성: `POST /api/campaigns/5/runs`, 입력 `brand_id`, `product_key`, `companion_product_keys`. 검증 후 `run_id`를 반환한다.
+- 결과: `GET /api/campaigns/5/runs/:runId`. 이미지별 상태·주소, 일자별 캡션, 확인된 상품 연결 목록을 반환한다.
+- 입력 보존: `assets.meta`의 `primary_product`, `primary_product_key`, `companion_products`. 생성 이미지는 기존 비공개 Storage에 저장한다.
+- 로컬 시안: 캠페인 1과 같이 `output/V1/`, `output/V2/` 순으로 입력·계획·이미지·캡션·출처를 함께 보관한다. 웹 생성 결과는 서버의 `runs`·`assets`·Storage에 보관하며 로컬 시안과 구분한다.
