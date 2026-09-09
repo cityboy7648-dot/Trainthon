@@ -41,5 +41,9 @@ export async function saveCampaignImage(
     .from("assets")
     .upload(path, image, { contentType: "image/png", upsert: false });
   if (error) throw new AppError("generation_failed", campaignErrors.save);
-  await updateCampaignAsset(client, assetId, { status: "done", meta, storage_path: path });
+  await updateCampaignAsset(client, assetId, {
+    status: "done",
+    meta: { ...meta, completed_at: new Date().toISOString() },
+    storage_path: path,
+  });
 }

@@ -63,6 +63,10 @@ export class AppError extends Error {
 }
 
 export const campaignErrors = {
+  dashboard: "캠페인 작업 이력을 불러오지 못했어요.",
+  dashboardLogin: "작업 이력을 보려면 로그인해 주세요.",
+  dashboardImage: "완료한 작업의 사진을 불러오지 못했어요.",
+  dashboardData: "저장된 캠페인 작업 정보가 올바르지 않아요.",
   login: "캠페인을 만들려면 로그인해 주세요.",
   brand: "저장된 브랜드를 찾지 못했어요.",
   products: "상품 목록을 불러오지 못했어요.",
