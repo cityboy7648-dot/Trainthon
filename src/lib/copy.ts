@@ -3,6 +3,7 @@ export const copy = {
     headline: "우리 브랜드의",
     headlineSecond: "다음 캠페인",
     recentTasks: "최근 끝낸 작업",
+    historyPending: "작업 이력 연결을 준비하고 있어요",
     summary: "브랜드와 캠페인 요약",
     myBrand: "내 브랜드",
     brandSettings: "브랜드 정보 보기",
@@ -14,7 +15,6 @@ export const copy = {
     cancel: "취소",
     edit: (title: string) => `${title} 입력`,
     removeKeyword: (keyword: string) => `${keyword} 삭제`,
-    previewReset: "입력값 초기화",
     invalid: "입력 내용을 확인해주세요.",
     titles: {
       name: "브랜드 이름은 무엇인가요?",
@@ -215,8 +215,5 @@ export const copy = {
   common: {
     dismissError: "오류 알림 닫기",
     retry: "다시 시도",
-  },
-  dev: {
-    mockBadge: "MOCK 데이터",
   },
 } as const;

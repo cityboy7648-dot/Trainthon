@@ -100,7 +100,6 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
           <CampaignCard
             key={campaign.key}
             campaign={campaign}
-            source="server"
             selected={picked?.key === campaign.key}
             transitioning={transitioningKey === campaign.key}
             onSelect={() => updateSelection("picked", campaign.key)}
@@ -120,11 +119,7 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
           </Button>
         </div>
       )}
-      <CampaignDetails
-        campaign={preview}
-        source="server"
-        onClose={() => updateSelection("preview")}
-      />
+      <CampaignDetails campaign={preview} onClose={() => updateSelection("preview")} />
     </div>
   );
 }

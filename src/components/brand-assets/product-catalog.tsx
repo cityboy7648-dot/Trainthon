@@ -31,9 +31,7 @@ export function ProductCatalog({ profile }: ProductCatalogProps) {
                     alt={copy.brandAnalysis.productImageAlt(product.name)}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                    unoptimized={
-                      product.image_url.startsWith("http") || product.image_url.startsWith("/mock/")
-                    }
+                    unoptimized={product.image_url.startsWith("http")}
                     className="object-cover"
                   />
                 ) : (
