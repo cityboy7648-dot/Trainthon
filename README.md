@@ -19,4 +19,5 @@
 3. 사용자가 방향 선택
 4. 산출물 생성
 
+구현 계획: [PLAN.md](PLAN.md)
 에이전트 지시: [AGENTS.md](AGENTS.md)
