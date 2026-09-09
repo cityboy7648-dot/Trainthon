@@ -284,11 +284,17 @@ export type CampaignGalleryCardsProps = {
 export type CampaignCardProps = {
   campaign: CampaignPreview;
   selected: boolean;
+  transitioning?: boolean;
   onSelect: () => void;
   onPreview: () => void;
+};
+
+export type CampaignBriefProps = {
+  campaign: CampaignPreview;
 };
 
 export type CampaignDetailsProps = {
   campaign: CampaignPreview | undefined;
   onClose: () => void;
+  onSelect?: () => void;
 };

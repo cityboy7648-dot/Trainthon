@@ -10,8 +10,10 @@ import { MockBadge } from "@/components/mock-badge";
 import {
   hasAnalyzedBrandProfile,
   initializeBrandSession,
+  shouldAllowPreviewAccess,
 } from "@/lib/brand-profile-session";
 import { copy } from "@/lib/copy";
+import { isPreviewAnalysis, isProduction } from "@/lib/env";
 import type { AppAccessProps } from "@/lib/types";
 
 export function AppAccess({ user, children }: AppAccessProps) {
@@ -19,11 +21,12 @@ export function AppAccess({ user, children }: AppAccessProps) {
   const router = useRouter();
   const [access, setAccess] = useState({ owner: "", ready: false });
   const owner = user?.email ?? "preview";
+  const previewReady = shouldAllowPreviewAccess(isProduction, isPreviewAnalysis);
 
   useEffect(() => {
     const update = () => {
       initializeBrandSession(owner);
-      const ready = hasAnalyzedBrandProfile();
+      const ready = previewReady || hasAnalyzedBrandProfile();
       setAccess({ owner, ready });
       if (!ready && pathname !== "/analyzing") router.replace("/");
     };
@@ -33,7 +36,7 @@ export function AppAccess({ user, children }: AppAccessProps) {
       cancelAnimationFrame(frame);
       window.removeEventListener("brand-profile-change", update);
     };
-  }, [owner, pathname, router]);
+  }, [owner, pathname, previewReady, router]);
 
   if (access.owner !== owner || (!access.ready && pathname !== "/analyzing")) {
     return <HomeSkeleton />;

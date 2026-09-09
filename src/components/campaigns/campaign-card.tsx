@@ -3,7 +3,13 @@ import { Check } from "lucide-react";
 import { copy } from "@/lib/copy";
 import type { CampaignCardProps } from "@/lib/types";
 
-export function CampaignCard({ campaign, selected, onSelect, onPreview }: CampaignCardProps) {
+export function CampaignCard({
+  campaign,
+  selected,
+  transitioning,
+  onSelect,
+  onPreview,
+}: CampaignCardProps) {
   return (
     <article
       data-source="mock"
@@ -15,7 +21,8 @@ export function CampaignCard({ campaign, selected, onSelect, onPreview }: Campai
         aria-label={copy.campaigns.preview(campaign.name)}
         aria-haspopup="dialog"
         onClick={onPreview}
-        className="aspect-campaign-image focus-visible:ring-shell-ink relative block w-full cursor-pointer overflow-hidden focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+        data-transitioning={transitioning}
+        className="campaign-card-image aspect-campaign-image focus-visible:ring-shell-ink relative block w-full cursor-pointer overflow-hidden focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
       >
         <Image
           src={campaign.image}
