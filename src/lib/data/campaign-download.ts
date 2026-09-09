@@ -15,21 +15,24 @@ export async function getCampaignArchive(runId: string): Promise<Uint8Array> {
     .eq("status", "done")
     .eq("kind", "image");
   if (error || !data?.length) throw new AppError("not_found", campaignErrors.download);
-  const files: CampaignArchiveFile[] = [];
-  let total = 0;
-  for (const post of campaign.posts) {
-    const path = data.find((asset) => asset.id === post.id)?.storage_path;
-    if (!path) continue;
-    const downloaded = await client.storage.from("assets").download(path);
-    if (downloaded.error) throw new AppError("network", campaignErrors.download);
-    const bytes = new Uint8Array(await downloaded.data.arrayBuffer());
-    total += bytes.length;
-    if (total > 100 * 1024 * 1024) throw new AppError("network", campaignErrors.download);
-    files.push({
-      name: `post-${String(post.meta.day).padStart(2, "0")}-${post.meta.position}.${path.endsWith(".jpg") ? "jpg" : "png"}`,
-      bytes,
-    });
-  }
+  const files: CampaignArchiveFile[] = (
+    await Promise.all(
+      campaign.posts.map(async (post) => {
+        const path = data.find((asset) => asset.id === post.id)?.storage_path;
+        if (!path) return [];
+        const downloaded = await client.storage.from("assets").download(path);
+        if (downloaded.error) throw new AppError("network", campaignErrors.download);
+        return [
+          {
+            name: `post-${String(post.meta.day).padStart(2, "0")}-${post.meta.position}.${path.endsWith(".jpg") ? "jpg" : "png"}`,
+            bytes: new Uint8Array(await downloaded.data.arrayBuffer()),
+          },
+        ];
+      }),
+    )
+  ).flat();
+  if (files.reduce((sum, file) => sum + file.bytes.length, 0) > 100 * 1024 * 1024)
+    throw new AppError("network", campaignErrors.download);
   files.push({
     name: "captions.txt",
     bytes: Buffer.from(
