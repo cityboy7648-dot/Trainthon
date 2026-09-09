@@ -413,7 +413,7 @@ export const campaignTwoResultSchema = z.object({
   ),
 });
 export type CampaignTwoResult = z.infer<typeof campaignTwoResultSchema>;
-export type CampaignImageTiming = { runStartedAt: number; imagesStartedAt: number; index: number };
+export type CampaignImageTiming = { runStartedAt: number };
 export const signatureGridPlanSchema = z
   .object({
     campaign_key: z.literal("signature_grid"),

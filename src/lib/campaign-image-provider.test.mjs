@@ -5,7 +5,7 @@ import OpenAI from "openai";
 
 let failure;
 let calls = [];
-const timing = () => ({ runStartedAt: Date.now(), imagesStartedAt: Date.now(), index: 0 });
+const timing = () => ({ runStartedAt: Date.now() });
 const realClient = new OpenAI({ apiKey: "test-only" });
 globalThis.imageProviderTestClient = realClient;
 realClient.responses.create = async (body, options) => {
@@ -85,39 +85,24 @@ test("이미지 API 실패 원인을 숨기지 않는다", async () => {
   );
   assert.equal(calls.length, 1);
 });
-test("11장을 분당 2장 이하로 요청하고 마지막 요청도 서버 종료 전에 끝낸다", async (t) => {
+test("11장을 한 번에 요청하고 서버 종료 전에 끝나도록 기다린다", async (t) => {
   calls = [];
   failure = undefined;
   t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 0 });
-  const pending = Array.from({ length: 11 }, (_, index) =>
-    generateCampaignImage("prompt", [], false, context, {
-      runStartedAt: 0,
-      imagesStartedAt: 0,
-      index,
-    }),
+  const pending = Array.from({ length: 11 }, () =>
+    generateCampaignImage("prompt", [], false, context, { runStartedAt: 0 }),
   );
-  await Promise.resolve();
-  assert.equal(calls.length, 2);
-  t.mock.timers.tick(61000);
-  await Promise.resolve();
-  await Promise.resolve();
-  assert.equal(calls.length, 4);
-  t.mock.timers.tick(61000);
-  await Promise.resolve();
-  await Promise.resolve();
-  assert.equal(calls.length, 6);
-  t.mock.timers.tick(61000);
-  await Promise.resolve();
-  await Promise.resolve();
-  assert.equal(calls.length, 8);
-  t.mock.timers.tick(61000);
-  await Promise.resolve();
-  await Promise.resolve();
-  assert.equal(calls.length, 10);
-  t.mock.timers.tick(61000);
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.all(pending);
   assert.equal(calls.length, 11);
-  assert.ok(calls.every((call) => call.at + call.options.timeout <= 770000));
+  await Promise.all(pending);
+  assert.ok(calls.every((call) => call.at + call.options.timeout <= 285000));
+});
+
+test("남은 실행 시간이 한 장을 그리기에 모자라면 요청하지 않는다", async () => {
+  calls = [];
+  failure = undefined;
+  await assert.rejects(
+    generateCampaignImage("prompt", [], false, context, { runStartedAt: Date.now() - 280_000 }),
+    (error) => /제한 시간/.test(error.cause),
+  );
+  assert.equal(calls.length, 0);
 });

@@ -60,9 +60,8 @@ export async function generateCampaignTwo(
     let failed = false;
     if (Date.now() - startedAt > CAMPAIGN_PLAN_CUTOFF_MS)
       throw new AppError("generation_failed", campaignErrors.timeout);
-    const imagesStartedAt = Date.now();
     await Promise.all(
-      run.assets.map(async (asset, index) => {
+      run.assets.map(async (asset) => {
         const assetContext = { ...context, assetId: asset.id };
         const sceneIndex =
           asset.meta.format === "carousel" ? asset.meta.position - 8 : asset.meta.day - 2;
@@ -81,7 +80,7 @@ export async function generateCampaignTwo(
             images,
             meta.format === "story",
             assetContext,
-            { runStartedAt: startedAt, imagesStartedAt, index },
+            { runStartedAt: startedAt },
           );
           await saveCampaignTwoImage(run.client, run.runId, asset.id, image, meta);
         } catch (error) {

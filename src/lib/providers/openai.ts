@@ -4,8 +4,6 @@ import type { z } from "zod";
 import {
   CAMPAIGN_IMAGE_BUDGET_MS,
   CAMPAIGN_IMAGE_TIMEOUT_MS,
-  CAMPAIGN_IMAGE_WINDOW_MS,
-  CAMPAIGN_IMAGES_PER_MINUTE,
   CAMPAIGN_PLAN_TIMEOUT_MS,
 } from "@/lib/campaign-timeouts";
 import { getProviderApiKey } from "@/lib/env";
@@ -156,11 +154,6 @@ export async function generateCampaignImage(
     throw new AppError("generation_failed", campaignErrors.create);
   const startedAt = performance.now();
   try {
-    const scheduledAt =
-      timing.imagesStartedAt +
-      Math.floor(timing.index / CAMPAIGN_IMAGES_PER_MINUTE) * CAMPAIGN_IMAGE_WINDOW_MS;
-    const delay = scheduledAt - Date.now();
-    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
     const timeout = Math.min(
       CAMPAIGN_IMAGE_TIMEOUT_MS,
       timing.runStartedAt + CAMPAIGN_IMAGE_BUDGET_MS - Date.now(),

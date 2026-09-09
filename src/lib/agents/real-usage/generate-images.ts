@@ -44,12 +44,7 @@ export async function generateCampaign4Images(
     );
     const inputs = [...references, productImage];
     const posts = [run.plan.day1, run.plan.day2, run.plan.day3, run.plan.day4, run.plan.day5];
-    async function generate(
-      asset: (typeof run.assets)[number],
-      index: number,
-      imagesStartedAt: number,
-      anchor?: Buffer,
-    ) {
+    async function generate(asset: (typeof run.assets)[number], anchor?: Buffer) {
       await updateCampaignAsset(run.client, asset.id, { status: "processing" });
       const image = await generateCampaignImage(
         realUsageImagePrompt(
@@ -62,19 +57,14 @@ export async function generateCampaign4Images(
         anchor ? [...inputs, `data:image/png;base64,${anchor.toString("base64")}`] : inputs,
         false,
         { ...context, assetId: asset.id },
-        { runStartedAt: run.startedAt, imagesStartedAt, index },
+        { runStartedAt: run.startedAt },
       );
       await saveCampaignImage(run.client, run.runId, asset.id, image, asset.meta);
       return image;
     }
-    async function generateOrFail(
-      asset: (typeof run.assets)[number],
-      index: number,
-      imagesStartedAt: number,
-      anchor?: Buffer,
-    ) {
+    async function generateOrFail(asset: (typeof run.assets)[number], anchor?: Buffer) {
       try {
-        return await generate(asset, index, imagesStartedAt, anchor);
+        return await generate(asset, anchor);
       } catch (error) {
         const cause =
           error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.image;
@@ -89,11 +79,9 @@ export async function generateCampaign4Images(
     // 인물이 분명히 보이는 D2를 나머지 장의 동일 인물 기준으로 쓴다.
     const anchorAsset = run.assets[1];
     const rest = run.assets.filter((asset) => asset.id !== anchorAsset.id);
-    const anchorStartedAt = Date.now();
-    const anchor = await generateOrFail(anchorAsset, 0, anchorStartedAt);
-    const restStartedAt = Date.now();
+    const anchor = await generateOrFail(anchorAsset);
     const outcomes = await Promise.all(
-      rest.map((asset, index) => generateOrFail(asset, index, restStartedAt, anchor ?? undefined)),
+      rest.map((asset) => generateOrFail(asset, anchor ?? undefined)),
     );
     await setCampaignRunStatus(
       run.client,
