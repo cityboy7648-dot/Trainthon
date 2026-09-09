@@ -3,6 +3,17 @@ import test from "node:test";
 import { campaigns } from "../definitions/campaigns.ts";
 import { getCampaignCandidates } from "./data/campaign-catalog.ts";
 
+test("캠페인 상세에 확정된 결과물과 비율이 있다", () => {
+  const grid = campaigns.find((item) => item.key === "signature_grid");
+  const scenes = campaigns.find((item) => item.key === "one_product_three_scenes");
+  assert.ok(grid.outputs.some((item) => item.includes("9장") && item.includes("1:1")));
+  assert.ok(grid.outputs.some((item) => item.includes("캡션 9개")));
+  assert.ok(scenes.outputs.some((item) => item.includes("4장") && item.includes("4:5")));
+  assert.ok(scenes.outputs.some((item) => item.includes("3장") && item.includes("9:16")));
+  assert.ok(scenes.outputs.some((item) => item.includes("캐러셀 3장")));
+  assert.ok(scenes.outputs.some((item) => item.includes("캡션 5개")));
+});
+
 test("확정 목록에서 중복 없이 최대 3개를 선택하고 원본은 보존한다", () => {
   const original = [...campaigns];
   try {
