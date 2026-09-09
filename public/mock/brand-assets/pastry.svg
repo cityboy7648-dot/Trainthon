@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 315" role="img" aria-labelledby="title">
-  <title id="title">갓 구운 빵</title>
-  <rect width="560" height="315" fill="#F7F1E7"/>
-  <ellipse cx="280" cy="244" rx="173" ry="25" fill="#26352A" opacity=".12"/>
-  <path d="M121 210c24-93 91-139 159-139s135 46 159 139c-35 37-283 37-318 0Z" fill="#D97745"/>
-  <path d="M163 190c22-54 58-88 101-104M218 213c12-64 37-105 62-137M342 213c-12-64-37-105-62-137M397 190c-22-54-58-88-101-104" fill="none" stroke="#F2B26F" stroke-width="19" stroke-linecap="round"/>
-  <path d="M134 212c68 24 224 24 292 0" fill="none" stroke="#A8522D" stroke-width="7" stroke-linecap="round"/>
-</svg>
