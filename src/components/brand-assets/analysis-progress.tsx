@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ErrorState } from "@/components/error-state";
 import { readAnalyzedBrandProfile, saveAnalyzedBrandProfile } from "@/lib/brand-profile-session";
 import { copy } from "@/lib/copy";
 import { requestBrandProfile } from "@/lib/data/brand-profile";
 import { isPreviewAnalysis } from "@/lib/env";
 import { AppError } from "@/lib/errors";
-import { toBrandSourceUrl } from "@/lib/home";
+import { homeAnalysisFailureHref, toBrandSourceUrl } from "@/lib/home";
 import type { AnalysisProgressProps, BrandProfileData } from "@/lib/types";
 import { getMockBrandProfile } from "@/mock/brand-profile"; // MOCK
 
@@ -48,9 +47,6 @@ function waitingProgress(elapsedMs: number): number {
 export function AnalysisProgress({ url }: AnalysisProgressProps) {
   const router = useRouter();
   const [progress, setProgress] = useState(4);
-  const [cause, setCause] = useState<string>();
-  const [failed, setFailed] = useState(false);
-  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     const brandUrl = toBrandSourceUrl(url);
@@ -82,15 +78,15 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
       .catch((error: unknown) => {
         if (cancelled) return;
         window.clearInterval(tick);
-        setFailed(true);
-        setCause(error instanceof AppError ? error.cause : undefined);
+        const cause = error instanceof AppError ? error.cause : undefined;
+        router.replace(homeAnalysisFailureHref(cause));
       });
 
     return () => {
       cancelled = true;
       window.clearInterval(tick);
     };
-  }, [attempt, router, url]);
+  }, [router, url]);
 
   return (
     <div
@@ -102,32 +98,15 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
         {copy.brandAnalysis.loadingTitle}
       </h1>
       <p className="text-shell-muted mt-2 text-sm">{copy.brandAnalysis.loadingDescription}</p>
-      {failed ? (
-        <div className="mt-8">
-          <ErrorState
-            code="analysis_failed"
-            cause={cause}
-            onRetry={() => {
-              setFailed(false);
-              setCause(undefined);
-              setProgress(4);
-              setAttempt((current) => current + 1);
-            }}
-          />
-        </div>
-      ) : (
-        <>
-          <progress
-            value={progress}
-            max={100}
-            aria-label={copy.brandAnalysis.progress}
-            className="analysis-progress bg-shell-active mt-8 h-2 w-full"
-          />
-          <p className="text-shell-ink mt-3 text-sm font-semibold tabular-nums">
-            {copy.brandAnalysis.percent(progress)}
-          </p>
-        </>
-      )}
+      <progress
+        value={progress}
+        max={100}
+        aria-label={copy.brandAnalysis.progress}
+        className="analysis-progress bg-shell-active mt-8 h-2 w-full"
+      />
+      <p className="text-shell-ink mt-3 text-sm font-semibold tabular-nums">
+        {copy.brandAnalysis.percent(progress)}
+      </p>
     </div>
   );
 }
