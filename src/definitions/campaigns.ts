@@ -1,7 +1,25 @@
 import type { CampaignPreview } from "@/lib/types";
+import { campaign3 } from "./campaign-3.ts";
 import { campaign4 } from "./campaign-4.ts";
 
 export const campaigns: readonly CampaignPreview[] = [
+  {
+    key: campaign3.key,
+    name: campaign3.name,
+    goal: campaign3.goal,
+    duration_days: campaign3.duration_days,
+    channels: [...campaign3.channels],
+    image: campaign3.image,
+    outputs: [campaign3.outputs],
+    requiredInputs: campaign3.requiredInputs,
+    schedule: campaign3.schedule.map((slot, index) => ({
+      day: index + 1,
+      dayLabel: slot.offset === 0 ? "D-day" : `D${slot.offset > 0 ? "+" : ""}${slot.offset}`,
+      channel: campaign3.channel,
+      format: slot.story ? "Feed · Story" : "Feed",
+      purpose: slot.purpose,
+    })),
+  },
   {
     key: "complete_set",
     name: "세트로 완성",

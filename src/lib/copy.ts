@@ -222,6 +222,32 @@ export const copy = {
     colorLabel: (color: string) => `브랜드 색상 ${color}`,
   },
   campaigns: {
+    requiredInputs: "필수 입력",
+    dropWeek: {
+      title: "드롭 위크",
+      description: "공개일을 기준으로 피드 7장·스토리 3장과 캡션을 만듭니다.",
+      brand: "브랜드",
+      product: "대상 상품",
+      launchDate: "공개일",
+      choose: "선택해 주세요",
+      start: "캠페인 만들기",
+      planning: "7일 일정과 장면을 기획하고 있어요.",
+      generating: "이미지를 만들고 있어요. 완료된 장부터 표시됩니다.",
+      queued: "생성 대기",
+      feed: "피드",
+      story: "스토리",
+      download: "이미지 열기·저장",
+      noBrands: "저장된 브랜드가 없어요",
+      noBrandsDescription: "먼저 사이트를 분석하고 상품을 저장해 주세요.",
+      home: "브랜드 분석하기",
+      recent: "최근 드롭 위크",
+      back: "새 드롭 위크 만들기",
+      count: (done: number, total: number) => `${done}/${total}장 완료`,
+      noAssets: "생성할 이미지가 없어요",
+      noAssetsDescription:
+        "기획만 저장됐거나 이미지 준비가 중단됐습니다. 새 캠페인을 만들어 주세요.",
+    },
+
     realUsage: {
       title: "대표 상품을 선택해 주세요",
       description: "선택한 상품과 승인된 레퍼런스로 5일치 장면과 캡션을 기획해요.",

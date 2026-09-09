@@ -7,11 +7,18 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "deucsyzcrllgnvbxlqlq.supabase.co",
+        pathname: "/storage/v1/object/sign/assets/**",
+      },
+      {
+        protocol: "https",
+        hostname: "deucsyzcrllgnvbxlqlq.supabase.co",
         pathname: "/storage/v1/object/public/campaign-covers/**",
       },
     ],
   },
   outputFileTracingIncludes: {
+    "/campaigns/3": ["./reference/campaigns/campaign-3/*"],
+    "/api/campaigns/3/runs": ["./reference/campaigns/campaign-3/*"],
     "/api/campaigns/2/runs": ["./reference/campaigns/campaign-2/*.jpg"],
     "/api/campaigns/5/runs": ["./reference/campaigns/campaign-5/*.jpg"],
     "/api/campaigns/4/runs": ["./reference/campaigns/campaign-4/*.jpg"],

@@ -51,6 +51,17 @@ export const errorMessages: Record<ErrorCode, { title: string; description: stri
   },
 };
 
+export const campaign3Errors = {
+  image: "이미지 생성에 실패했습니다. 이 장만 다시 시도해 주세요.",
+  timeout: "이미지 생성 연결이 끊겼거나 제한 시간을 초과했습니다. 다시 시도해 주세요.",
+  brand: "저장된 브랜드 정보를 확인하지 못했습니다.",
+  product: "이미지가 있는 대상 상품을 선택해 주세요.",
+  save: "캠페인 기획 상태 또는 결과를 저장하지 못했습니다.",
+  reference: "승인된 캠페인 3 레퍼런스 파일을 읽지 못했습니다.",
+  plan: "AI가 드롭 위크 기획을 완료하지 못했습니다.",
+  failureSave: "기획에 실패했고 실패 상태도 저장하지 못했습니다.",
+} as const;
+
 export class AppError extends Error {
   readonly code: ErrorCode;
   readonly cause?: string;

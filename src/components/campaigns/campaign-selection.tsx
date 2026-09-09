@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
 import { CampaignProductPicker } from "@/components/campaigns/campaign-product-picker";
@@ -15,6 +15,7 @@ import type { CampaignSelectionProps } from "@/lib/types";
 import { EmptyState } from "@/components/empty-state";
 
 export function CampaignSelection({ campaigns, realUsagePlanner }: CampaignSelectionProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [transitioningKey, setTransitioningKey] = useState<string>();
@@ -36,6 +37,10 @@ export function CampaignSelection({ campaigns, realUsagePlanner }: CampaignSelec
   }
 
   function selectCampaign(key: string) {
+    if (key === "drop_week") {
+      router.push("/campaigns/3");
+      return;
+    }
     function commitSelection() {
       const params = new URLSearchParams(searchParams.toString());
       params.set("campaign", key);

@@ -256,7 +256,74 @@ export type BrandMoodProps = BrandProfileProps;
 
 export type ProductCatalogProps = Pick<BrandProfileProps, "profile">;
 
+export const campaign3RequestSchema = z
+  .object({
+    brandId: z.uuid(),
+    productIndex: z.number().int().nonnegative(),
+    launchDate: z.iso.date(),
+  })
+  .strict();
+
+const campaign3FeedSchema = z
+  .object({
+    imagePrompt: z.string().trim().min(1),
+    caption: z.string().trim().min(1),
+  })
+  .strict();
+const campaign3DaySchema = z.object({ feed: campaign3FeedSchema }).strict();
+const campaign3StoryDaySchema = campaign3DaySchema.extend({
+  storyPrompt: z.string().trim().min(1),
+});
+export const campaign3PlanSchema = z
+  .object({
+    concept: z.string().trim().min(1),
+    days: z
+      .object({
+        minus3: campaign3StoryDaySchema,
+        minus2: campaign3DaySchema,
+        minus1: campaign3DaySchema,
+        launch: campaign3StoryDaySchema,
+        plus1: campaign3DaySchema,
+        plus2: campaign3DaySchema,
+        plus3: campaign3StoryDaySchema,
+      })
+      .strict(),
+  })
+  .strict();
+export type Campaign3Plan = z.infer<typeof campaign3PlanSchema>;
+export type Campaign3Request = z.infer<typeof campaign3RequestSchema>;
+
+export const campaign3ImageMetaSchema = z.object({
+  stage: z.literal("image"),
+  position: z.number().int().min(1).max(10),
+  date: z.iso.date(),
+  format: z.enum(["feed", "story"]),
+  prompt: z.string().min(1),
+  product: brandProductSchema,
+  caption: z.string(),
+  error: z.string().nullable(),
+  retryOf: z.uuid().nullable(),
+  startedAt: z.iso.datetime().nullable(),
+});
+export type Campaign3ImageMeta = z.infer<typeof campaign3ImageMetaSchema>;
+export type Campaign3Asset = {
+  id: string;
+  status: "pending" | "processing" | "done" | "failed";
+  imageUrl: string | null;
+  meta: Campaign3ImageMeta;
+};
+export type Campaign3Result = { runId: string; assets: Campaign3Asset[] };
+export type Campaign3Brand = { id: string; name: string; products: BrandProduct[] };
+export type Campaign3FormProps = { brands: Campaign3Brand[] };
+export type Campaign3AssetProps = { asset: Campaign3Asset; onRetry: () => void };
+export type Campaign3ScreenProps = { searchParams: Promise<{ runId?: string }> };
+export type Campaign3RecentRun = { id: string; date: string };
+export type Campaign3ResultsProps = { initial: Campaign3Result };
+export type Campaign3ActionResult<T> =
+  { ok: true; data: T } | { ok: false; code: ErrorCode; cause?: string };
+
 export type CampaignPreview = {
+  requiredInputs?: string;
   key: string;
   name: string;
   goal: string;
@@ -266,6 +333,7 @@ export type CampaignPreview = {
   outputs: string[];
   schedule: {
     day: number;
+    dayLabel?: string;
     channel: string;
     format: string;
     purpose: string;

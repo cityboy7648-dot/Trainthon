@@ -58,6 +58,12 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
                 <dt className="text-shell-muted text-xs">{copy.campaigns.channels}</dt>
                 <dd className="mt-2">{campaign.channels.join(" · ")}</dd>
               </div>
+              {campaign.requiredInputs && (
+                <div className="col-span-3">
+                  <dt className="text-shell-muted text-xs">{copy.campaigns.requiredInputs}</dt>
+                  <dd className="mt-2">{campaign.requiredInputs}</dd>
+                </div>
+              )}
             </dl>
             <section className="border-shell-border border-t pt-6">
               <h3 className="text-shell-ink text-sm font-semibold">{copy.campaigns.schedule}</h3>
@@ -65,7 +71,7 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
                 {campaign.schedule.map((item) => (
                   <li key={item.day} className="grid grid-cols-5 gap-3 py-4">
                     <span className="text-shell-muted text-xs leading-6">
-                      {copy.campaigns.day(item.day)}
+                      {item.dayLabel ?? copy.campaigns.day(item.day)}
                     </span>
                     <div className="col-span-4">
                       <p className="text-shell-ink text-sm leading-6 font-medium">{item.purpose}</p>
