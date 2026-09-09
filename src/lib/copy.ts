@@ -227,6 +227,7 @@ export const copy = {
     emptyDescription: "캠페인을 실행하면 브랜드 에셋, 피드, 영상이 여기에 쌓인다.",
   },
   common: {
+    dismissError: "오류 알림 닫기",
     retry: "다시 시도",
   },
   dev: {

@@ -6,7 +6,8 @@ import { readAnalyzedBrandProfile, saveAnalyzedBrandProfile } from "@/lib/brand-
 import { copy } from "@/lib/copy";
 import { requestBrandProfile } from "@/lib/data/brand-profile";
 import { AppError } from "@/lib/errors";
-import { homeAnalysisFailureHref, toBrandSourceUrl } from "@/lib/home";
+import { toBrandSourceUrl } from "@/lib/home";
+import { showErrorNotice } from "@/lib/error-notice";
 import {
   brandProfileSchema,
   type AnalysisProgressProps,
@@ -96,7 +97,8 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
         if (cancelled) return;
         window.clearInterval(tick);
         const cause = error instanceof AppError ? error.cause : undefined;
-        router.replace(homeAnalysisFailureHref(cause));
+        showErrorNotice("analysis_failed", cause);
+        router.replace("/");
       });
 
     return () => {

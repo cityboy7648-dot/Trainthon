@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ErrorNotice } from "@/components/error-notice";
 import { Noto_Sans_KR, Noto_Serif_KR } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { copy } from "@/lib/copy";
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col">
         <TooltipProvider>{children}</TooltipProvider>
+        <ErrorNotice />
       </body>
     </html>
   );

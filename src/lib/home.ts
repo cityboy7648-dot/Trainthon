@@ -49,14 +49,6 @@ export function homeErrorFromSearch(
   return { code: error, cause: cause || undefined };
 }
 
-export function homeAnalysisFailureHref(cause?: string): string {
-  const params = new URLSearchParams({ error: "analysis_failed" });
-  if (cause) {
-    params.set("cause", cause);
-  }
-  return `/?${params.toString()}`;
-}
-
 // 분석은 원문 URL로 하고, 브랜드로 보이는 주소에서만 광고·검색 추적을 뺀다.
 export function toBrandSourceUrl(value: string): string {
   try {
