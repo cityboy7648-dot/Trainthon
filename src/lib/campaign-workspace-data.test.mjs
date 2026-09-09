@@ -99,3 +99,44 @@ test("중단된 생성 캠페인은 완료 이미지를 보존하고 남은 항�
     assert.match(result.posts[1].meta.error, /시간/);
   }
 });
+test("재시도 행이 있으면 같은 위치의 마지막 상태만 보여 준다", async () => {
+  run = {
+    id: "b287625f-65d0-435e-b1fd-55b5c7e912ab",
+    campaign_key: "signature_grid",
+    status: "processing",
+    created_at: "2020-01-01T00:00:00Z",
+    brands: { profile: { name: "브랜드" } },
+  };
+  assets = [
+    {
+      id: "old",
+      run_id: run.id,
+      kind: "image",
+      status: "failed",
+      created_at: "2026-09-10T00:00:00Z",
+      storage_path: null,
+      meta: { day: 1, position: 1, format: "feed", caption: "실패", error: "원인" },
+    },
+    {
+      id: "retry",
+      run_id: run.id,
+      kind: "image",
+      status: "pending",
+      created_at: "2026-09-10T00:09:00Z",
+      storage_path: null,
+      meta: { day: 1, position: 1, format: "feed", caption: "실패", error: null },
+    },
+  ];
+  const now = Date.parse("2026-09-10T00:10:00Z");
+  const realNow = Date.now;
+  Date.now = () => now;
+  try {
+    const result = await getSavedCampaign(run.id);
+    assert.equal(result.status, "processing");
+    assert.equal(result.posts.length, 1);
+    assert.equal(result.posts[0].id, "retry");
+    assert.equal(result.posts[0].status, "pending");
+  } finally {
+    Date.now = realNow;
+  }
+});

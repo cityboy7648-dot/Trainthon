@@ -21,6 +21,7 @@ test("캠페인 1·2·4·5 생성 경로의 실행 한도는 800초다", () => {
     "../app/api/campaigns/4/runs/route.ts",
     "../app/api/campaigns/5/runs/route.ts",
     "../app/(app)/campaigns/new/page.tsx",
+    "../app/(app)/campaigns/[id]/page.tsx",
   ]) {
     assert.match(readFileSync(new URL(file, import.meta.url), "utf8"), /maxDuration = 800/);
   }
