@@ -309,6 +309,81 @@ export const campaignTwoResultSchema = z.object({
 });
 export type CampaignTwoResult = z.infer<typeof campaignTwoResultSchema>;
 export type CampaignTwoResultProps = { runId: string };
+export const campaignFiveRequestSchema = z
+  .object({
+    brand_id: z.uuid(),
+    product_key: z.string().regex(/^[a-f0-9]{64}$/),
+    companion_product_keys: z
+      .array(z.string().regex(/^[a-f0-9]{64}$/))
+      .min(1)
+      .max(10),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    const keys = new Set(value.companion_product_keys);
+    if (keys.size !== value.companion_product_keys.length || keys.has(value.product_key)) {
+      context.addIssue({ code: "custom", message: "상품 선택이 중복되었습니다." });
+    }
+  });
+export type CampaignFiveRequest = z.infer<typeof campaignFiveRequestSchema>;
+const campaignProductUrlSchema = httpUrlSchema.refine((value) => {
+  const url = new URL(value);
+  return !url.username && !url.password;
+}, "인증 정보가 없는 HTTP 또는 HTTPS 주소여야 한다.");
+export const campaignFivePlanSchema = z.object({
+  concept: z.string().min(1),
+  image_briefs: z.array(z.string().min(1)).length(11),
+  captions: z.array(z.string().min(1)).length(5),
+  product_links: z.array(
+    z.object({
+      key: z.string().regex(/^[a-f0-9]{64}$/),
+      url: campaignProductUrlSchema.nullable(),
+    }),
+  ),
+});
+export type CampaignFivePlan = z.infer<typeof campaignFivePlanSchema>;
+export const campaignProductLinkSchema = z.object({
+  key: z.string(),
+  name: z.string().min(1),
+  url: campaignProductUrlSchema.nullable(),
+});
+export const campaignFiveAssetMetaSchema = z.object({
+  position: z.number().int().min(1).max(11),
+  day: z.number().int().min(1).max(5),
+  format: z.enum(["feed", "pinterest", "carousel"]),
+  primary_product: brandProductSchema,
+  primary_product_key: z.string(),
+  companion_products: z.array(campaignProductSchema).min(1).max(10),
+  product_links: z.array(campaignProductLinkSchema).default([]),
+  caption: z.string().nullable().default(null),
+  error: z.string().nullable().default(null),
+});
+export type CampaignFiveAssetMeta = z.infer<typeof campaignFiveAssetMetaSchema>;
+export const campaignFiveResultSchema = z.object({
+  run_id: z.uuid(),
+  status: campaignAssetStatusSchema,
+  assets: z.array(
+    z.object({
+      id: z.uuid(),
+      status: campaignAssetStatusSchema,
+      image_url: z.string().nullable(),
+      meta: campaignFiveAssetMetaSchema,
+    }),
+  ),
+  product_links: z.array(campaignProductLinkSchema),
+});
+export type CampaignFiveResult = z.infer<typeof campaignFiveResultSchema>;
+export type CampaignFiveResultProps = { runId: string };
+export type CampaignFiveOutputsProps = { result: CampaignFiveResult; onRetry: () => void };
+export type CampaignProductPickerProps = { campaignNumber: 2 | 5 };
+export type CampaignProductOptionsProps = {
+  products: NonNullable<CampaignProducts>["products"];
+  selectedKeys: string[];
+  disabled: boolean;
+  onSelect: (key: string) => void;
+  label: string;
+  limit?: number;
+};
 export type CampaignRequestState<T> =
   { ok: true; data: T } | { ok: false; code: ErrorCode; cause?: string };
 

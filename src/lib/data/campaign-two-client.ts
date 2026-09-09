@@ -11,7 +11,7 @@ import {
   type CampaignTwoResult,
 } from "@/lib/types";
 
-async function requestCampaign<T>(
+export async function requestCampaign<T>(
   url: string,
   schema: z.ZodType<T>,
   options?: RequestInit,
