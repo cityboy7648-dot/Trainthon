@@ -109,7 +109,7 @@ export async function startCampaign4Run(input: unknown): Promise<Campaign4Starte
     reference_key: campaign4.referenceKey,
     status: "pending",
   });
-  if (runError) throw new AppError("network", "캠페인 실행을 저장하지 못했습니다.");
+  if (runError) throw new AppError("network", `${campaignErrors.create} ${runError.message}`);
   const { error: assetError } = await client.from("assets").insert({
     id: started.assetId,
     run_id: started.runId,
