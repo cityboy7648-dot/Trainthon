@@ -5,6 +5,7 @@ import { getProviderApiKey } from "@/lib/env";
 import { copy } from "@/lib/copy";
 import { AppError } from "@/lib/errors";
 import { log, type LogContext } from "@/lib/log";
+import type { TokenUsage } from "@/lib/types";
 
 const MODEL = "gpt-5.5";
 const TIMEOUT_MS = 75_000;
@@ -27,7 +28,7 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
   instructions: string,
   input: string,
   context: LogContext,
-): Promise<z.output<Schema>> {
+): Promise<{ output: z.output<Schema>; usage: TokenUsage }> {
   const client = getOpenAiClient();
   const startedAt = performance.now();
 
@@ -48,14 +49,20 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
       throw new AppError("analysis_failed", "AI가 분석 결과 생성을 거부했거나 완료하지 못했다.");
     }
 
+    const usage: TokenUsage = {
+      inputTokens: response.usage?.input_tokens ?? 0,
+      outputTokens: response.usage?.output_tokens ?? 0,
+      calls: 1,
+    };
+
     log.info("openai.response", context, {
       model: MODEL,
       durationMs: Math.round(performance.now() - startedAt),
-      inputTokens: response.usage?.input_tokens,
-      outputTokens: response.usage?.output_tokens,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
     });
 
-    return schema.parse(response.output_parsed);
+    return { output: schema.parse(response.output_parsed), usage };
   } catch (error) {
     log.error("openai.error", context, {
       model: MODEL,

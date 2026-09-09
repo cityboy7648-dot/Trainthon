@@ -2,12 +2,14 @@ import { AppError } from "@/lib/errors";
 import type { LogContext } from "@/lib/log";
 import { collectSite } from "@/lib/providers/firecrawl";
 import { parseStructuredOutput } from "@/lib/providers/openai";
+import { addTokenUsage, emptyTokenUsage } from "@/lib/token-usage";
 import {
   brandAnalysisOutputSchema,
   brandEvidenceSchema,
   type BrandEvidence,
   type BrandProfileData,
   type CollectedPage,
+  type TokenUsage,
 } from "@/lib/types";
 import { assertCompleteAnalysis, normalizeBrandProfile } from "./normalize-brand-profile";
 import { extractBrandEvidencePrompt, mergeBrandProfilePrompt } from "./prompt";
@@ -75,27 +77,28 @@ function createPageChunks(pages: CollectedPage[]): string[] {
 export async function analyzeBrand(
   sourceUrl: string,
   context: LogContext,
-): Promise<BrandProfileData> {
+): Promise<{ profile: BrandProfileData; usage: TokenUsage }> {
   const collected = await collectSite(sourceUrl, context);
   const chunks = createPageChunks(collected.pages);
   const evidence: BrandEvidence[] = [];
+  let usage = emptyTokenUsage();
 
   for (const [index, chunk] of chunks.entries()) {
-    evidence.push(
-      await parseStructuredOutput(
-        brandEvidenceSchema,
-        "brand_evidence",
-        extractBrandEvidencePrompt,
-        JSON.stringify({
-          source_url: sourceUrl,
-          homepage_branding: collected.branding,
-          chunk: index + 1,
-          total_chunks: chunks.length,
-          pages: chunk,
-        }),
-        context,
-      ),
+    const extracted = await parseStructuredOutput(
+      brandEvidenceSchema,
+      "brand_evidence",
+      extractBrandEvidencePrompt,
+      JSON.stringify({
+        source_url: sourceUrl,
+        homepage_branding: collected.branding,
+        chunk: index + 1,
+        total_chunks: chunks.length,
+        pages: chunk,
+      }),
+      context,
     );
+    evidence.push(extracted.output);
+    usage = addTokenUsage(usage, extracted.usage);
   }
 
   const mergeInput = JSON.stringify({
@@ -119,7 +122,14 @@ export async function analyzeBrand(
     mergeInput,
     context,
   );
+  usage = addTokenUsage(usage, result.usage);
 
-  assertCompleteAnalysis(result);
-  return normalizeBrandProfile({ ...result.profile, name: result.profile.name ?? "" }, sourceUrl);
+  assertCompleteAnalysis(result.output);
+  return {
+    profile: normalizeBrandProfile(
+      { ...result.output.profile, name: result.output.profile.name ?? "" },
+      sourceUrl,
+    ),
+    usage,
+  };
 }

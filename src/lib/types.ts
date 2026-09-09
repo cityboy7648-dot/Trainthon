@@ -20,6 +20,11 @@ export type NavUserProps = {
   compact?: boolean;
 };
 
+export type UsageDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
 export type UrlFormProps = {
   authenticated: boolean;
   errorCode?: ErrorCode;
@@ -131,6 +136,22 @@ export type BrandProfileData = z.infer<typeof brandProfileSchema>;
 export type BrandProfileDraft = z.infer<typeof brandProfileDraftSchema>;
 export type BrandEvidence = z.infer<typeof brandEvidenceSchema>;
 export type BrandAnalysisOutput = z.infer<typeof brandAnalysisOutputSchema>;
+
+export const tokenUsageSchema = z.object({
+  inputTokens: z.number().int().nonnegative(),
+  outputTokens: z.number().int().nonnegative(),
+  calls: z.number().int().nonnegative(),
+});
+
+export type TokenUsage = z.infer<typeof tokenUsageSchema>;
+
+export type UserUsage = {
+  brandCount: number;
+  inputTokens: number;
+  outputTokens: number;
+};
+
+export type UserUsageResult = { ok: true; usage: UserUsage } | { ok: false; cause?: string };
 
 export type CollectedPage = {
   url: string;
