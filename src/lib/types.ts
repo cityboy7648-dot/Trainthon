@@ -122,3 +122,63 @@ export type BrandMoodProps = Pick<
 export type ProductCatalogProps = {
   products: BrandProfileData["products"];
 };
+
+export type CampaignPreview = {
+  key: string;
+  name: string;
+  goal: string;
+  duration_days: number;
+  channels: string[];
+  image: string;
+  schedule: {
+    day: number;
+    channel: string;
+    format: string;
+    purpose: string;
+  }[];
+};
+
+export type CampaignStatus = "processing" | "done" | "draft";
+
+export type CreatedCampaignPreview = {
+  id: string;
+  status: CampaignStatus;
+  campaign: CampaignPreview;
+};
+
+export type CampaignStatusCounts = Record<CampaignStatus, number>;
+
+export type CampaignOverviewState =
+  | { mode: "create" }
+  | {
+      mode: "gallery";
+      status: CampaignStatus;
+      campaigns: CreatedCampaignPreview[];
+      counts: CampaignStatusCounts;
+    };
+
+export type CampaignOverviewProps = {
+  searchParams: Promise<{ status?: string }>;
+};
+
+export type CampaignGalleryProps = {
+  status: CampaignStatus;
+  campaigns: CreatedCampaignPreview[];
+  counts: CampaignStatusCounts;
+};
+
+export type CampaignGalleryCardsProps = {
+  campaigns: CreatedCampaignPreview[];
+};
+
+export type CampaignCardProps = {
+  campaign: CampaignPreview;
+  selected: boolean;
+  onSelect: () => void;
+  onPreview: () => void;
+};
+
+export type CampaignDetailsProps = {
+  campaign: CampaignPreview | undefined;
+  onClose: () => void;
+};

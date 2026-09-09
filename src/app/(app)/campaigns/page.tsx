@@ -1,17 +1,6 @@
-import { EmptyState } from "@/components/empty-state";
-import { PageHeader } from "@/components/page-header";
-import { copy } from "@/lib/copy";
+import { CampaignOverview } from "@/components/campaigns/campaign-overview";
+import type { CampaignOverviewProps } from "@/lib/types";
 
-export default function CampaignsPage() {
-  return (
-    <>
-      <PageHeader title={copy.campaigns.title} />
-      <div className="p-6" data-source="mock">
-        <EmptyState
-          title={copy.campaigns.emptyTitle}
-          description={copy.campaigns.emptyDescription}
-        />
-      </div>
-    </>
-  );
+export default function CampaignsPage({ searchParams }: CampaignOverviewProps) {
+  return <CampaignOverview searchParams={searchParams} />;
 }

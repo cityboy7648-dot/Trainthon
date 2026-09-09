@@ -1,0 +1,6 @@
+https://www.figma.com/design/eBAgVuj8yDUEX9zGc6F60s/Trainthon?node-id=9-3
+상단 제목과 카드 3개만 구현. 카드 이미지는 원본 이미지에서 추출.
+캠페인 내용: https://www.figma.com/design/eBAgVuj8yDUEX9zGc6F60s/Trainthon?node-id=4-154
+
+캠페인 갤러리: https://www.figma.com/board/WXEkCnpW4WtbyTCAxijEIj/Margo-Frontend-Wireframes?node-id=28-22
+상단 알림·통계는 제외. 상태 탭과 3열 카드 갤러리만 참고한다.
