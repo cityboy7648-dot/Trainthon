@@ -283,10 +283,6 @@ export type CampaignCardProps = {
   onPreview: () => void;
 };
 
-export type CampaignBriefProps = {
-  campaign: CampaignPreview;
-};
-
 export type CampaignDetailsProps = {
   campaign: CampaignPreview | undefined;
   onClose: () => void;

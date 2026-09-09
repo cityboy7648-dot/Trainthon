@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { CampaignBrief } from "@/components/campaigns/campaign-brief";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
 import { CampaignCreationHeader } from "@/components/campaigns/campaign-creation-header";
 import { CampaignDetails } from "@/components/campaigns/campaign-details";
@@ -87,8 +86,6 @@ export function CampaignSelection() {
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{selected.goal}</p>
           </div>
         </section>
-
-        <CampaignBrief key={selected.key} campaign={selected} />
       </div>
     );
   }
