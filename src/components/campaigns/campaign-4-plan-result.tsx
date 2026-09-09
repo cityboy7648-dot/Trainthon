@@ -6,7 +6,7 @@ export function Campaign4PlanResult({ product, plan }: Campaign4SavedPlan) {
   const posts = [plan.day1, plan.day2, plan.day3, plan.day4, plan.day5];
   return (
     <section data-source="server" className="mt-8">
-      <h2 className="text-shell-ink text-xl font-semibold">{text.ready}</h2>
+      <h2 className="text-shell-ink text-xl font-semibold">{text.planReady}</h2>
       <p className="text-shell-ink mt-2 text-sm font-medium">{product.name}</p>
       <p className="text-shell-muted mt-2 text-sm">{text.planOnly}</p>
       <h3 className="text-shell-ink mt-6 text-sm font-semibold">{text.direction}</h3>

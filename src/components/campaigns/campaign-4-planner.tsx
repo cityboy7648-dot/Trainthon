@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { Campaign4PlannerSkeleton } from "@/components/campaigns/campaign-4-planner-skeleton";
+import { requestCampaign4Images } from "@/lib/data/campaign-4-actions";
+import { Campaign4Result } from "@/components/campaigns/campaign-4-result";
 import { CampaignProductOptions } from "@/components/campaigns/campaign-product-options";
-import { requestCampaign4Plan } from "@/lib/data/campaign-4-actions";
 import { copy } from "@/lib/copy";
 import type { Campaign4PlannerProps } from "@/lib/types";
 
 export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
-  const [result, action, pending] = useActionState(requestCampaign4Plan, null);
+  const [result, action, pending] = useActionState(requestCampaign4Images, null);
   const params = useSearchParams();
   const pathname = usePathname();
   const selectedBrand = params.get("brandId");
@@ -21,6 +22,7 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
   const brand = brands.find((item) => item.brandId === selectedBrand);
   const product = brand?.products.find((item) => String(item.index) === selectedIndex);
   const text = copy.campaigns.realUsage;
+  const runId = params.get("run");
 
   function selectProduct(brandId: string, index: number) {
     const next = new URLSearchParams(params.toString());
@@ -28,6 +30,8 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
     next.set("productIndex", String(index));
     window.history.replaceState(null, "", `${pathname}?${next.toString()}`);
   }
+
+  if (runId) return <Campaign4Result key={runId} runId={runId} />;
 
   if (!brands.some((item) => item.products.length > 0)) {
     return (

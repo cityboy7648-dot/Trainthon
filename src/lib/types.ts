@@ -272,6 +272,7 @@ export type CampaignPreview = {
     channel: string;
     format: string;
     purpose: string;
+    image_count: number;
   }[];
 };
 
@@ -306,6 +307,80 @@ export type CampaignClient = Awaited<
   ReturnType<typeof import("./supabase/server").createSessionWriter>
 >;
 export const campaignAssetStatusSchema = z.enum(["pending", "processing", "done", "failed"]);
+
+export const campaign4ImageMetaSchema = z.object({
+  day: z.number().int().min(1).max(5),
+  position: z.number().int().min(1).max(5),
+  format: z.literal("feed"),
+  product: brandProductSchema,
+  scene: z.string().min(1),
+  caption: z.string().min(1),
+  error: z.string().nullable().default(null),
+});
+export type Campaign4ImageMeta = z.infer<typeof campaign4ImageMetaSchema>;
+export const campaign4ResultSchema = z.object({
+  runId: z.uuid(),
+  status: campaignAssetStatusSchema,
+  cause: z.string().nullable(),
+  assets: z.array(
+    z.object({
+      id: z.uuid(),
+      status: campaignAssetStatusSchema,
+      imageUrl: z.url().nullable(),
+      meta: campaign4ImageMetaSchema,
+    }),
+  ),
+});
+export type Campaign4ResultData = z.infer<typeof campaign4ResultSchema>;
+export type Campaign4ResultProps = { runId: string };
+
+export const dashboardAssetMetaSchema = z.object({
+  day: z.number().int().positive().nullish(),
+  position: z.number().int().positive().nullish(),
+  upload_order: z.number().int().positive().nullish(),
+  title: z.string().trim().nullish(),
+  caption: z.string().trim().nullish(),
+  stage: z.string().nullish(),
+  role: z.string().nullish(),
+  completed_at: z.iso.datetime().nullish(),
+});
+
+export type DashboardTask = {
+  id: string;
+  title: string;
+  campaignName: string;
+  imageUrl: string | null;
+  completedAt: string;
+};
+
+export type DashboardCampaign = {
+  id: string;
+  name: string;
+  completedTasks: number;
+  totalTasks: number;
+  failed: boolean;
+  href: string | null;
+};
+
+export type DashboardData = {
+  recentTasks: DashboardTask[];
+  campaigns: DashboardCampaign[];
+};
+
+export type DashboardStoredRun = Pick<
+  import("./supabase/database.types").Tables<"runs">,
+  "id" | "campaign_key" | "status" | "created_at"
+> & {
+  assets: (Pick<
+    import("./supabase/database.types").Tables<"assets">,
+    "id" | "kind" | "status" | "storage_path" | "created_at"
+  > & { meta: z.infer<typeof dashboardAssetMetaSchema> })[];
+};
+
+export type DashboardCampaignListProps = {
+  campaigns: DashboardCampaign[];
+  completed: boolean;
+};
 export const campaignTwoPlanSchema = z.object({
   concept: z.string().min(1),
   scenes: z

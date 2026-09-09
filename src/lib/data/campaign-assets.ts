@@ -1,6 +1,11 @@
 import { AppError, campaignErrors } from "@/lib/errors";
 import type { TablesUpdate } from "@/lib/supabase/database.types";
-import type { CampaignClient, CampaignFiveAssetMeta, CampaignTwoAssetMeta } from "@/lib/types";
+import type {
+  CampaignClient,
+  CampaignFiveAssetMeta,
+  CampaignTwoAssetMeta,
+  Campaign4ImageMeta,
+} from "@/lib/types";
 
 export async function setCampaignRunStatus(
   client: CampaignClient,
@@ -33,7 +38,7 @@ export async function saveCampaignImage(
   runId: string,
   assetId: string,
   image: Buffer,
-  meta: CampaignTwoAssetMeta | CampaignFiveAssetMeta,
+  meta: CampaignTwoAssetMeta | CampaignFiveAssetMeta | Campaign4ImageMeta,
 ) {
   const path = `${runId}/${assetId}.png`;
   await updateCampaignAsset(client, assetId, { storage_path: path });
@@ -41,5 +46,9 @@ export async function saveCampaignImage(
     .from("assets")
     .upload(path, image, { contentType: "image/png", upsert: false });
   if (error) throw new AppError("generation_failed", campaignErrors.save);
-  await updateCampaignAsset(client, assetId, { status: "done", meta, storage_path: path });
+  await updateCampaignAsset(client, assetId, {
+    status: "done",
+    meta: { ...meta, completed_at: new Date().toISOString() },
+    storage_path: path,
+  });
 }

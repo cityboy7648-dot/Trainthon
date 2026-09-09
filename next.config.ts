@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     "/api/campaigns/5/runs": ["./reference/campaigns/campaign-5/*.jpg"],
     "/api/campaigns/4/runs": ["./reference/campaigns/campaign-4/*.jpg"],
     "/campaigns/new": ["./reference/campaigns/campaign-4/*.jpg"],
+    "/campaigns": ["./reference/campaigns/campaign-4/*.jpg"],
   },
   distDir: process.env.NEXT_PUBLIC_PREVIEW_ANALYSIS === "1" ? ".next-preview" : ".next",
 };
