@@ -236,7 +236,7 @@ export type CampaignPreview = {
   goal: string;
   duration_days: number;
   channels: string[];
-  image: string;
+  image: string | null;
   schedule: {
     day: number;
     channel: string;
@@ -288,6 +288,10 @@ export type CampaignCardProps = {
 
 export type CampaignBriefProps = {
   campaign: CampaignPreview;
+};
+
+export type CampaignSelectionProps = {
+  campaigns: CampaignPreview[];
 };
 
 export type CampaignDetailsProps = {

@@ -23,13 +23,19 @@ export function CampaignCard({
         data-transitioning={transitioning}
         className="campaign-card-image aspect-campaign-image focus-visible:ring-shell-ink relative block w-full cursor-pointer overflow-hidden focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
       >
-        <Image
-          src={campaign.image}
-          alt={copy.campaigns.imageAlt(campaign.name)}
-          fill
-          sizes="(max-width: 767px) 90vw, 240px"
-          className="object-cover"
-        />
+        {campaign.image ? (
+          <Image
+            src={campaign.image}
+            alt={copy.campaigns.imageAlt(campaign.name)}
+            fill
+            sizes="(max-width: 767px) 90vw, 240px"
+            className="object-cover"
+          />
+        ) : (
+          <div className="bg-shell-active text-shell-muted flex h-full items-center justify-center p-6 text-center text-lg font-semibold">
+            {campaign.name}
+          </div>
+        )}
       </button>
       <button
         type="button"
