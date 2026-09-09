@@ -2,7 +2,8 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { campaign4 } from "@/definitions/campaign-4";
 import { generateCampaignImage } from "@/lib/providers/openai";
-import { failCampaign4Images, type prepareCampaign4Images } from "@/lib/data/campaign-4-images";
+import { failCampaign4Images, prepareCampaign4Images } from "@/lib/data/campaign-4-images";
+import type { Campaign4StartedRun } from "@/lib/data/campaign-4";
 import {
   saveCampaignImage,
   setCampaignRunStatus,
@@ -11,6 +12,20 @@ import {
 import { AppError, campaignErrors } from "@/lib/errors";
 import { log } from "@/lib/log";
 import { realUsageImagePrompt } from "./prompt";
+
+export async function generateCampaign4(started: Campaign4StartedRun) {
+  try {
+    await generateCampaign4Images(await prepareCampaign4Images(started));
+  } catch (error) {
+    const cause = error instanceof AppError ? (error.cause ?? error.message) : campaignErrors.image;
+    await failCampaign4Images(started.client, started.runId, cause);
+    log.error(
+      "campaign4.generate_failed",
+      { requestId: started.requestId, runId: started.runId, assetId: null },
+      { cause },
+    );
+  }
+}
 
 export async function generateCampaign4Images(
   run: Awaited<ReturnType<typeof prepareCampaign4Images>>,

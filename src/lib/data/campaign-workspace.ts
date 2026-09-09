@@ -8,7 +8,6 @@ import { signatureSlots } from "@/lib/campaign-workspace";
 import { toCampaignGalleryCard } from "@/lib/campaign-gallery";
 import {
   campaignPostMetaSchema,
-  campaign4SavedPlanSchema,
   campaignSelectionSchema,
   type SavedCampaign,
   type SavedCampaignCard,
@@ -72,24 +71,6 @@ export async function createSavedCampaign(input: unknown): Promise<string> {
     .upsert(assets, { onConflict: "id", ignoreDuplicates: true });
   if (inserted.error) throw new AppError("network", campaignErrors.create);
   return run.id;
-}
-
-export async function getSavedCampaign4Plan(runId: string) {
-  const { client, run } = await ownedCampaign(runId);
-  if (run.campaign_key !== "real_usage") throw new AppError("not_found", campaignErrors.result);
-  const { data, error } = await client
-    .from("assets")
-    .select("meta")
-    .eq("run_id", run.id)
-    .eq("kind", "caption")
-    .eq("status", "done")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error || !data) throw new AppError("not_found", campaignErrors.result);
-  const parsed = campaign4SavedPlanSchema.safeParse(data.meta);
-  if (!parsed.success) throw new AppError("generation_failed", campaignErrors.result);
-  return parsed.data;
 }
 
 export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {

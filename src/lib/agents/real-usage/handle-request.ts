@@ -1,6 +1,6 @@
 import { after } from "next/server";
-import { prepareCampaign4Images } from "@/lib/data/campaign-4-images";
-import { generateCampaign4Images } from "./generate-images";
+import { startCampaign4Run } from "@/lib/data/campaign-4";
+import { generateCampaign4 } from "./generate-images";
 import { AppError, errorMessages } from "@/lib/errors";
 
 export async function handleCampaign4Request(request: Request) {
@@ -20,10 +20,10 @@ export async function handleCampaign4Request(request: Request) {
     } catch {
       throw new AppError("invalid_request");
     }
-    const run = await prepareCampaign4Images(input);
-    after(() => generateCampaign4Images(run));
+    const started = await startCampaign4Run(input);
+    after(() => generateCampaign4(started));
     return Response.json(
-      { runId: run.runId, stage: "generating" },
+      { runId: started.runId, stage: "generating" },
       { status: 202, headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

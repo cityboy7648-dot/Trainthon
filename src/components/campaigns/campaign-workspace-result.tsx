@@ -1,13 +1,7 @@
-import {
-  getSavedCampaign,
-  ownedCampaign,
-  getSavedCampaign4Plan,
-} from "@/lib/data/campaign-workspace";
+import { getSavedCampaign, ownedCampaign } from "@/lib/data/campaign-workspace";
 import { campaigns } from "@/definitions/campaigns";
 import { CampaignBackButton } from "./campaign-back-button";
-import { Campaign4PlanResult } from "./campaign-4-plan-result";
 import { Campaign4Result } from "./campaign-4-result";
-import { getCampaign4Result } from "@/lib/data/campaign-4-images";
 import { CampaignWorkspaceLive } from "./campaign-workspace-live";
 import { ErrorState } from "@/components/error-state";
 import { AppError, campaignErrors } from "@/lib/errors";
@@ -20,15 +14,10 @@ export async function CampaignWorkspaceResult({ id }: { id: string }) {
   }
   let campaign;
   let key;
-  let plan;
   try {
     const { run } = await ownedCampaign(id);
     key = run.campaign_key;
-    if (key === "real_usage") {
-      const result = await getCampaign4Result(id);
-      if (!result.assets.length && result.status === "pending")
-        plan = await getSavedCampaign4Plan(id);
-    } else campaign = await getSavedCampaign(id);
+    if (key !== "real_usage") campaign = await getSavedCampaign(id);
   } catch (error) {
     return (
       <div className="p-8">
@@ -48,8 +37,7 @@ export async function CampaignWorkspaceResult({ id }: { id: string }) {
     >
       <CampaignBackButton />
       <h1 className="text-2xl leading-9 font-semibold tracking-tight">{definition?.name}</h1>
-      {plan && <Campaign4PlanResult {...plan} />}
-      {key === "real_usage" && !plan && <Campaign4Result runId={id} />}
+      {key === "real_usage" && <Campaign4Result runId={id} />}
     </div>
   );
 }

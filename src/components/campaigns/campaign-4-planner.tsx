@@ -6,9 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
-import { Campaign4PlannerSkeleton } from "@/components/campaigns/campaign-4-planner-skeleton";
 import { requestCampaign4Images } from "@/lib/data/campaign-4-actions";
-import { Campaign4Result } from "@/components/campaigns/campaign-4-result";
 import { CampaignProductOptions } from "@/components/campaigns/campaign-product-options";
 import { copy } from "@/lib/copy";
 import type { Campaign4PlannerProps } from "@/lib/types";
@@ -22,7 +20,6 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
   const brand = brands.find((item) => item.brandId === selectedBrand);
   const product = brand?.products.find((item) => String(item.index) === selectedIndex);
   const text = copy.campaigns.realUsage;
-  const runId = params.get("run");
 
   function selectProduct(brandId: string, index: number) {
     const next = new URLSearchParams(params.toString());
@@ -30,8 +27,6 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
     next.set("productIndex", String(index));
     window.history.replaceState(null, "", `${pathname}?${next.toString()}`);
   }
-
-  if (runId) return <Campaign4Result key={runId} runId={runId} />;
 
   if (!brands.some((item) => item.products.length > 0)) {
     return (
@@ -84,18 +79,12 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
             disabled={!product || pending}
             className="bg-shell-button hover:bg-shell-button-hover h-11 text-white"
           >
-            {pending ? text.pending : copy.campaigns.generateAction}
+            {pending ? copy.campaigns.saving : copy.campaigns.generateAction}
           </Button>
         </div>
       </form>
-      <div aria-live="polite" className="mt-6">
-        {pending && (
-          <>
-            <p className="text-shell-muted text-sm">{text.pending}</p>
-            <Campaign4PlannerSkeleton />
-          </>
-        )}
-        {!pending && result && !result.ok && (
+      {result && !result.ok && (
+        <div aria-live="polite" className="mt-6">
           <ErrorState
             code={result.code}
             cause={result.cause}
@@ -110,8 +99,8 @@ export function Campaign4Planner({ brands }: Campaign4PlannerProps) {
                 : undefined
             }
           />
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 }
