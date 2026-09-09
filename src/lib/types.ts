@@ -231,6 +231,7 @@ export type CampaignPreview = {
   duration_days: number;
   channels: string[];
   image: string | null;
+  outputs: string[];
   schedule: {
     day: number;
     channel: string;

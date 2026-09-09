@@ -223,7 +223,6 @@ export const copy = {
     day: (day: number) => `${day}일차`,
     days: (days: number) => `${days}일`,
     outputs: "생성할 산출물",
-    outputsPending: "게시물별 이미지·영상 수량과 비율은 아직 정해지지 않았어요.",
     scope: "일정표와 게시물 소재를 만들어요. 자동 게시는 추후 연결돼요.",
     backToSelection: "캠페인 다시 선택",
     selectedCampaign: "선택한 캠페인",
