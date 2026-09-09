@@ -3,24 +3,30 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CalendarDays, ChevronRight, Download, ImageIcon, Pencil } from "lucide-react";
+import { CalendarDays, ChevronRight, Download, ImageIcon, Pencil, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CampaignGenerationProgress } from "./campaign-generation-progress";
 import { CampaignPostPreview } from "./campaign-post-preview";
 import { CampaignPostEditor } from "./campaign-post-editor";
 import { CampaignBackButton } from "./campaign-back-button";
-import { campaignDate, isGeneratedCampaign, previewModes } from "@/lib/campaign-workspace";
+import {
+  campaignDate,
+  campaignProgress,
+  isGeneratedCampaign,
+  previewModes,
+} from "@/lib/campaign-workspace";
 import { copy } from "@/lib/copy";
 import { downloadCampaignArchive } from "@/lib/data/campaign-download-client";
 import { showErrorNotice } from "@/lib/error-notice";
 import type { CampaignWorkspaceProps } from "@/lib/types";
 
-export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspaceProps) {
+export function CampaignWorkspace({ campaign, onPreviewEdit, onRetry }: CampaignWorkspaceProps) {
   const params = useSearchParams();
   const pathname = usePathname();
   const [editing, setEditing] = useState<"caption" | "image" | "date" | null>(null);
   const [downloading, startDownload] = useTransition();
+  const [retrying, startRetry] = useTransition();
   const modes = previewModes(campaign.key);
   const selected =
     campaign.posts.find((post) => post.id === params.get("post")) ?? campaign.posts[0];
@@ -33,10 +39,17 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
         );
   const shown = mode === "grid" ? selected : previewPost;
   const generatedCampaign = isGeneratedCampaign(campaign.key);
+  const progress = campaignProgress(campaign.posts);
   const editLocked =
     generatedCampaign && !!shown && ["pending", "processing"].includes(shown.status);
   const dateLocked =
     generatedCampaign && ["pending", "processing"].includes(campaign.posts[0]?.status);
+  const canRetry =
+    Boolean(onRetry) &&
+    generatedCampaign &&
+    !onPreviewEdit &&
+    !progress.active &&
+    (campaign.status === "failed" || progress.failed > 0);
   const c = copy.campaignWorkspace;
   function choose(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
@@ -60,23 +73,39 @@ export function CampaignWorkspace({ campaign, onPreviewEdit }: CampaignWorkspace
             {c.status[campaign.status as keyof typeof c.status] ?? c.status.pending}
           </span>
         </div>
-        <Button
-          variant="outline"
-          disabled={downloading || !campaign.posts.some((p) => p.image_url)}
-          className="bg-background rounded-shell h-9 gap-2 px-4 text-xs"
-          onClick={() =>
-            startDownload(async () => {
-              const result = await downloadCampaignArchive(
-                campaign.id,
-                onPreviewEdit ? campaign : undefined,
-              );
-              if (!result.ok) showErrorNotice(result.code, result.cause);
-            })
-          }
-        >
-          <Download className="size-4" />
-          {downloading ? c.downloading : c.download}
-        </Button>
+        <div className="flex items-center gap-2">
+          {canRetry && (
+            <Button
+              disabled={retrying}
+              className="bg-shell-button hover:bg-shell-button-hover rounded-shell h-9 gap-2 px-4 text-xs text-white"
+              onClick={() =>
+                startRetry(async () => {
+                  await onRetry?.();
+                })
+              }
+            >
+              <RotateCcw className="size-4" />
+              {retrying ? c.retrying : c.retry}
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            disabled={downloading || !campaign.posts.some((p) => p.image_url)}
+            className="bg-background rounded-shell h-9 gap-2 px-4 text-xs"
+            onClick={() =>
+              startDownload(async () => {
+                const result = await downloadCampaignArchive(
+                  campaign.id,
+                  onPreviewEdit ? campaign : undefined,
+                );
+                if (!result.ok) showErrorNotice(result.code, result.cause);
+              })
+            }
+          >
+            <Download className="size-4" />
+            {downloading ? c.downloading : c.download}
+          </Button>
+        </div>
       </header>
       <CampaignGenerationProgress campaign={campaign} />
       <div className="grid min-h-0 flex-1 grid-rows-2 gap-5 lg:grid-cols-2 lg:grid-rows-1">

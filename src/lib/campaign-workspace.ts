@@ -1,6 +1,32 @@
 import { z } from "zod";
+import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
 import { AppError, campaignErrors } from "@/lib/errors";
 import type { CampaignPost, CampaignPostMeta, CampaignPreviewMode } from "@/lib/types";
+
+export function campaignGenerationTimedOut(
+  runCreatedAt: string,
+  assets: { status: string; created_at?: string }[],
+) {
+  const active = assets.filter(
+    (asset) => asset.status === "pending" || asset.status === "processing",
+  );
+  if (!active.length) return false;
+  const startedAt = active
+    .map((asset) => asset.created_at)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1);
+  return Date.now() - Date.parse(startedAt ?? runCreatedAt) > CAMPAIGN_STALE_MS;
+}
+
+export function latestAssetsByPosition<
+  T extends { id: string; created_at?: string; meta: { position?: number | null } },
+>(assets: T[]): T[] {
+  const ordered = [...assets].sort(
+    (a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? "") || a.id.localeCompare(b.id),
+  );
+  return [...new Map(ordered.map((asset) => [asset.meta.position ?? asset.id, asset])).values()];
+}
 
 export function campaignProgress(posts: Pick<CampaignPost, "status">[]) {
   const total = posts.length;

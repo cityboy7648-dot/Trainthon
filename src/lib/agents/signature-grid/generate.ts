@@ -13,17 +13,28 @@ import {
   parseStructuredOutput,
   generateCampaignImage,
 } from "@/lib/providers/openai";
-import { signatureGridPlanSchema } from "@/lib/types";
+import {
+  signatureGridPlanSchema,
+  type BrandProfileData,
+  type CampaignClient,
+  type CampaignPostMeta,
+} from "@/lib/types";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { log } from "@/lib/log";
 import { signatureGridPrompt, signatureGridImagePrompt } from "./prompt";
 
-export async function generateSignatureGrid(id: string) {
+export type SignatureGridClaimed = {
+  client: CampaignClient;
+  profile: BrandProfileData;
+  assets: { id: string; meta: CampaignPostMeta }[];
+};
+
+export async function generateSignatureGrid(id: string, claimed?: SignatureGridClaimed) {
   const context = { requestId: crypto.randomUUID(), runId: id, assetId: null };
   const startedAt = Date.now();
-  const claimed = await claimSignatureGridRun(id);
-  if (!claimed) return;
-  const { client, profile, assets } = claimed;
+  const current = claimed ?? (await claimSignatureGridRun(id));
+  if (!current) return;
+  const { client, profile, assets } = current;
   try {
     const references = await Promise.all(
       [
@@ -69,7 +80,10 @@ export async function generateSignatureGrid(id: string) {
     const results = await Promise.allSettled(
       plan.posts.map(async (post) => {
         const asset = assets.find((item) => item.meta.position === post.position);
-        if (!asset) throw new AppError("generation_failed", campaignErrors.plan);
+        if (!asset) {
+          if (claimed) return;
+          throw new AppError("generation_failed", campaignErrors.plan);
+        }
         const meta = {
           ...asset.meta,
           day: post.upload_order,

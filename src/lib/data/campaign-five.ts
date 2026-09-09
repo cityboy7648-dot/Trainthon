@@ -1,5 +1,5 @@
 import { campaignProductKey, resolveCampaignProduct } from "@/lib/campaign-product";
-import { CAMPAIGN_STALE_MS } from "@/lib/campaign-timeouts";
+import { campaignGenerationTimedOut, latestAssetsByPosition } from "@/lib/campaign-workspace";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { createSessionWriter } from "@/lib/supabase/server";
 import {
@@ -153,20 +153,29 @@ export async function getCampaignFiveResult(runId: string) {
     .maybeSingle();
   if (error) throw new AppError("network", campaignErrors.result);
   if (!run) throw new AppError("not_found", campaignErrors.result);
+  const { data: assets, error: assetsError } = await client
+    .from("assets")
+    .select("id, status, storage_path, created_at, meta")
+    .eq("run_id", runId)
+    .eq("kind", "image");
+  if (assetsError) throw new AppError("network", campaignErrors.result);
   if (
     ["pending", "processing"].includes(run.status) &&
-    Date.now() - Date.parse(run.created_at) > CAMPAIGN_STALE_MS
+    campaignGenerationTimedOut(run.created_at, assets ?? [])
   ) {
     await failCampaignFiveRun(client, runId, campaignErrors.timeout);
     run.status = "failed";
+    for (const asset of assets ?? []) {
+      if (asset.status === "pending" || asset.status === "processing") asset.status = "failed";
+    }
   }
-  const { data: assets, error: assetsError } = await client
-    .from("assets")
-    .select("id, status, storage_path, meta")
-    .eq("run_id", runId);
-  if (assetsError) throw new AppError("network", campaignErrors.result);
   const results = await Promise.all(
-    (assets ?? []).map(async (asset) => {
+    latestAssetsByPosition(
+      (assets ?? []).map((asset) => ({
+        ...asset,
+        meta: campaignFiveAssetMetaSchema.parse(asset.meta),
+      })),
+    ).map(async (asset) => {
       let image_url: string | null = null;
       if (asset.status === "done" && asset.storage_path) {
         const signed = await client.storage
@@ -179,7 +188,7 @@ export async function getCampaignFiveResult(runId: string) {
         id: asset.id,
         status: asset.status,
         image_url,
-        meta: campaignFiveAssetMetaSchema.parse(asset.meta),
+        meta: asset.meta,
       };
     }),
   );
