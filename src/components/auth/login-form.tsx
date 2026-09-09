@@ -40,6 +40,7 @@ export function LoginForm() {
             name="password"
             type="password"
             autoComplete="current-password"
+            maxLength={72}
             required
             className={inputClassName}
           />
