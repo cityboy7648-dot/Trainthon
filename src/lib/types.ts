@@ -587,7 +587,7 @@ export type CampaignGalleryRun = {
   status: string;
   created_at: string;
   brands: { profile: unknown };
-  assets: { kind: string; status: string; meta: unknown }[];
+  assets: { id?: string; kind: string; status: string; created_at?: string; meta: unknown }[];
 };
 export type CampaignGalleryViewProps = { campaigns: SavedCampaignCard[]; preview: boolean };
 export type CampaignPreviewEdit = (
@@ -598,6 +598,7 @@ export type CampaignPreviewEdit = (
 export type CampaignWorkspaceProps = {
   campaign: SavedCampaign;
   onPreviewEdit?: CampaignPreviewEdit;
+  onRetry?: () => Promise<void>;
 };
 export type CampaignArchiveFile = { name: string; bytes: Uint8Array };
 export type CampaignPostPreviewProps = {

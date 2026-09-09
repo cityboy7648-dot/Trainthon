@@ -4,10 +4,16 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
   createSavedCampaign,
+  deleteSavedCampaign,
   getSavedCampaign,
   ownedCampaignAsset,
 } from "@/lib/data/campaign-workspace";
-import { campaignDate, isGeneratedCampaign, validateCampaignImage } from "@/lib/campaign-workspace";
+import {
+  campaignDate,
+  isGeneratedCampaign,
+  latestAssetsByPosition,
+  validateCampaignImage,
+} from "@/lib/campaign-workspace";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { campaignEditSchema, campaignPostMetaSchema, type CampaignRequestState } from "@/lib/types";
 
@@ -39,6 +45,16 @@ export async function selectSavedCampaign(input: unknown): Promise<CampaignReque
     });
     revalidatePath("/campaigns");
     return { ok: true, data: id };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function removeSavedCampaign(runId: string): Promise<CampaignRequestState<null>> {
+  try {
+    await deleteSavedCampaign(z.uuid().parse(runId));
+    revalidatePath("/campaigns");
+    return { ok: true, data: null };
   } catch (error) {
     return failure(error);
   }
@@ -126,12 +142,17 @@ export async function replaceCampaignImage(form: FormData): Promise<CampaignRequ
     if (saved.error || !saved.data) throw new AppError("network", campaignErrors.save);
     const remaining = await client
       .from("assets")
-      .select("id")
+      .select("id, status, created_at, meta")
       .eq("run_id", runId)
-      .eq("kind", "image")
-      .neq("status", "done");
+      .eq("kind", "image");
     if (remaining.error) throw new AppError("network", campaignErrors.save);
-    if (!remaining.data?.length) {
+    const latest = latestAssetsByPosition(
+      (remaining.data ?? []).map((asset) => ({
+        ...asset,
+        meta: campaignPostMetaSchema.parse(asset.meta),
+      })),
+    );
+    if (latest.length > 0 && latest.every((asset) => asset.status === "done")) {
       const finished = await client
         .from("runs")
         .update({ status: "done" })

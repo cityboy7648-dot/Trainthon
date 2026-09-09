@@ -81,7 +81,7 @@ registerHooks({
       return {
         format: "module",
         shortCircuit: true,
-        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign; export const refreshSavedCampaign = selectSavedCampaign;`,
+        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign; export const refreshSavedCampaign = selectSavedCampaign; export const removeSavedCampaign = selectSavedCampaign;`,
       };
     if (url === "test:product-picker")
       return {
@@ -362,6 +362,7 @@ test("캠페인 2 상세는 생성 중에도 게시 일정·미리보기·진행
   assert.match(html, /미리보기/);
   assert.match(html, /<progress/);
   assert.match(html, /value="0"/);
+  assert.doesNotMatch(html, />재시도</);
   globalThis.detailCampaign = {
     ...globalThis.detailCampaign,
     status: "failed",
@@ -374,4 +375,7 @@ test("캠페인 2 상세는 생성 중에도 게시 일정·미리보기·진행
   const failed = renderCampaignSelection(await CampaignWorkspaceResult({ id: "run" }));
   assert.match(failed, /시간 초과/);
   assert.doesNotMatch(failed, />콘텐츠를 생성하고 있어요/);
+  assert.match(failed, />재시도</);
+  assert.ok(failed.indexOf("재시도") < failed.indexOf("전체 다운로드"));
+  assert.match(failed, /bg-shell-button/);
 });

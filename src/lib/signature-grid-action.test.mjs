@@ -11,7 +11,7 @@ registerHooks({
       "next/cache": "export function revalidatePath(){}",
       "next/server": "export const after=globalThis.signatureAfter",
       "@/lib/data/campaign-workspace":
-        "export async function createSavedCampaign(){return 'run'};export async function getSavedCampaign(){};export async function ownedCampaignAsset(){}",
+        "export async function createSavedCampaign(){return 'run'};export async function getSavedCampaign(){};export async function ownedCampaignAsset(){};export async function deleteSavedCampaign(){}",
       "@/lib/agents/signature-grid/generate":
         "export const generateSignatureGrid=globalThis.signatureGenerate",
     };

@@ -80,6 +80,7 @@ export const campaignErrors = {
   rateLimited: "최근에 캠페인을 시작했어요. 1분 뒤 다시 시도해 주세요.",
   result: "캠페인 결과를 불러오지 못했어요.",
   save: "캠페인 결과를 저장하지 못했어요.",
+  delete: "캠페인을 삭제하지 못했어요.",
   plan: "AI가 캠페인 구성을 완료하지 못했어요.",
   image: "AI가 이미지를 생성하지 못했어요.",
   imageTimeout: "이미지 생성 응답 시간이 초과됐어요. 요청이 자동으로 재실행되지는 않습니다.",

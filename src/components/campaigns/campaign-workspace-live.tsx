@@ -43,5 +43,16 @@ export function CampaignWorkspaceLive({ campaign: initial }: { campaign: SavedCa
       clearTimeout(timer);
     };
   }, [initial, active]);
-  return <CampaignWorkspace campaign={campaign} />;
+  async function retry() {
+    const { retryFailedCampaign } = await import("@/lib/data/campaign-retry-actions");
+    const result = await retryFailedCampaign(initial.id);
+    if (!result.ok) {
+      showErrorNotice(result.code, result.cause);
+      return;
+    }
+    const refreshed = await refreshSavedCampaign(initial.id);
+    if (refreshed.ok) setSnapshot({ initial, campaign: refreshed.data });
+    else showErrorNotice(refreshed.code, refreshed.cause);
+  }
+  return <CampaignWorkspace campaign={campaign} onRetry={retry} />;
 }
