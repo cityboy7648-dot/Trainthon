@@ -15,7 +15,7 @@ import { copy } from "@/lib/copy";
 import { isPreviewAnalysis, isProduction } from "@/lib/env";
 import type { AppAccessProps } from "@/lib/types";
 
-export function AppAccess({ user, children }: AppAccessProps) {
+export function AppAccess({ user, savedProfile, children }: AppAccessProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [access, setAccess] = useState({ owner: "", ready: false });
@@ -24,7 +24,7 @@ export function AppAccess({ user, children }: AppAccessProps) {
 
   useEffect(() => {
     const update = () => {
-      initializeBrandSession(owner);
+      initializeBrandSession(owner, user ? savedProfile : null);
       const ready = previewReady || hasAnalyzedBrandProfile();
       setAccess({ owner, ready });
       if (!ready && pathname !== "/analyzing") router.replace("/");
@@ -35,9 +35,12 @@ export function AppAccess({ user, children }: AppAccessProps) {
       cancelAnimationFrame(frame);
       window.removeEventListener("brand-profile-change", update);
     };
-  }, [owner, pathname, previewReady, router]);
+  }, [owner, pathname, previewReady, router, savedProfile, user]);
 
-  if (!previewReady && (access.owner !== owner || (!access.ready && pathname !== "/analyzing"))) {
+  if (
+    ((savedProfile || !previewReady) && access.owner !== owner) ||
+    (!previewReady && !access.ready && pathname !== "/analyzing")
+  ) {
     return <HomeSkeleton />;
   }
 

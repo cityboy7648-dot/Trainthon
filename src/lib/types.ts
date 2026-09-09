@@ -14,6 +14,7 @@ export type AppSidebarProps = {
 
 export type AppAccessProps = {
   user: SessionUser | null;
+  savedProfile: BrandProfileData | null;
   children: import("react").ReactNode;
 };
 

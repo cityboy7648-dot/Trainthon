@@ -8,12 +8,15 @@ export function shouldAllowPreviewAccess(isProduction: boolean, isPreview: boole
   return !isProduction && isPreview;
 }
 
-export function initializeBrandSession(owner: string) {
+export function initializeBrandSession(owner: string, savedProfile?: BrandProfileData | null) {
   if (sessionStorage.getItem(ownerKey) !== owner) {
     for (const key of Object.keys(sessionStorage)) {
       if (key.startsWith("brand-profile:")) sessionStorage.removeItem(key);
     }
     sessionStorage.setItem(ownerKey, owner);
+  }
+  if (savedProfile && !hasAnalyzedBrandProfile()) {
+    saveAnalyzedBrandProfile(savedProfile.source_url, savedProfile);
   }
 }
 
