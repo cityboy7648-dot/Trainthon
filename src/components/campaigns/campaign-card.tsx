@@ -4,6 +4,7 @@ import { copy } from "@/lib/copy";
 import type { CampaignCardProps } from "@/lib/types";
 
 export function CampaignCard({
+  source = "mock",
   campaign,
   selected,
   transitioning,
@@ -12,7 +13,7 @@ export function CampaignCard({
 }: CampaignCardProps) {
   return (
     <article
-      data-source="mock"
+      data-source={source}
       data-selected={selected}
       className="rounded-campaign-card border-campaign-border bg-background data-[selected=true]:border-shell-ink data-[selected=true]:ring-shell-ink relative overflow-hidden border data-[selected=true]:ring-1"
     >

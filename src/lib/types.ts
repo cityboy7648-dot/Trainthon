@@ -276,6 +276,7 @@ export type CampaignGalleryCardsProps = {
 };
 
 export type CampaignCardProps = {
+  source?: "mock" | "server";
   campaign: CampaignPreview;
   selected: boolean;
   transitioning?: boolean;
@@ -283,11 +284,10 @@ export type CampaignCardProps = {
   onPreview: () => void;
 };
 
-export type CampaignBriefProps = {
-  campaign: CampaignPreview;
-};
-
 export type CampaignDetailsProps = {
+  source?: "mock" | "server";
   campaign: CampaignPreview | undefined;
   onClose: () => void;
 };
+
+export type CampaignSelectionProps = { campaigns: readonly CampaignPreview[] };
