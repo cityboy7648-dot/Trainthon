@@ -1,0 +1,11 @@
+캠페인 4 소개용 대표 이미지
+파일: representative.png
+제작일: 2026-09-10
+방식: built-in image_gen, 승인 착용 컷의 가로 구도 확장.
+입력: ../preview-20260910/day-2-outfit.png
+상품: Havehad City Worker Club Jacket
+용도: 캠페인 소개 카드. AI 연출 이미지.
+상태: 파일 제작 완료. Storage 업로드·카드/상세 등록 전.
+
+Prompt:
+Edit this approved campaign photograph into a landscape campaign-card hero, width:height 47:32 (target 1504x1024). Preserve the SAME woman, same ash-olive-brown Havehad work blazer with three buttons, lapels, two flap patch pockets and tiny tonal embroidery, ivory tee, indigo jeans, black shoulder bag, phone mirror selfie, natural warm window light and apartment. Recompose/outpaint horizontally rather than cropping away the jacket: keep woman centered from crown to upper thighs, entire jacket and both lower pockets readable even at small thumbnail size, phone partly covering face. Extend existing pale apartment walls and minimal wood furniture naturally at sides. Photorealistic candid phone snapshot, neutral warm subdued palette, believable material texture. Single continuous photograph. No text, no graphic overlays, no new props, no borders, no watermark. This is a campaign introduction image for 'real usage', not a customer testimonial.

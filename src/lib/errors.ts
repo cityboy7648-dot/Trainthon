@@ -1,5 +1,6 @@
 export const errorCodes = [
   "network",
+  "invalid_request",
   "auth",
   "sign_up_failed",
   "invalid_url",
@@ -12,6 +13,10 @@ export const errorCodes = [
 export type ErrorCode = (typeof errorCodes)[number];
 
 export const errorMessages: Record<ErrorCode, { title: string; description: string }> = {
+  invalid_request: {
+    title: "요청을 확인해 주세요",
+    description: "브랜드와 상품 선택 값이 올바르지 않습니다.",
+  },
   network: {
     title: "연결하지 못했어요",
     description: "네트워크 상태를 확인하고 다시 시도해 주세요.",

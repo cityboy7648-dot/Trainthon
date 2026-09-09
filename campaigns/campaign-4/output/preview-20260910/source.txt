@@ -1,0 +1,16 @@
+Campaign 4 preview — 2026-09-10
+Product: Havehad City Worker Club Jacket. Colour matched to product photo.
+Selection: admin account visible in Margo brand page; user authorized any saved product.
+Source page: https://margotrain.vercel.app/brands?url=https%3A%2F%2Fhavehad.kr%2F
+Product image: https://cdn-optimized.imweb.me/upload/S201806045b1539d090b13/8248dcf34409e.jpeg?w=800
+Mode: built-in image generation. Manual preview, not an application API test or DB run.
+Outputs: day-2-outfit.png; day-4-detail.png
+Both are AI-staged images, not actual customer photographs.
+
+Prompt 1:
+Generate one photorealistic-natural Instagram feed campaign image, portrait 4:5. Reference 1 is exact product identity: Havehad City Worker Club Jacket, muted ash brown/olive brown three-button soft work blazer, notched lapel, two large lower patch pockets with flaps, small welt pocket above one lower pocket, subtle tiny tonal chest embroidery. Preserve exact construction and colour of reference 1. Reference 2 is only candid mirror-selfie composition and everyday authenticity, do not copy its clothing or person. Show an adult Korean woman with chin-length straight dark hair wearing this exact jacket over a plain ivory crewneck tee and relaxed dark indigo jeans. Casual mirror selfie at home before leaving, phone partly covers face, jacket and full lower pockets clearly visible, framing head to mid thigh. Natural window light, modest lived-in apartment, warm pale wall and small edge of wooden furniture, no staged studio polish. Realistic cloth wrinkles and drape, relaxed fit. No text overlay, no graphics, no watermark, no fabricated brand logos. This is an AI staged campaign photograph, not a real customer testimonial.
+References: product image; reference/campaigns/campaign-4/cardigan-daily-outfit.jpg
+
+Prompt 2:
+Generate one photorealistic-natural Instagram campaign photograph portrait 4:5, a companion detail photo to reference 2. Reference 1 is exact product authority: Havehad City Worker Club Jacket in muted ash olive brown, notched lapels, three dark buttons, two lower patch pockets with flaps, a small welt pocket above one lower pocket, subtle tonal chest embroidery. Preserve that exact jacket construction, colour, hem and pockets. Reference 2 defines the SAME adult woman, same ivory crewneck shirt, dark indigo jeans, apartment and warm natural daylight. Reference 3 supplies ONLY the close-up wearing-detail composition, NOT denim jacket or jewellery. Frame from lower chin to upper thighs, camera angled slightly down, jacket occupies most of frame, face excluded. Woman holds plain cream ceramic coffee cup near upper torso with one hand; other hand gently pulls jacket cuff into place to show sleeve fabric and stitching. Lapel and both lower flap patch pockets remain visible, natural soft fabric creases, everyday phone photo realism, slight asymmetry. Keep all attire coherent with reference 2. No text, no collage, no watermark, no added logos, no studio styling. AI staged illustrative campaign image, not an actual customer testimonial.
+References: product image; day-2-outfit.png; reference/campaigns/campaign-4/denim-worn-detail.jpg
