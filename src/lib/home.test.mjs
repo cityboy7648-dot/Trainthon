@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { homeErrorFromSearch, resolveUrlSubmission, toBrandSourceUrl } from "./home.ts";
+import { shouldRedirectPreviewHome } from "./home.ts";
+
+test("미리보기만 첫 화면을 건너뛴다", () => {
+  assert.equal(shouldRedirectPreviewHome(false, true), true);
+  assert.equal(shouldRedirectPreviewHome(false, false), false);
+  assert.equal(shouldRedirectPreviewHome(true, true), false);
+});
 
 test("로그인하지 않은 URL 제출은 로그인 요청으로 바꾼다", () => {
   assert.deepEqual(resolveUrlSubmission("https://example.com", false), {

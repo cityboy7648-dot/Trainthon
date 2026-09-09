@@ -230,7 +230,7 @@ export type CampaignPreview = {
   goal: string;
   duration_days: number;
   channels: string[];
-  image: string;
+  image: string | null;
   schedule: {
     day: number;
     channel: string;
@@ -246,6 +246,70 @@ export type CampaignCardProps = {
   onSelect: () => void;
   onPreview: () => void;
 };
+
+export const campaignTwoRequestSchema = z
+  .object({
+    brand_id: z.uuid(),
+    product_key: z.string().regex(/^[a-f0-9]{64}$/),
+  })
+  .strict();
+
+export const campaignProductSchema = z.object({
+  key: z.string(),
+  product: brandProductSchema,
+});
+export const campaignProductsSchema = z
+  .object({
+    brand_id: z.uuid(),
+    products: z.array(campaignProductSchema),
+  })
+  .nullable();
+export type CampaignProducts = z.infer<typeof campaignProductsSchema>;
+export type CampaignTwoRequest = z.infer<typeof campaignTwoRequestSchema>;
+export type CampaignClient = Awaited<
+  ReturnType<typeof import("./supabase/server").createSessionWriter>
+>;
+export const campaignAssetStatusSchema = z.enum(["pending", "processing", "done", "failed"]);
+export const campaignTwoPlanSchema = z.object({
+  concept: z.string().min(1),
+  scenes: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        image_brief: z.string().min(1),
+      }),
+    )
+    .length(3),
+  product_brief: z.string().min(1),
+  captions: z.array(z.string().min(1)).length(5),
+});
+export type CampaignTwoPlan = z.infer<typeof campaignTwoPlanSchema>;
+export const campaignTwoAssetMetaSchema = z.object({
+  position: z.number().int().min(1).max(10),
+  day: z.number().int().min(1).max(5),
+  format: z.enum(["feed", "story", "carousel"]),
+  product: brandProductSchema,
+  product_key: z.string(),
+  caption: z.string().nullable().default(null),
+  error: z.string().nullable().default(null),
+});
+export type CampaignTwoAssetMeta = z.infer<typeof campaignTwoAssetMetaSchema>;
+export const campaignTwoResultSchema = z.object({
+  run_id: z.uuid(),
+  status: campaignAssetStatusSchema,
+  assets: z.array(
+    z.object({
+      id: z.uuid(),
+      status: campaignAssetStatusSchema,
+      image_url: z.string().nullable(),
+      meta: campaignTwoAssetMetaSchema,
+    }),
+  ),
+});
+export type CampaignTwoResult = z.infer<typeof campaignTwoResultSchema>;
+export type CampaignTwoResultProps = { runId: string };
+export type CampaignRequestState<T> =
+  { ok: true; data: T } | { ok: false; code: ErrorCode; cause?: string };
 
 export type CampaignDetailsProps = {
   campaign: CampaignPreview | undefined;

@@ -1,4 +1,24 @@
 export const copy = {
+  campaignTwo: {
+    question: "어떤 상품을 홍보할까요?",
+    description: "브랜드에서 추출한 상품 중 하나를 선택해 주세요.",
+    productList: "대표 상품 선택",
+    missingTitle: "선택할 상품이 없어요",
+    missingDescription: "브랜드 탭에서 상품 추출 결과를 확인해 주세요.",
+    brandLink: "브랜드 확인하기",
+    generate: "이 상품으로 캠페인 만들기",
+    submitting: "캠페인을 시작하고 있어요",
+    selected: "선택됨",
+    generating: "선택한 상품으로 이미지를 만들고 있어요.",
+    complete: "캠페인 이미지가 완성됐어요.",
+    failed: "일부 이미지를 만들지 못했어요.",
+    retry: "선택한 상품으로 다시 만들기",
+    progress: (done: number, total: number) => `${total}장 중 ${done}장 완료`,
+    position: (day: number, format: string) =>
+      `D${day} · ${format === "story" ? "스토리" : format === "carousel" ? "캐러셀" : "피드"}`,
+    imageAlt: (name: string) => `${name} 캠페인 이미지`,
+    imageMissing: "상품 이미지 없음",
+  },
   dashboard: {
     headline: "우리 브랜드의",
     headlineSecond: "다음 캠페인",
@@ -9,6 +29,8 @@ export const copy = {
     brandSettings: "브랜드 정보 보기",
     progress: "캠페인 진행 현황",
     completed: "완료한 캠페인",
+    emptyRecentTasks: "아직 끝낸 작업이 없어요.",
+    emptyCompleted: "아직 완료한 캠페인이 없어요.",
   },
   brandCompletion: {
     save: "저장",
@@ -192,7 +214,6 @@ export const copy = {
     select: (name: string) => `${name} 선택`,
     preview: (name: string) => `${name} 상세 보기`,
     imageAlt: (name: string) => `${name} 미리보기`,
-    continue: "계속하기",
     selectAction: "선택하기",
     close: "상세 창 닫기",
     goal: "목표",

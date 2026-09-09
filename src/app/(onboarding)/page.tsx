@@ -2,9 +2,11 @@ import { HomeHeader } from "@/components/home/home-header";
 import { HomePrompt } from "@/components/home/home-prompt";
 import { copy } from "@/lib/copy";
 import { getSessionUser } from "@/lib/data/session";
-import { isPreviewAnalysis } from "@/lib/env";
+import { isPreviewAnalysis, isProduction } from "@/lib/env";
+import { shouldRedirectPreviewHome } from "@/lib/home";
 
 export default async function HomePage() {
+  if (shouldRedirectPreviewHome(isProduction, isPreviewAnalysis)) redirect("/dashboard");
   const user = await getSessionUser();
   const canSubmitUrl = isPreviewAnalysis || Boolean(user);
 
@@ -19,3 +21,4 @@ export default async function HomePage() {
     </main>
   );
 }
+import { redirect } from "next/navigation";

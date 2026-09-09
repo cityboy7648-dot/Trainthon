@@ -5,6 +5,8 @@ import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
+import { CampaignProductPicker } from "@/components/campaigns/campaign-product-picker";
+import { campaigns as catalog } from "@/definitions/campaigns";
 import { CampaignCreationHeader } from "@/components/campaigns/campaign-creation-header";
 import { CampaignDetails } from "@/components/campaigns/campaign-details";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,7 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [transitioningKey, setTransitioningKey] = useState<string>();
-  const selected = campaigns.find((campaign) => campaign.key === searchParams.get("campaign"));
+  const selected = catalog.find((campaign) => campaign.key === searchParams.get("campaign"));
   const picked = campaigns.find((campaign) => campaign.key === searchParams.get("picked"));
   const preview = campaigns.find((campaign) => campaign.key === searchParams.get("preview"));
 
@@ -24,6 +26,10 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
+    if (key === "campaign") {
+      params.delete("product");
+      params.delete("run");
+    }
     const query = params.toString();
     window.history.pushState(null, "", query ? `${pathname}?${query}` : pathname);
   }
@@ -33,6 +39,8 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
       const params = new URLSearchParams(searchParams.toString());
       params.set("campaign", key);
       params.delete("preview");
+      params.delete("product");
+      params.delete("run");
       window.history.pushState(null, "", `${pathname}?${params.toString()}`);
     }
 
@@ -68,14 +76,16 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
         </Button>
 
         <section className="rounded-campaign-card relative h-80 overflow-hidden sm:h-96">
-          <Image
-            src={selected.image}
-            alt={copy.campaigns.imageAlt(selected.name)}
-            fill
-            priority
-            sizes="(max-width: 767px) 100vw, 752px"
-            className="campaign-hero-image object-cover"
-          />
+          {selected.image && (
+            <Image
+              src={selected.image}
+              alt={copy.campaigns.imageAlt(selected.name)}
+              fill
+              priority
+              sizes="(max-width: 767px) 100vw, 752px"
+              className="campaign-hero-image object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-black/45" aria-hidden="true" />
           <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8">
             <p className="text-xs font-semibold tracking-wide text-white/75 uppercase">
@@ -87,6 +97,7 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{selected.goal}</p>
           </div>
         </section>
+        {selected.key === "one_product_three_scenes" && <CampaignProductPicker />}
       </div>
     );
   }

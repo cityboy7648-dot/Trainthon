@@ -37,6 +37,8 @@
   --color-campaign-border: #dedee1;
   --color-campaign-muted: #9b9ba2;
   --aspect-campaign-image: 47 / 32;
+  --aspect-campaign-feed: 4 / 5;
+  --aspect-campaign-story: 9 / 16;
 }
 
 @theme inline {

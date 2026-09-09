@@ -3,6 +3,10 @@ import type { UrlSubmission } from "./types.ts";
 
 const TRACKING_PARAM = /^(utm_|srsltid$|gclid$|fbclid$|_ga$)/i;
 
+export function shouldRedirectPreviewHome(isProduction: boolean, isPreview: boolean): boolean {
+  return !isProduction && isPreview;
+}
+
 function toHttpUrl(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) {
