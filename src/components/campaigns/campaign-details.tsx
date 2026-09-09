@@ -79,9 +79,11 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
             </section>
             <section className="border-shell-border mt-2 border-t pt-6">
               <h3 className="text-shell-ink text-sm font-semibold">{copy.campaigns.outputs}</h3>
-              <p className="text-shell-muted mt-2 text-xs leading-6">
-                {copy.campaigns.outputsPending}
-              </p>
+              <ul className="text-shell-muted mt-2 list-disc space-y-1 pl-4 text-xs leading-6">
+                {campaign.outputs.map((output) => (
+                  <li key={output}>{output}</li>
+                ))}
+              </ul>
             </section>
           </>
         )}

@@ -1,5 +1,6 @@
 export const errorCodes = [
   "network",
+  "invalid_request",
   "auth",
   "sign_up_failed",
   "invalid_url",
@@ -12,6 +13,10 @@ export const errorCodes = [
 export type ErrorCode = (typeof errorCodes)[number];
 
 export const errorMessages: Record<ErrorCode, { title: string; description: string }> = {
+  invalid_request: {
+    title: "요청을 확인해 주세요",
+    description: "브랜드와 상품 선택 값이 올바르지 않습니다.",
+  },
   network: {
     title: "연결하지 못했어요",
     description: "네트워크 상태를 확인하고 다시 시도해 주세요.",
@@ -70,7 +75,7 @@ export const campaignErrors = {
   rateLimited: "최근에 캠페인을 시작했어요. 1분 뒤 다시 시도해 주세요.",
   result: "캠페인 결과를 불러오지 못했어요.",
   save: "캠페인 결과를 저장하지 못했어요.",
-  plan: "AI가 세 장면 구성을 완료하지 못했어요.",
+  plan: "AI가 캠페인 구성을 완료하지 못했어요.",
   image: "AI가 이미지를 생성하지 못했어요.",
   timeout: "생성 제한 시간을 초과했어요. 새 캠페인으로 다시 시도해 주세요.",
   request: "요청 형식이 올바르지 않아요.",

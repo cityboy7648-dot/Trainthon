@@ -8,9 +8,12 @@ import {
   type CampaignClient,
   type CampaignProducts,
   type CampaignTwoRequest,
-  type CampaignTwoAssetMeta,
 } from "@/lib/types";
-import type { TablesUpdate } from "@/lib/supabase/database.types";
+import {
+  saveCampaignImage,
+  setCampaignRunStatus,
+  updateCampaignAsset,
+} from "@/lib/data/campaign-assets";
 
 export async function getCampaignProducts(sourceUrl?: string): Promise<CampaignProducts> {
   const client = await createSessionWriter();
@@ -118,47 +121,9 @@ export async function createCampaignTwoRun(input: CampaignTwoRequest) {
   };
 }
 
-export async function setCampaignTwoRunStatus(
-  client: CampaignClient,
-  runId: string,
-  status: "processing" | "done" | "failed",
-) {
-  const { error } = await client
-    .from("runs")
-    .update({ status })
-    .eq("id", runId)
-    .in("status", ["pending", "processing"]);
-  if (error) throw new AppError("generation_failed", campaignErrors.save);
-}
-
-export async function updateCampaignTwoAsset(
-  client: CampaignClient,
-  assetId: string,
-  values: TablesUpdate<"assets">,
-) {
-  const { error } = await client
-    .from("assets")
-    .update(values)
-    .eq("id", assetId)
-    .in("status", ["pending", "processing"]);
-  if (error) throw new AppError("generation_failed", campaignErrors.save);
-}
-
-export async function saveCampaignTwoImage(
-  client: CampaignClient,
-  runId: string,
-  assetId: string,
-  image: Buffer,
-  meta: CampaignTwoAssetMeta,
-) {
-  const path = `${runId}/${assetId}.png`;
-  await updateCampaignTwoAsset(client, assetId, { storage_path: path });
-  const { error } = await client.storage
-    .from("assets")
-    .upload(path, image, { contentType: "image/png", upsert: false });
-  if (error) throw new AppError("generation_failed", campaignErrors.save);
-  await updateCampaignTwoAsset(client, assetId, { status: "done", meta, storage_path: path });
-}
+export const setCampaignTwoRunStatus = setCampaignRunStatus;
+export const updateCampaignTwoAsset = updateCampaignAsset;
+export const saveCampaignTwoImage = saveCampaignImage;
 
 export async function failCampaignTwoRun(client: CampaignClient, runId: string, cause: string) {
   const { data, error } = await client

@@ -1,13 +1,62 @@
 import type { CampaignPreview } from "@/lib/types";
+import { campaign4 } from "./campaign-4.ts";
 
 export const campaigns: readonly CampaignPreview[] = [
+  {
+    key: "complete_set",
+    name: "세트로 완성",
+    goal: "대표 상품과 함께 쓰는 상품을 하나의 조합으로 보여 줘 구매 선택을 돕는다",
+    duration_days: 5,
+    channels: ["Instagram 피드", "캐러셀", "Pinterest"],
+    image: "/campaigns/complete-set/card-thumbnail-soft.png",
+    outputs: [
+      "피드 이미지 3장 · 4:5 (1024×1280)",
+      "캐러셀 2세트 · 각 3장, 4:5 (1024×1280)",
+      "Pinterest 이미지 2장 · 2:3 (1024×1536)",
+      "한국어 캡션 5개 · 일자별 1개",
+      "5일 게시 일정과 확인된 상품 연결 목록",
+    ],
+    schedule: [
+      { day: 1, channel: "Instagram", format: "Feed", purpose: "대표 상품 소개" },
+      { day: 2, channel: "Instagram · Pinterest", format: "Feed · Pin", purpose: "기본 조합" },
+      {
+        day: 3,
+        channel: "Instagram · Pinterest",
+        format: "Feed · Pin",
+        purpose: "다른 상황의 조합",
+      },
+      { day: 4, channel: "Instagram", format: "Carousel", purpose: "구성품별 디테일" },
+      { day: 5, channel: "Instagram", format: "Carousel", purpose: "전체 세트 정리" },
+    ],
+  },
+  {
+    key: campaign4.key,
+    name: campaign4.name,
+    goal: campaign4.goal,
+    duration_days: campaign4.duration_days,
+    channels: [...campaign4.channels],
+    image: campaign4.image,
+    outputs: [campaign4.outputs],
+    schedule: campaign4.schedule.map((slot) => ({
+      ...slot,
+      channel: campaign4.channel,
+      format: "Feed",
+    })),
+  },
   {
     key: "one_product_three_scenes",
     name: "한 상품, 세 장면",
     goal: "대표 상품 하나를 세 가지 사용 장면으로 보여 줘 구매 후 모습을 상상하게 한다",
     duration_days: 5,
     channels: ["Instagram 피드", "캐러셀", "스토리"],
-    image: null,
+    image: "/campaigns/one-product-three-scenes/card-thumbnail-soft.png",
+    outputs: [
+      "피드 이미지 4장 · 4:5 (1024×1280)",
+      "스토리 이미지 3장 · 9:16 (1152×2048)",
+      "캐러셀 3장 · 4:5 (1024×1280), 장면별 1장",
+      "한국어 캡션 5개 · 일자별 1개",
+      "5일 게시 일정과 업로드 순서",
+    ],
     schedule: [
       { day: 1, channel: "Instagram", format: "Feed", purpose: "대표 상품 소개" },
       { day: 2, channel: "Instagram", format: "Feed · Story", purpose: "첫 번째 사용 장면" },
@@ -22,7 +71,13 @@ export const campaigns: readonly CampaignPreview[] = [
     goal: "브랜드가 한눈에 읽히는 인스타그램 프로필 만들기",
     duration_days: 9,
     channels: ["Instagram"],
-    image: "/campaigns/signature-grid/card-thumbnail.png",
+    image: "/campaigns/signature-grid/card-thumbnail-soft.png",
+    outputs: [
+      "피드 이미지 9장 · 1:1 (1080×1080)",
+      "한국어 캡션 9개 · 게시물별 1개",
+      "3×3 전체 피드 미리보기 1개",
+      "9일 게시 일정과 업로드 순서",
+    ],
     schedule: Array.from({ length: 9 }, (_, index) => ({
       day: index + 1,
       channel: "Instagram",

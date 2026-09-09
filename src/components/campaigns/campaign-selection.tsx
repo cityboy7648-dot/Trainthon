@@ -17,7 +17,11 @@ import { copy } from "@/lib/copy";
 import type { CampaignSelectionProps } from "@/lib/types";
 import { EmptyState } from "@/components/empty-state";
 
-export function CampaignSelection({ campaigns, previewMode }: CampaignSelectionProps) {
+export function CampaignSelection({
+  campaigns,
+  previewMode,
+  realUsagePlanner,
+}: CampaignSelectionProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -34,6 +38,7 @@ export function CampaignSelection({ campaigns, previewMode }: CampaignSelectionP
     else params.delete(key);
     if (key === "campaign") {
       params.delete("product");
+      params.delete("companions");
       params.delete("run");
     }
     const query = params.toString();
@@ -71,6 +76,7 @@ export function CampaignSelection({ campaigns, previewMode }: CampaignSelectionP
       params.set("campaign", key);
       params.delete("preview");
       params.delete("product");
+      params.delete("companions");
       params.delete("run");
       window.history.pushState(null, "", `${pathname}?${params.toString()}`);
     }
@@ -128,7 +134,11 @@ export function CampaignSelection({ campaigns, previewMode }: CampaignSelectionP
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{selected.goal}</p>
           </div>
         </section>
-        {selected.key === "one_product_three_scenes" && <CampaignProductPicker />}
+        {selected.key === "one_product_three_scenes" && (
+          <CampaignProductPicker campaignNumber={2} />
+        )}
+        {selected.key === "complete_set" && <CampaignProductPicker campaignNumber={5} />}
+        {selected.key === "real_usage" && realUsagePlanner}
       </div>
     );
   }
