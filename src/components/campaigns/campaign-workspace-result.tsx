@@ -3,9 +3,8 @@ import {
   ownedCampaign,
   getSavedCampaign4Plan,
 } from "@/lib/data/campaign-workspace";
-import Link from "next/link";
 import { campaigns } from "@/definitions/campaigns";
-import { copy } from "@/lib/copy";
+import { CampaignBackButton } from "./campaign-back-button";
 import { CampaignTwoResult } from "./campaign-two-result";
 import { CampaignFiveResult } from "./campaign-five-result";
 import { Campaign4PlanResult } from "./campaign-4-plan-result";
@@ -41,11 +40,12 @@ export async function CampaignWorkspaceResult({ id }: { id: string }) {
   if (campaign) return <CampaignWorkspaceLive campaign={campaign} />;
   const definition = campaigns.find((item) => item.key === key);
   return (
-    <div data-source="server" className="p-6 sm:p-8">
-      <Link href="/campaigns/new" className="text-shell-muted text-sm underline">
-        {copy.campaigns.backToSelection}
-      </Link>
-      <h1 className="text-shell-ink mt-5 text-2xl font-semibold">{definition?.name}</h1>
+    <div
+      data-source="server"
+      className="font-shell bg-shell-background text-shell-ink min-h-dvh p-6 sm:p-8"
+    >
+      <CampaignBackButton />
+      <h1 className="text-2xl leading-9 font-semibold tracking-tight">{definition?.name}</h1>
       {key === "one_product_three_scenes" && <CampaignTwoResult runId={id} />}
       {key === "complete_set" && <CampaignFiveResult runId={id} />}
       {plan && <Campaign4PlanResult {...plan} />}
