@@ -11,17 +11,17 @@ export async function Dashboard() {
   return (
     <div
       data-source="server"
-      className="font-shell text-shell-ink flex flex-1 flex-col gap-6 p-6 lg:h-dvh lg:flex-row lg:gap-8 lg:p-8"
+      className="font-shell text-shell-ink flex h-dvh min-h-0 flex-1 flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 lg:p-8"
     >
       <section className="flex min-h-0 min-w-0 flex-1 flex-col lg:py-4">
-        <h1 className="text-3xl leading-tight font-medium tracking-tight xl:text-4xl">
+        <h1 className="shrink-0 text-3xl leading-tight font-medium tracking-tight xl:text-4xl">
           {copy.dashboard.headline}
           <br />
           {copy.dashboard.headlineSecond}
         </h1>
         <section
           aria-labelledby="recent-tasks-title"
-          className="border-shell-border mt-8 flex h-96 min-h-0 flex-col overflow-hidden rounded-2xl border lg:h-auto lg:flex-1"
+          className="border-shell-border mt-8 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border"
         >
           <div className="border-shell-border flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-5 py-3">
             <h2 id="recent-tasks-title" className="text-sm font-medium">
@@ -29,7 +29,7 @@ export async function Dashboard() {
             </h2>
             <DashboardRefresh />
           </div>
-          <div className="min-h-0 overflow-y-auto p-5">
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
             {state.ok ? (
               <DashboardRecentTasks recentTasks={state.data.recentTasks} />
             ) : (
@@ -40,7 +40,7 @@ export async function Dashboard() {
       </section>
       <aside
         aria-label={copy.dashboard.summary}
-        className="bg-shell-background flex flex-col rounded-3xl p-5 lg:w-72 lg:shrink-0 xl:w-80"
+        className="bg-shell-background flex max-h-96 min-h-0 shrink-0 flex-col overflow-y-auto rounded-3xl p-5 lg:h-full lg:max-h-none lg:w-72 xl:w-80"
       >
         <DashboardBrand />
         <p className="text-shell-muted mt-4 text-center text-xs">
