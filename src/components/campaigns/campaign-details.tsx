@@ -1,4 +1,4 @@
-import { ArrowRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -10,7 +10,7 @@ import {
 import { copy } from "@/lib/copy";
 import type { CampaignDetailsProps } from "@/lib/types";
 
-export function CampaignDetails({ campaign, onClose, onSelect }: CampaignDetailsProps) {
+export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
   return (
     <Sheet
       open={Boolean(campaign)}
@@ -83,17 +83,6 @@ export function CampaignDetails({ campaign, onClose, onSelect }: CampaignDetails
                 {copy.campaigns.outputsPending}
               </p>
             </section>
-            {onSelect && (
-              <footer className="border-shell-border sticky bottom-0 mt-8 border-t bg-white pt-5 pb-1">
-                <Button
-                  onClick={onSelect}
-                  className="bg-shell-button hover:bg-shell-button-hover rounded-shell h-11 w-full gap-2 text-white"
-                >
-                  {copy.campaigns.selectAction}
-                  <ArrowRight className="size-4" aria-hidden="true" />
-                </Button>
-              </footer>
-            )}
           </>
         )}
       </SheetContent>

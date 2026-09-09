@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { CampaignBrief } from "@/components/campaigns/campaign-brief";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
 import { CampaignCreationHeader } from "@/components/campaigns/campaign-creation-header";
@@ -17,9 +17,10 @@ export function CampaignSelection() {
   const pathname = usePathname();
   const [transitioningKey, setTransitioningKey] = useState<string>();
   const selected = mockCampaigns.find((campaign) => campaign.key === searchParams.get("campaign"));
+  const picked = mockCampaigns.find((campaign) => campaign.key === searchParams.get("picked"));
   const preview = mockCampaigns.find((campaign) => campaign.key === searchParams.get("preview"));
 
-  function updateSelection(key: "campaign" | "preview", value?: string) {
+  function updateSelection(key: "campaign" | "preview" | "picked", value?: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
@@ -100,18 +101,26 @@ export function CampaignSelection() {
           <CampaignCard
             key={campaign.key}
             campaign={campaign}
-            selected={false}
+            selected={picked?.key === campaign.key}
             transitioning={transitioningKey === campaign.key}
-            onSelect={() => selectCampaign(campaign.key)}
+            onSelect={() => updateSelection("picked", campaign.key)}
             onPreview={() => updateSelection("preview", campaign.key)}
           />
         ))}
       </div>
-      <CampaignDetails
-        campaign={preview}
-        onClose={() => updateSelection("preview")}
-        onSelect={preview ? () => selectCampaign(preview.key) : undefined}
-      />
+      {picked && (
+        <div className="fixed right-6 bottom-6 z-20 sm:right-10 sm:bottom-8">
+          <Button
+            onClick={() => selectCampaign(picked.key)}
+            disabled={Boolean(transitioningKey)}
+            className="bg-shell-button hover:bg-shell-button-hover rounded-shell h-11 gap-3 px-6 text-white"
+          >
+            {copy.campaigns.selectAction}
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+      <CampaignDetails campaign={preview} onClose={() => updateSelection("preview")} />
     </div>
   );
 }
