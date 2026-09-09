@@ -2,6 +2,20 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+.campaign-generation-progress {
+  appearance: none;
+  background: var(--color-shell-active);
+}
+.campaign-generation-progress::-webkit-progress-bar {
+  background: var(--color-shell-active);
+}
+.campaign-generation-progress::-webkit-progress-value {
+  background: var(--color-shell-ink);
+}
+.campaign-generation-progress::-moz-progress-bar {
+  background: var(--color-shell-ink);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -33,6 +47,9 @@
   --spacing-campaign-content: 752px;
   --spacing-campaign-top: 72px;
   --spacing-campaign-heading-gap: 48px;
+  --spacing-campaign-preview: clamp(3rem, calc(100cqh - 13rem), 23rem);
+  --spacing-campaign-preview-portrait: clamp(3rem, calc((100cqh - 13rem) * 4 / 5), 23rem);
+  --spacing-campaign-preview-story: clamp(3rem, calc((100cqh - 13rem) * 9 / 16), 16rem);
   --radius-campaign-card: 18px;
   --color-campaign-border: #dedee1;
   --color-campaign-muted: #9b9ba2;

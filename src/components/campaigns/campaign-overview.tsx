@@ -1,5 +1,11 @@
-import { CampaignCreation } from "@/components/campaigns/campaign-creation";
+import { Suspense } from "react";
+import { CampaignGallery } from "./campaign-gallery";
+import { CampaignGallerySkeleton } from "./campaign-gallery-skeleton";
 
 export function CampaignOverview() {
-  return <CampaignCreation />;
+  return (
+    <Suspense fallback={<CampaignGallerySkeleton />}>
+      <CampaignGallery />
+    </Suspense>
+  );
 }

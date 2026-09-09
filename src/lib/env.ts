@@ -14,6 +14,7 @@ export const env = publicEnvSchema.parse({
 
 export const isProduction = process.env.NODE_ENV === "production";
 export const isPreviewAnalysis = process.env.NEXT_PUBLIC_PREVIEW_ANALYSIS === "1";
+export const isCampaignPreview = !isProduction && isPreviewAnalysis;
 
 export function getProviderApiKey(name: "OPENAI_API_KEY" | "FIRECRAWL_API_KEY"): string {
   return providerApiKeySchema.parse(process.env[name]);
