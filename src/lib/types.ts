@@ -158,11 +158,6 @@ export const campaign4PlanSchema = z.object({
   day5: campaign4PostSchema,
 });
 export type Campaign4Plan = z.infer<typeof campaign4PlanSchema>;
-export const campaign4SavedPlanSchema = z.object({
-  product: brandProductSchema,
-  plan: campaign4PlanSchema,
-});
-export type Campaign4SavedPlan = z.infer<typeof campaign4SavedPlanSchema>;
 export type Campaign4ProductOptions = {
   brandId: string;
   brandName: string;

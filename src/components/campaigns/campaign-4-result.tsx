@@ -25,11 +25,7 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
       const result = await loadCampaign4Result(runId);
       if (!active) return;
       setState(result);
-      if (
-        result.ok &&
-        result.data.assets.length > 0 &&
-        ["pending", "processing"].includes(result.data.status)
-      ) {
+      if (result.ok && ["pending", "processing"].includes(result.data.status)) {
         timer = setTimeout(refresh, 4000);
       }
     }
@@ -56,7 +52,8 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
       </div>
     );
   const result = state.data;
-  if (!result.assets.length)
+  if (!result.assets.length) {
+    if (["pending", "processing"].includes(result.status)) return <Campaign4ResultSkeleton />;
     return (
       <div data-source="server" className="mt-8 space-y-4">
         {result.status === "failed" ? (
@@ -67,6 +64,7 @@ export function Campaign4Result({ runId }: Campaign4ResultProps) {
         <Button onClick={startAgain}>{text.retry}</Button>
       </div>
     );
+  }
   const completed = result.assets.filter((asset) => asset.status === "done").length;
   return (
     <section data-source="server" className="mt-8 space-y-6">

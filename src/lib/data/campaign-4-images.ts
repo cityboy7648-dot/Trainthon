@@ -1,33 +1,25 @@
-import { createCampaign4Plan } from "@/lib/data/campaign-4";
+import { finishCampaign4Plan, type Campaign4StartedRun } from "@/lib/data/campaign-4";
 import { setCampaignRunStatus, updateCampaignAsset } from "@/lib/data/campaign-assets";
 import { createSessionReader } from "@/lib/supabase/server";
 import { AppError, campaignErrors } from "@/lib/errors";
 import { campaign4ImageMetaSchema, campaign4ResultSchema, type CampaignClient } from "@/lib/types";
 
-export async function prepareCampaign4Images(input: unknown) {
-  const startedAt = Date.now();
-  const planned = await createCampaign4Plan(input);
-  const client = await createSessionReader();
+export async function prepareCampaign4Images(started: Campaign4StartedRun) {
+  const plan = await finishCampaign4Plan(started);
   try {
-    const posts = [
-      planned.plan.day1,
-      planned.plan.day2,
-      planned.plan.day3,
-      planned.plan.day4,
-      planned.plan.day5,
-    ];
-    const { data, error } = await client
+    const posts = [plan.day1, plan.day2, plan.day3, plan.day4, plan.day5];
+    const { data, error } = await started.client
       .from("assets")
       .insert(
         posts.map((post, index) => ({
-          run_id: planned.runId,
+          run_id: started.runId,
           kind: "image",
           status: "pending",
           meta: {
             day: index + 1,
             position: index + 1,
             format: "feed",
-            product: planned.product,
+            product: started.product,
             scene: post.scene,
             caption: post.caption,
             error: null,
@@ -37,19 +29,19 @@ export async function prepareCampaign4Images(input: unknown) {
       .select("id, meta");
     if (error || !data || data.length !== 5)
       throw new AppError("generation_failed", campaignErrors.create);
-    await setCampaignRunStatus(client, planned.runId, "processing");
+    await setCampaignRunStatus(started.client, started.runId, "processing");
     return {
-      client,
-      runId: planned.runId,
-      plan: planned.plan,
-      product: planned.product,
-      startedAt,
+      client: started.client,
+      runId: started.runId,
+      plan,
+      product: started.product,
+      startedAt: started.startedAt,
       assets: data
         .map((asset) => ({ id: asset.id, meta: campaign4ImageMetaSchema.parse(asset.meta) }))
         .sort((a, b) => a.meta.day - b.meta.day),
     };
   } catch (error) {
-    await failCampaign4Images(client, planned.runId, campaignErrors.create);
+    await failCampaign4Images(started.client, started.runId, campaignErrors.create);
     throw error;
   }
 }
@@ -70,6 +62,13 @@ export async function failCampaign4Images(client: CampaignClient, runId: string,
       }),
     ),
   );
+  const caption = await client
+    .from("assets")
+    .update({ status: "failed", meta: { stage: "planning", cause } })
+    .eq("run_id", runId)
+    .eq("kind", "caption")
+    .in("status", ["pending", "processing"]);
+  if (caption.error) throw new AppError("generation_failed", campaignErrors.save);
   await setCampaignRunStatus(client, runId, "failed");
 }
 
@@ -106,7 +105,6 @@ export async function getCampaign4Result(runId: string) {
     cause = typeof planning?.cause === "string" ? planning.cause : campaignErrors.create;
   }
   if (
-    assets.length &&
     ["pending", "processing"].includes(run.status) &&
     Date.now() - Date.parse(run.created_at) > 360_000
   ) {

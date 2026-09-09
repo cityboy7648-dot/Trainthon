@@ -1,8 +1,8 @@
 "use server";
 
 import { after } from "next/server";
-import { prepareCampaign4Images } from "@/lib/data/campaign-4-images";
-import { generateCampaign4Images } from "@/lib/agents/real-usage/generate-images";
+import { startCampaign4Run } from "@/lib/data/campaign-4";
+import { generateCampaign4 } from "@/lib/agents/real-usage/generate-images";
 import { AppError } from "@/lib/errors";
 import { redirect } from "next/navigation";
 import type { Campaign4ActionState } from "@/lib/types";
@@ -15,12 +15,12 @@ export async function requestCampaign4Images(
   try {
     const index = formData.get("productIndex");
     if (typeof index !== "string" || !/^\d+$/.test(index)) throw new AppError("invalid_request");
-    const run = await prepareCampaign4Images({
+    const started = await startCampaign4Run({
       brandId: formData.get("brandId"),
       productIndex: Number(index),
     });
-    after(() => generateCampaign4Images(run));
-    runId = run.runId;
+    after(() => generateCampaign4(started));
+    runId = started.runId;
   } catch (error) {
     const failure = error instanceof AppError ? error : new AppError("generation_failed");
     return { ok: false, code: failure.code, cause: failure.cause };

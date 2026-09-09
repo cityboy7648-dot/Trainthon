@@ -57,7 +57,7 @@ registerHooks({
       return {
         format: "module",
         shortCircuit: true,
-        source: `export async function ownedCampaign(){return {run:{campaign_key:globalThis.detailCampaign.key}}} export async function getSavedCampaign(){return globalThis.detailCampaign} export async function getSavedCampaign4Plan(){throw new Error('Unexpected plan request')}`,
+        source: `export async function ownedCampaign(){return {run:{campaign_key:globalThis.detailCampaign.key}}} export async function getSavedCampaign(){return globalThis.detailCampaign}`,
       };
     if (url === "test:next-link-interop")
       return {
@@ -69,7 +69,7 @@ registerHooks({
       return {
         format: "module",
         shortCircuit: true,
-        source: `export async function requestCampaign4Plan() { throw new Error('No paid calls in render tests'); }`,
+        source: `export async function requestCampaign4Images() { throw new Error('No paid calls in render tests'); }`,
       };
     if (url === "test:navigation")
       return {
@@ -180,7 +180,22 @@ test("리얼 사용기는 대표 상품 이미지와 가격을 표시하고 선�
   assert.match(html, /aria-pressed="true"/);
   assert.match(html, /캠페인 생성하기/);
   assert.doesNotMatch(html, /<button[^>]*type="submit"[^>]* disabled=/);
+  assert.doesNotMatch(html, /aria-busy/);
+  assert.doesNotMatch(html, /같은 상품과 인물로 이미지 5장을 만들고 있어요/);
   globalThis.campaignQuery = "";
+});
+
+test("리얼 사용기 상세는 생성 중 스켈레톤을 보여 준다", async () => {
+  const { CampaignWorkspaceResult } =
+    await import("../components/campaigns/campaign-workspace-result.tsx");
+  globalThis.detailCampaign = { key: "real_usage" };
+  const html = renderCampaignSelection(
+    await CampaignWorkspaceResult({ id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee" }),
+  );
+  assert.match(html, /리얼 사용기/);
+  assert.match(html, /aria-busy="true"/);
+  assert.match(html, /같은 상품과 인물로 이미지 5장을 만들고 있어요/);
+  assert.doesNotMatch(html, /게시 일정/);
 });
 
 test("선택 후에도 카드 세 개 아래에 선택 버튼과 상품 선택 영역을 유지한다", async () => {
