@@ -43,7 +43,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </Button>
       </header>
       <Button
-        render={<Link href="/campaigns" />}
+        render={<Link href="/campaigns/new" />}
         nativeButton={false}
         aria-label={copy.sidebar.newCampaignLabel}
         className="bg-shell-button hover:bg-shell-button-hover rounded-shell h-shell-create group-data-[collapsed=true]/shell:w-shell-create mt-6 w-full gap-2 text-xs font-semibold text-white group-data-[collapsed=true]/shell:mx-auto group-data-[collapsed=true]/shell:px-0"

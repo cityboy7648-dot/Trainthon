@@ -44,6 +44,13 @@
   --color-shell-button: #111827;
   --color-shell-button-hover: #232b38;
   --color-shell-avatar: #f1b26b;
+  --spacing-campaign-content: 752px;
+  --spacing-campaign-top: 72px;
+  --spacing-campaign-heading-gap: 48px;
+  --radius-campaign-card: 18px;
+  --color-campaign-border: #dedee1;
+  --color-campaign-muted: #9b9ba2;
+  --aspect-campaign-image: 47 / 32;
 }
 
 @theme inline {
