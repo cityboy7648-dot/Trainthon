@@ -120,7 +120,11 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
           </Button>
         </div>
       )}
-      <CampaignDetails campaign={preview} onClose={() => updateSelection("preview")} />
+      <CampaignDetails
+        campaign={preview}
+        source="server"
+        onClose={() => updateSelection("preview")}
+      />
     </div>
   );
 }
