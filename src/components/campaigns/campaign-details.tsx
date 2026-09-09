@@ -20,7 +20,6 @@ export function CampaignDetails({ campaign, onClose, onSelect }: CampaignDetails
     >
       <SheetContent
         showCloseButton={false}
-        data-source="mock"
         className="font-shell gap-0 overflow-y-auto p-6 data-[side=right]:w-full sm:p-8 data-[side=right]:sm:max-w-lg"
       >
         {campaign && (

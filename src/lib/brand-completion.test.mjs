@@ -50,6 +50,7 @@ test("잘못된 로고 주소와 색상, 빈 브랜드명을 거부한다", () =
   const questions = getBrandCompletionQuestions({ ...profile, name: "", palette: [] });
   for (const [field, input] of [
     ["logo_url", "javascript:alert(1)"],
+    ["logo_url", "/mock/brand-assets/logo.png"],
     ["palette", "red"],
     ["name", ""],
   ]) {

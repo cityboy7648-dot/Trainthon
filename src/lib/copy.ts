@@ -8,13 +8,14 @@ export const copy = {
     brandSettings: "브랜드 정보 보기",
     progress: "캠페인 진행 현황",
     completed: "완료한 캠페인",
+    emptyRecentTasks: "아직 끝낸 작업이 없어요.",
+    emptyCompleted: "아직 완료한 캠페인이 없어요.",
   },
   brandCompletion: {
     save: "저장",
     cancel: "취소",
     edit: (title: string) => `${title} 입력`,
     removeKeyword: (keyword: string) => `${keyword} 삭제`,
-    previewReset: "입력값 초기화",
     invalid: "입력 내용을 확인해주세요.",
     titles: {
       name: "브랜드 이름은 무엇인가요?",
@@ -187,11 +188,11 @@ export const copy = {
     statusEmptyDescription: "다른 상태를 선택해 확인해 주세요.",
     heading: "어떤 캠페인을 시작할까요?",
     description: "브랜드에 맞는 캠페인을 선택해 주세요.",
-    selectionLabel: "캠페인 선택",
+    recommendationsEmptyTitle: "아직 추천된 캠페인이 없어요",
+    recommendationsEmptyDescription: "캠페인 추천이 준비되면 여기에 표시돼요.",
     select: (name: string) => `${name} 선택`,
     preview: (name: string) => `${name} 상세 보기`,
     imageAlt: (name: string) => `${name} 미리보기`,
-    continue: "계속하기",
     selectAction: "선택하기",
     close: "상세 창 닫기",
     goal: "목표",
@@ -228,8 +229,5 @@ export const copy = {
   },
   common: {
     retry: "다시 시도",
-  },
-  dev: {
-    mockBadge: "MOCK 데이터",
   },
 } as const;

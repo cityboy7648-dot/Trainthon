@@ -6,7 +6,6 @@ import { AppSidebar } from "@/components/app-sidebar/app-sidebar";
 import { HomeHeader } from "@/components/home/home-header";
 import { HomeSkeleton } from "@/components/home/home-skeleton";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { MockBadge } from "@/components/mock-badge";
 import {
   hasAnalyzedBrandProfile,
   initializeBrandSession,
@@ -64,7 +63,6 @@ export function AppAccess({ user, children }: AppAccessProps) {
       >
         {children}
       </main>
-      <MockBadge />
     </SidebarProvider>
   );
 }
