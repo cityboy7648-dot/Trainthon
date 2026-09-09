@@ -6,6 +6,7 @@ import { CalendarDays, Globe, Camera, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { CampaignGalleryCard } from "./campaign-gallery-card";
+import { CampaignDeleteButton } from "./campaign-delete-button";
 import { filterCampaignGallery } from "@/lib/campaign-gallery";
 import { copy } from "@/lib/copy";
 import type { CampaignGalleryViewProps } from "@/lib/types";
@@ -169,7 +170,10 @@ export function CampaignGalleryView({ campaigns, preview }: CampaignGalleryViewP
               </h2>
               <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                 {items.map((campaign) => (
-                  <CampaignGalleryCard key={campaign.id} campaign={campaign} />
+                  <div key={campaign.id} className="group relative min-w-0">
+                    <CampaignGalleryCard campaign={campaign} />
+                    {!preview && <CampaignDeleteButton id={campaign.id} name={campaign.name} />}
+                  </div>
                 ))}
               </div>
             </section>

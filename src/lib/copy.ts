@@ -295,6 +295,8 @@ export const copy = {
     unknownDate: "일정 미정",
     preparing: "이미지 준비 중",
     failed: "생성 실패 · 상세에서 확인",
+    delete: (name: string) => `${name} 삭제`,
+    deleteConfirm: (name: string) => `${name} 캠페인을 삭제할까요? 만든 이미지도 함께 지워져요.`,
     count: (value: number) => `${value}개 캠페인`,
     images: (value: number) => `이미지 ${value}장`,
     progress: (done: number, total: number) => `${done}/${total} 완료`,

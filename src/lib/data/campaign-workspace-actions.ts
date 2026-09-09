@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
   createSavedCampaign,
+  deleteSavedCampaign,
   getSavedCampaign,
   ownedCampaignAsset,
 } from "@/lib/data/campaign-workspace";
@@ -44,6 +45,16 @@ export async function selectSavedCampaign(input: unknown): Promise<CampaignReque
     });
     revalidatePath("/campaigns");
     return { ok: true, data: id };
+  } catch (error) {
+    return failure(error);
+  }
+}
+
+export async function removeSavedCampaign(runId: string): Promise<CampaignRequestState<null>> {
+  try {
+    await deleteSavedCampaign(z.uuid().parse(runId));
+    revalidatePath("/campaigns");
+    return { ok: true, data: null };
   } catch (error) {
     return failure(error);
   }

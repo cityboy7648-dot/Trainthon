@@ -81,7 +81,7 @@ registerHooks({
       return {
         format: "module",
         shortCircuit: true,
-        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign; export const refreshSavedCampaign = selectSavedCampaign;`,
+        source: `export function selectSavedCampaign() { throw new Error('No writes in render tests'); } export const editCampaignPost = selectSavedCampaign; export const replaceCampaignImage = selectSavedCampaign; export const refreshSavedCampaign = selectSavedCampaign; export const removeSavedCampaign = selectSavedCampaign;`,
       };
     if (url === "test:product-picker")
       return {

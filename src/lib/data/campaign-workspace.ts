@@ -163,6 +163,26 @@ export async function getSavedCampaign(runId: string): Promise<SavedCampaign> {
   };
 }
 
+export async function deleteSavedCampaign(runId: string): Promise<void> {
+  const { client, run } = await ownedCampaign(runId);
+  const { data, error } = await client
+    .from("assets")
+    .select("storage_path")
+    .eq("run_id", run.id)
+    .not("storage_path", "is", null);
+  if (error) throw new AppError("network", `${campaignErrors.delete} ${error.message}`);
+  const paths = (data ?? []).flatMap((asset) => (asset.storage_path ? [asset.storage_path] : []));
+  // Storage 정책이 assets 행으로 소유자를 확인하므로 run을 지우기 전에 파일을 먼저 지운다.
+  if (paths.length) {
+    const removed = await client.storage.from("assets").remove(paths);
+    if (removed.error)
+      throw new AppError("network", `${campaignErrors.delete} ${removed.error.message}`);
+  }
+  const deleted = await client.from("runs").delete().eq("id", run.id);
+  if (deleted.error)
+    throw new AppError("network", `${campaignErrors.delete} ${deleted.error.message}`);
+}
+
 export async function listSavedCampaigns(): Promise<SavedCampaignCard[]> {
   const { client, user } = await session();
   const { data, error } = await client
