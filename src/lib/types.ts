@@ -3,9 +3,8 @@ export type SessionUser = {
   email: string;
 };
 
-export type OnboardingProgress = {
-  done: number;
-  total: number;
+export type NavUserProps = {
+  user: SessionUser;
 };
 
 export type RecentItem = {

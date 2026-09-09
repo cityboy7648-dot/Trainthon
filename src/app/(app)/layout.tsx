@@ -1,12 +1,18 @@
 import { AppSidebar } from "@/components/app-sidebar/app-sidebar";
+import { copy } from "@/lib/copy";
 import { MockBadge } from "@/components/mock-badge";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="md:peer-data-[variant=inset]:border">{children}</SidebarInset>
+      <main
+        aria-label={copy.sidebar.workspace}
+        className="bg-background flex min-h-dvh min-w-0 flex-1 flex-col"
+      >
+        {children}
+      </main>
       <MockBadge />
     </SidebarProvider>
   );

@@ -4,6 +4,48 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Margo Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/poppins-regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Margo Poppins";
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url("/fonts/poppins-semibold.ttf") format("truetype");
+}
+@theme {
+  --font-shell: "Margo Poppins", Pretendard, "Apple SD Gothic Neo", sans-serif;
+  --spacing-shell: 250px;
+  --spacing-shell-tablet: 210px;
+  --spacing-shell-compact: 190px;
+  --spacing-shell-rail: 76px;
+  --spacing-shell-mobile: 60px;
+  --spacing-shell-control: 34px;
+  --spacing-shell-nav: 35px;
+  --spacing-shell-create: 39px;
+  --spacing-shell-header: 42px;
+  --spacing-shell-footer: 58px;
+  --text-shell-brand: 17px;
+  --text-shell-nav: 13px;
+  --text-shell-caption: 11px;
+  --radius-shell: 7px;
+  --color-shell-background: #f8f9fb;
+  --color-shell-border: #e7e9ee;
+  --color-shell-ink: #151b26;
+  --color-shell-muted: #586171;
+  --color-shell-icon: #7d8593;
+  --color-shell-active: #eceef2;
+  --color-shell-hover: #eff1f4;
+  --color-shell-button: #111827;
+  --color-shell-button-hover: #232b38;
+  --color-shell-avatar: #f1b26b;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
