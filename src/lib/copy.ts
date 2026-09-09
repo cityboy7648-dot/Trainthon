@@ -188,6 +188,7 @@ export const copy = {
     heading: "어떤 캠페인을 시작할까요?",
     description: "브랜드에 맞는 캠페인을 선택해 주세요.",
     selectionLabel: "캠페인 선택",
+    catalogEmpty: "아직 등록된 캠페인이 없어요",
     select: (name: string) => `${name} 선택`,
     preview: (name: string) => `${name} 상세 보기`,
     imageAlt: (name: string) => `${name} 미리보기`,

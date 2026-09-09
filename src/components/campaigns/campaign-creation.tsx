@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { CampaignCreationHeader } from "@/components/campaigns/campaign-creation-header";
-import { CampaignSelection } from "@/components/campaigns/campaign-selection";
+import { CampaignCandidates } from "@/components/campaigns/campaign-candidates";
 import { CampaignSelectionSkeleton } from "@/components/campaigns/campaign-selection-skeleton";
 
 export function CampaignCreation() {
@@ -14,7 +14,7 @@ export function CampaignCreation() {
           </>
         }
       >
-        <CampaignSelection />
+        <CampaignCandidates />
       </Suspense>
     </div>
   );

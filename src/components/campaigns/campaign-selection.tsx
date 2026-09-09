@@ -9,15 +9,16 @@ import { CampaignCreationHeader } from "@/components/campaigns/campaign-creation
 import { CampaignDetails } from "@/components/campaigns/campaign-details";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
-import { mockCampaigns } from "@/mock/campaigns"; // MOCK
+import type { CampaignSelectionProps } from "@/lib/types";
+import { EmptyState } from "@/components/empty-state";
 
-export function CampaignSelection() {
+export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [transitioningKey, setTransitioningKey] = useState<string>();
-  const selected = mockCampaigns.find((campaign) => campaign.key === searchParams.get("campaign"));
-  const picked = mockCampaigns.find((campaign) => campaign.key === searchParams.get("picked"));
-  const preview = mockCampaigns.find((campaign) => campaign.key === searchParams.get("preview"));
+  const selected = campaigns.find((campaign) => campaign.key === searchParams.get("campaign"));
+  const picked = campaigns.find((campaign) => campaign.key === searchParams.get("picked"));
+  const preview = campaigns.find((campaign) => campaign.key === searchParams.get("preview"));
 
   function updateSelection(key: "campaign" | "preview" | "picked", value?: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -56,7 +57,7 @@ export function CampaignSelection() {
 
   if (selected) {
     return (
-      <div data-source="mock" className="pb-8">
+      <div data-source="server" className="pb-8">
         <Button
           variant="ghost"
           onClick={() => updateSelection("campaign")}
@@ -91,13 +92,15 @@ export function CampaignSelection() {
   }
 
   return (
-    <div data-source="mock">
+    <div data-source="server">
       <CampaignCreationHeader />
+      {campaigns.length === 0 && <EmptyState title={copy.campaigns.catalogEmpty} />}
       <div aria-label={copy.campaigns.selectionLabel} className="grid gap-4 md:grid-cols-3">
-        {mockCampaigns.map((campaign) => (
+        {campaigns.map((campaign) => (
           <CampaignCard
             key={campaign.key}
             campaign={campaign}
+            source="server"
             selected={picked?.key === campaign.key}
             transitioning={transitioningKey === campaign.key}
             onSelect={() => updateSelection("picked", campaign.key)}

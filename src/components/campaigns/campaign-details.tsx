@@ -10,7 +10,7 @@ import {
 import { copy } from "@/lib/copy";
 import type { CampaignDetailsProps } from "@/lib/types";
 
-export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
+export function CampaignDetails({ campaign, onClose, source = "mock" }: CampaignDetailsProps) {
   return (
     <Sheet
       open={Boolean(campaign)}
@@ -20,7 +20,7 @@ export function CampaignDetails({ campaign, onClose }: CampaignDetailsProps) {
     >
       <SheetContent
         showCloseButton={false}
-        data-source="mock"
+        data-source={source}
         className="font-shell gap-0 overflow-y-auto p-6 data-[side=right]:w-full sm:p-8 data-[side=right]:sm:max-w-lg"
       >
         {campaign && (
