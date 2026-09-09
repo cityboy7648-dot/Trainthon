@@ -1,22 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Check, ImageOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { ErrorState } from "@/components/error-state";
 import { EmptyState } from "@/components/empty-state";
 import { CampaignProductPickerSkeleton } from "./campaign-product-picker-skeleton";
 import { CampaignTwoResult } from "./campaign-two-result";
+import { CampaignFiveResult } from "./campaign-five-result";
+import { CampaignProductOptions } from "./campaign-product-options";
+import { CampaignFivePickerSkeleton } from "./campaign-five-picker-skeleton";
+import { submitCampaignFive } from "@/lib/data/campaign-five-client";
+import { selectPrimaryProduct, toggleCompanionProduct } from "@/lib/campaign-five-selection";
 import { loadCampaignProducts, submitCampaignTwo } from "@/lib/data/campaign-two-client";
 import { readActiveBrandUrl } from "@/lib/brand-profile-session";
 import { copy } from "@/lib/copy";
-import type { CampaignProducts, CampaignRequestState } from "@/lib/types";
+import type {
+  CampaignProducts,
+  CampaignRequestState,
+  CampaignProductPickerProps,
+} from "@/lib/types";
 
-export function CampaignProductPicker() {
+export function CampaignProductPicker({ campaignNumber }: CampaignProductPickerProps) {
   const params = useSearchParams();
   const pathname = usePathname();
   const [state, setState] = useState<CampaignRequestState<CampaignProducts> | null>(null);
@@ -31,6 +38,16 @@ export function CampaignProductPicker() {
   const runId = params.get("run");
   const products = state?.ok ? state.data : null;
   const selected = products?.products.find((item) => item.key === selectedKey);
+  const companionKeys = (params.get("companions") ?? "").split(",").filter(Boolean);
+  const companionProducts = products?.products.filter((item) => item.key !== selectedKey) ?? [];
+  const companionsValid =
+    companionKeys.length >= 1 &&
+    companionKeys.length <= 10 &&
+    new Set(companionKeys).size === companionKeys.length &&
+    companionKeys.every((key) =>
+      companionProducts.some((item) => item.key === key && item.product.image_url),
+    );
+  const isSet = campaignNumber === 5;
 
   useEffect(() => {
     let active = true;
@@ -43,21 +60,23 @@ export function CampaignProductPicker() {
   }, [revision]);
 
   function select(key: string) {
-    const next = new URLSearchParams(params.toString());
-    next.set("product", key);
-    next.delete("run");
+    const next = selectPrimaryProduct(new URLSearchParams(params.toString()), key);
     setSubmission(null);
     window.history.replaceState(null, "", `${pathname}?${next}`);
   }
 
   async function generate() {
-    if (!products || !selected || locked.current) return;
+    if (!products || !selected?.product.image_url || locked.current || (isSet && !companionsValid))
+      return;
     locked.current = true;
     setPending(true);
-    const result = await submitCampaignTwo({
+    const input = {
       brand_id: products.brand_id,
       product_key: selected.key,
-    });
+    };
+    const result = isSet
+      ? await submitCampaignFive({ ...input, companion_product_keys: companionKeys })
+      : await submitCampaignTwo(input);
     setSubmission(result);
     setPending(false);
     locked.current = false;
@@ -68,8 +87,13 @@ export function CampaignProductPicker() {
     }
   }
 
-  if (runId) return <CampaignTwoResult key={runId} runId={runId} />;
-  if (!state) return <CampaignProductPickerSkeleton />;
+  if (runId)
+    return isSet ? (
+      <CampaignFiveResult key={runId} runId={runId} />
+    ) : (
+      <CampaignTwoResult key={runId} runId={runId} />
+    );
+  if (!state) return isSet ? <CampaignFivePickerSkeleton /> : <CampaignProductPickerSkeleton />;
   if (!state.ok)
     return (
       <div className="mt-8 space-y-4">
@@ -106,6 +130,14 @@ export function CampaignProductPicker() {
         action={<Link href="/brands">{copy.campaignTwo.brandLink}</Link>}
       />
     );
+  if (isSet && products.products.filter((item) => item.product.image_url).length < 2)
+    return (
+      <EmptyState
+        title={copy.campaignFive.insufficientTitle}
+        description={copy.campaignFive.insufficientDescription}
+        action={<Link href="/brands">{copy.campaignTwo.brandLink}</Link>}
+      />
+    );
 
   return (
     <section
@@ -114,64 +146,51 @@ export function CampaignProductPicker() {
       aria-labelledby="campaign-product-question"
     >
       <h2 id="campaign-product-question" className="text-shell-ink text-xl font-semibold">
-        {copy.campaignTwo.question}
+        {isSet ? copy.campaignFive.question : copy.campaignTwo.question}
       </h2>
-      <p className="text-shell-muted mt-2 text-sm">{copy.campaignTwo.description}</p>
-      <div
-        role="group"
-        aria-label={copy.campaignTwo.productList}
-        className="mt-6 grid max-h-96 grid-cols-2 gap-4 overflow-y-auto overscroll-contain p-1 md:grid-cols-3"
-      >
-        {products.products.map(({ key, product }) => (
-          <button
-            type="button"
-            key={key}
-            disabled={pending || !product.image_url}
-            aria-pressed={key === selectedKey}
-            onClick={() => select(key)}
-            data-selected={key === selectedKey}
-            className="border-shell-border rounded-shell focus-visible:ring-shell-ink data-[selected=true]:border-shell-ink data-[selected=true]:ring-shell-ink relative overflow-hidden border text-left focus-visible:ring-2 disabled:opacity-50 data-[selected=true]:ring-2"
-          >
-            <div className="bg-shell-background relative aspect-square">
-              {product.image_url ? (
-                <Image
-                  src={product.image_url}
-                  alt={product.name}
-                  fill
-                  unoptimized
-                  sizes="(max-width: 767px) 50vw, 240px"
-                  className="object-contain"
-                />
-              ) : (
-                <ImageOff
-                  className="text-shell-muted absolute inset-0 m-auto size-8"
-                  aria-label={copy.campaignTwo.imageMissing}
-                />
-              )}
-              {key === selectedKey && (
-                <span className="bg-shell-button absolute top-2 right-2 rounded-full p-1 text-white">
-                  <Check className="size-4" aria-label={copy.campaignTwo.selected} />
-                </span>
-              )}
-            </div>
-            <div className="p-3">
-              <p className="text-shell-ink line-clamp-2 text-sm font-medium">{product.name}</p>
-              <p className="text-shell-muted mt-1 text-xs">
-                {product.price ?? copy.brandAnalysis.unavailable}
-              </p>
-              {!product.image_url && (
-                <p className="text-shell-muted mt-1 text-xs">{copy.campaignTwo.imageMissing}</p>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
+      <p className="text-shell-muted mt-2 text-sm">
+        {isSet ? copy.campaignFive.description : copy.campaignTwo.description}
+      </p>
+      <CampaignProductOptions
+        products={products.products}
+        selectedKeys={selectedKey ? [selectedKey] : []}
+        disabled={pending}
+        onSelect={select}
+        label={copy.campaignTwo.productList}
+      />
+      {isSet && (
+        <div className="mt-8 border-t pt-8">
+          <h3 className="text-shell-ink text-xl font-semibold">
+            {copy.campaignFive.companionQuestion}
+          </h3>
+          <p className="text-shell-muted mt-2 text-sm">{copy.campaignFive.companionDescription}</p>
+          <p className="text-shell-muted mt-2 text-xs" aria-live="polite">
+            {copy.campaignFive.companionCount(companionKeys.length)}
+          </p>
+          <CampaignProductOptions
+            products={companionProducts}
+            selectedKeys={companionKeys}
+            disabled={pending || !selected?.product.image_url}
+            limit={10}
+            label={copy.campaignFive.companionList}
+            onSelect={(key) => {
+              const next = toggleCompanionProduct(new URLSearchParams(params.toString()), key);
+              setSubmission(null);
+              window.history.replaceState(null, "", `${pathname}?${next}`);
+            }}
+          />
+        </div>
+      )}
       <Button
         onClick={generate}
-        disabled={!selected?.product.image_url || pending}
+        disabled={!selected?.product.image_url || pending || (isSet && !companionsValid)}
         className="bg-shell-button hover:bg-shell-button-hover mt-6 h-11 w-full text-white"
       >
-        {pending ? copy.campaignTwo.submitting : copy.campaignTwo.generate}
+        {pending
+          ? copy.campaignTwo.submitting
+          : isSet
+            ? copy.campaignFive.generate
+            : copy.campaignTwo.generate}
       </Button>
       {submission && !submission.ok && (
         <div className="mt-4">

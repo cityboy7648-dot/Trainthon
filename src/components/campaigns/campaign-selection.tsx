@@ -28,6 +28,7 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
     else params.delete(key);
     if (key === "campaign") {
       params.delete("product");
+      params.delete("companions");
       params.delete("run");
     }
     const query = params.toString();
@@ -40,6 +41,7 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
       params.set("campaign", key);
       params.delete("preview");
       params.delete("product");
+      params.delete("companions");
       params.delete("run");
       window.history.pushState(null, "", `${pathname}?${params.toString()}`);
     }
@@ -97,7 +99,10 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
             <p className="mt-3 max-w-xl text-sm leading-6 text-white/85">{selected.goal}</p>
           </div>
         </section>
-        {selected.key === "one_product_three_scenes" && <CampaignProductPicker />}
+        {selected.key === "one_product_three_scenes" && (
+          <CampaignProductPicker campaignNumber={2} />
+        )}
+        {selected.key === "complete_set" && <CampaignProductPicker campaignNumber={5} />}
       </div>
     );
   }
