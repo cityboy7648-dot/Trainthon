@@ -1,10 +1,11 @@
 import Image from "next/image";
 import { ImageOff } from "lucide-react";
-import { ErrorState } from "@/components/error-state";
+import { MissingBrandValue } from "@/components/brand-assets/missing-brand-value";
 import { copy } from "@/lib/copy";
 import type { ProductCatalogProps } from "@/lib/types";
 
-export function ProductCatalog({ products }: ProductCatalogProps) {
+export function ProductCatalog({ profile }: ProductCatalogProps) {
+  const { products } = profile;
   return (
     <section aria-labelledby="product-catalog-title" className="py-7">
       <div className="flex items-baseline gap-2">
@@ -17,7 +18,7 @@ export function ProductCatalog({ products }: ProductCatalogProps) {
       </div>
       {products.length === 0 ? (
         <div className="mt-5">
-          <ErrorState code="analysis_partial" cause={copy.brandAnalysis.productsMissing} />
+          <MissingBrandValue cause={copy.brandAnalysis.productsMissing} />
         </div>
       ) : (
         <ul className="mt-5 grid gap-x-5 gap-y-8 sm:grid-cols-2 xl:grid-cols-4">
@@ -30,7 +31,9 @@ export function ProductCatalog({ products }: ProductCatalogProps) {
                     alt={copy.brandAnalysis.productImageAlt(product.name)}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
-                    unoptimized={product.image_url.startsWith("http")}
+                    unoptimized={
+                      product.image_url.startsWith("http") || product.image_url.startsWith("/mock/")
+                    }
                     className="object-cover"
                   />
                 ) : (

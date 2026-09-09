@@ -1,4 +1,4 @@
-import { ErrorState } from "@/components/error-state";
+import { MissingBrandValue } from "@/components/brand-assets/missing-brand-value";
 import { copy } from "@/lib/copy";
 import type { BrandPaletteProps } from "@/lib/types";
 
@@ -26,7 +26,7 @@ export function BrandPalette({ palette }: BrandPaletteProps) {
         </ul>
       ) : (
         <div className="mt-5">
-          <ErrorState code="analysis_partial" cause={copy.brandAnalysis.paletteMissing} />
+          <MissingBrandValue cause={copy.brandAnalysis.paletteMissing} />
         </div>
       )}
     </section>

@@ -5,32 +5,36 @@ import { useRouter } from "next/navigation";
 import { readAnalyzedBrandProfile, saveAnalyzedBrandProfile } from "@/lib/brand-profile-session";
 import { copy } from "@/lib/copy";
 import { requestBrandProfile } from "@/lib/data/brand-profile";
-import { isPreviewAnalysis } from "@/lib/env";
 import { AppError } from "@/lib/errors";
 import { homeAnalysisFailureHref, toBrandSourceUrl } from "@/lib/home";
-import type { AnalysisProgressProps, BrandProfileData } from "@/lib/types";
-import { getMockBrandProfile } from "@/mock/brand-profile"; // MOCK
+import {
+  brandProfileSchema,
+  type AnalysisProgressProps,
+  type BrandProfileData,
+  type BrandCompletionQuestion,
+} from "@/lib/types";
 
-const pendingByUrl = new Map<string, Promise<BrandProfileData>>();
-const PROGRESS_PACE_MS = isPreviewAnalysis ? 25_000 : 400;
+const pendingByUrl = new Map<
+  string,
+  Promise<{ profile: BrandProfileData; questions: BrandCompletionQuestion[] }>
+>();
+const PROGRESS_PACE_MS = 25_000;
 const COMPLETE_PAUSE_MS = 400;
 
-function loadBrandProfile(url: string): Promise<BrandProfileData> {
+function loadBrandProfile(
+  url: string,
+): Promise<{ profile: BrandProfileData; questions: BrandCompletionQuestion[] }> {
   const pending = pendingByUrl.get(url);
   if (pending) {
     return pending;
   }
 
   const next = (async () => {
-    if (!isPreviewAnalysis) {
-      return getMockBrandProfile(url);
-    }
-
     const result = await requestBrandProfile(url);
     if (!result.ok) {
       throw new AppError("analysis_failed", result.cause);
     }
-    return result.profile;
+    return result;
   })();
 
   pendingByUrl.set(url, next);
@@ -50,6 +54,19 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
 
   useEffect(() => {
     const brandUrl = toBrandSourceUrl(url);
+    const draftKey = `brand-profile:draft:${brandUrl}`;
+    const draft = sessionStorage.getItem(draftKey);
+    if (draft) {
+      try {
+        const profile = brandProfileSchema.parse(JSON.parse(draft));
+        saveAnalyzedBrandProfile(brandUrl, profile);
+        sessionStorage.removeItem(draftKey);
+        router.replace(`/brands?url=${encodeURIComponent(brandUrl)}`);
+        return;
+      } catch {
+        sessionStorage.removeItem(draftKey);
+      }
+    }
     const cached = readAnalyzedBrandProfile(brandUrl) ?? readAnalyzedBrandProfile(url);
     if (cached) {
       saveAnalyzedBrandProfile(brandUrl, { ...cached, source_url: brandUrl });
@@ -64,7 +81,7 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
     }, 200);
 
     loadBrandProfile(url)
-      .then((profile) => {
+      .then(({ profile }) => {
         if (cancelled) return;
         window.clearInterval(tick);
         saveAnalyzedBrandProfile(profile.source_url, profile);
@@ -90,7 +107,7 @@ export function AnalysisProgress({ url }: AnalysisProgressProps) {
 
   return (
     <div
-      data-source={isPreviewAnalysis ? "server" : "mock"}
+      data-source="server"
       className="font-shell mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-6 py-8"
     >
       <p className="text-shell-muted truncate text-xs">{url}</p>

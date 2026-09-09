@@ -121,5 +121,5 @@ export async function analyzeBrand(
   );
 
   assertCompleteAnalysis(result);
-  return normalizeBrandProfile(result.profile, sourceUrl);
+  return normalizeBrandProfile({ ...result.profile, name: result.profile.name ?? "" }, sourceUrl);
 }

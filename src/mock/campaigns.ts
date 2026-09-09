@@ -82,3 +82,17 @@ export const mockCreatedCampaigns: CreatedCampaignPreview[] = [
     campaign: mockCampaigns[0]!,
   },
 ];
+
+export const mockRecentTasks = mockCreatedCampaigns
+  .filter((item) => item.status === "done")
+  .flatMap(({ id, campaign }) =>
+    campaign.schedule
+      .slice(-2)
+      .reverse()
+      .map((task) => ({
+        ...task,
+        id: `${id}-${task.day}`,
+        campaignName: campaign.name,
+        campaignImage: campaign.image,
+      })),
+  );

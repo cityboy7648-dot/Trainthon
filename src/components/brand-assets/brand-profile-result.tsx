@@ -39,5 +39,13 @@ export function BrandProfileResult({ url }: BrandProfileResultProps) {
     return <BrandProfileSkeleton />;
   }
 
-  return <BrandProfile profile={profile} />;
+  return (
+    <BrandProfile
+      profile={profile}
+      onChange={(next) => {
+        saveAnalyzedBrandProfile(next.source_url, next);
+        setProfile(next);
+      }}
+    />
+  );
 }

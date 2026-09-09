@@ -1,4 +1,5 @@
 import { copy } from "@/lib/copy";
+import { getBrandCompletionQuestions } from "@/lib/brand-completion";
 import { getBrandProfile } from "@/lib/data/brand-profile";
 import { getSessionUser } from "@/lib/data/session";
 import { isPreviewAnalysis } from "@/lib/env";
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
 
   try {
     const profile = await getBrandProfile(parsed.data.url);
-    return Response.json({ profile });
+    return Response.json({ profile, questions: getBrandCompletionQuestions(profile) });
   } catch (error) {
     if (error instanceof AppError) {
       log.error("brand_analysis.failed", context, {

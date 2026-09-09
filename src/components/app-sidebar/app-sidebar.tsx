@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleHelp, PanelLeftClose, PanelLeftOpen, Plus, Settings } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -43,28 +43,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
         <span className="group-data-[collapsed=true]/shell:hidden">{copy.sidebar.newCampaign}</span>
       </Button>
       <NavMain />
-      <nav
-        aria-label={copy.sidebar.utilities}
-        className="border-shell-border mt-auto grid gap-0.5 border-b pb-3.5"
-      >
-        <Button
-          variant="ghost"
-          className="text-shell-muted hover:bg-shell-hover h-shell-control justify-start gap-2 rounded-md px-2.5 text-xs font-normal group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:px-0"
-          aria-label={copy.sidebar.support}
-        >
-          <CircleHelp className="size-3.5" />
-          <span className="group-data-[collapsed=true]/shell:hidden">{copy.sidebar.support}</span>
-        </Button>
-        <Button
-          variant="ghost"
-          className="text-shell-muted hover:bg-shell-hover h-shell-control justify-start gap-2 rounded-md px-2.5 text-xs font-normal group-data-[collapsed=true]/shell:justify-center group-data-[collapsed=true]/shell:px-0"
-          aria-label={copy.sidebar.account}
-        >
-          <Settings className="size-3.5" />
-          <span className="group-data-[collapsed=true]/shell:hidden">{copy.sidebar.account}</span>
-        </Button>
-      </nav>
-      <footer className="min-h-shell-footer flex items-center pt-2.5">
+      <footer className="min-h-shell-footer mt-auto flex items-center pt-2.5">
         {user && <NavUser user={user} />}
       </footer>
     </aside>
