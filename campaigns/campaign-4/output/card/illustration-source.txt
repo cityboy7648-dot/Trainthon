@@ -1,0 +1,11 @@
+파일: representative-illustration.png
+제작일: 2026-09-10
+방식: built-in image_gen
+기준 1: public/campaigns/signature-grid/card-thumbnail-soft.png
+기준 2: public/campaigns/one-product-three-scenes/card-thumbnail-soft.png
+시각 확인: 흰색·연한 하늘색, 피드 패널 5개, 중앙 인물 착용 장면. 이전 사진형 대표 이미지 대신 만든 시안.
+상태: 2026-09-10 사용자 승인. Storage 업로드·카드/상세 정의 등록 완료. 배포 전.
+공개 URL: https://deucsyzcrllgnvbxlqlq.supabase.co/storage/v1/object/public/campaign-covers/real-usage/approved-20260910.png
+
+Prompt:
+Create a raster SaaS campaign-card illustration matching the two supplied existing card illustrations very closely in rendering, white and extremely pale ice-blue palette, thin cyan edge light, soft pale-gray silhouettes, generous whitespace, rounded floating UI panels, subtle shadows, bottom fading gently into white. Landscape approximately 47:32, 1520x1035. This represents campaign 4 REAL USAGE, five days of Instagram feed images showing a person actually wearing/using a product. Compose exactly FIVE overlapping portrait feed panels in one shallow horizontal fan: one large central front panel, two progressively smaller behind on each side. All five panel tops visible, not a 3x3 grid. In central panel show a simple faceless pale-gray adult human silhouette from head to hips WEARING a distinctly light-blue jacket, with one hand holding a small smartphone as a mirror selfie. Jacket silhouette and sleeves must be clear at small size. Side panels contain pared-down pale-gray human silhouettes using/wearing the SAME pale-blue jacket: one first-look holding it, one everyday walking, one close-up sleeve detail, one split usage/detail montage. Keep these very simple icon-like scene illustrations with the blue garment as the only stronger color. Two pale-gray rounded caption placeholder bars under each scene. No readable text, no numbers, no letters, no logos, no photos, no realistic faces, no dark colours, no saturated colours. Match the delicate existing library style rather than inventing a new style. The central person wearing the product is the dominant visual, with five panels conveying a five-post series. Single finished illustration asset only, no surrounding application screenshot.

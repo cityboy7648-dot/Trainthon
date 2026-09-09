@@ -14,7 +14,7 @@ import { copy } from "@/lib/copy";
 import type { CampaignSelectionProps } from "@/lib/types";
 import { EmptyState } from "@/components/empty-state";
 
-export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
+export function CampaignSelection({ campaigns, realUsagePlanner }: CampaignSelectionProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [transitioningKey, setTransitioningKey] = useState<string>();
@@ -98,6 +98,7 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
           </div>
         </section>
         {selected.key === "one_product_three_scenes" && <CampaignProductPicker />}
+        {selected.key === "real_usage" && realUsagePlanner}
       </div>
     );
   }
