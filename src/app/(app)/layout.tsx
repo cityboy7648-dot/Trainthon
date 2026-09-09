@@ -1,13 +1,17 @@
+import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar/app-sidebar";
-import { HomeSkeleton } from "@/components/home/home-skeleton";
-import { AuthDialog } from "@/components/auth/auth-dialog";
 import { copy } from "@/lib/copy";
 import { getSessionUser } from "@/lib/data/session";
+import { isPreviewAnalysis } from "@/lib/env";
 import { MockBadge } from "@/components/mock-badge";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await getSessionUser();
+  if (!user && !isPreviewAnalysis) {
+    redirect("/");
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar user={user} />
@@ -16,9 +20,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         data-source="server"
         className="bg-background flex min-h-dvh min-w-0 flex-1 flex-col"
       >
-        {user ? children : <HomeSkeleton />}
+        {children}
       </main>
-      {!user && <AuthDialog />}
       <MockBadge />
     </SidebarProvider>
   );

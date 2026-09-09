@@ -11,15 +11,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { copy } from "@/lib/copy";
+import type { AuthDialogProps } from "@/lib/types";
 
-export function AuthDialog() {
+export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [signingUp, setSigningUp] = useState(false);
   const heading = signingUp ? copy.signUp : copy.login;
 
   return (
-    <Dialog open modal>
+    <Dialog open={open} onOpenChange={onOpenChange} modal>
       <DialogContent
-        showCloseButton={false}
         overlayClassName="bg-shell-ink/60"
         className="font-shell bg-background border-shell-border rounded-shell gap-5 border p-6 ring-0"
       >

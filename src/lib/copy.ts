@@ -62,7 +62,8 @@ export const copy = {
     confirmSent: "가입 확인 메일을 보냈어요. 메일에서 확인한 뒤 로그인해 주세요.",
   },
   home: {
-    greeting: (name: string) => `${name}님, 어떤 사이트를 알릴까요?`,
+    headline: "무엇을 홍보해드릴까요?",
+    greeting: (name: string) => `${name}님, 무엇을 홍보해드릴까요?`,
     urlPlaceholder: "사이트 URL을 붙여 넣으세요",
     urlHint: "예: https://example.com",
     submit: "분석 시작",

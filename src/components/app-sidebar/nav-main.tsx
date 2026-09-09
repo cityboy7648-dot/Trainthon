@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Megaphone, Palette } from "lucide-react";
 import { copy } from "@/lib/copy";
+import { getPrimaryNavHref } from "@/lib/navigation";
 
 const items = [
-  { href: "/", label: copy.sidebar.dashboard, icon: House },
-  { href: "/campaigns", label: copy.nav.campaigns, icon: Megaphone },
-  { href: "/brands", label: copy.nav.brands, icon: Palette },
+  { href: getPrimaryNavHref("dashboard"), label: copy.sidebar.dashboard, icon: House },
+  { href: getPrimaryNavHref("campaigns"), label: copy.nav.campaigns, icon: Megaphone },
+  { href: getPrimaryNavHref("brands"), label: copy.nav.brands, icon: Palette },
 ] as const;
 
 export function NavMain() {
@@ -16,7 +17,7 @@ export function NavMain() {
   return (
     <nav aria-label={copy.sidebar.navigation} className="mt-4.5 grid gap-1">
       {items.map(({ href, label, icon: Icon }) => {
-        const current = href === "/" ? pathname === href : pathname.startsWith(href);
+        const current = pathname.startsWith(href);
 
         return (
           <Link

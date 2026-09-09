@@ -11,6 +11,7 @@ export type AppSidebarProps = {
 
 export type NavUserProps = {
   user: SessionUser;
+  compact?: boolean;
 };
 
 export type UrlFormProps = {
