@@ -15,7 +15,9 @@
 1. `README.md`, `PLAN.md`를 읽는다.
 2. 제품 범위를 `README.md` 밖으로 넓히지 않는다.
 3. 스택, API, 데이터 구조는 `PLAN.md`를 따른다. `PLAN.md`의 "아직 안 정한 것"은 추측해서 코드에 확정으로 넣지 않는다. 물어본다.
-4. 작업은 `PLAN.md`의 단계 순서대로. 한 단계 = 한 브랜치.
+4. 작업은 `PLAN.md`의 "구현 순서"대로. 프론트엔드(A) → 백엔드(B) → 연결(C). 한 단계 = 한 브랜치.
+5. A 단계는 디자인 레퍼런스를 받은 뒤 시작한다. 레퍼런스 없이 화면을 만들지 않는다. 레퍼런스는 `reference/<화면>/`에 이미지와 `source.txt`(출처 URL)로 둔다. 화면은 그 이미지와 diff가 최소가 되게 만든다.
+6. A 단계에서는 Supabase·OpenAI·Higgsfield를 호출하지 않는다. 데이터는 전부 `src/mock/`.
 
 ## 이 레포 규칙
 
@@ -26,6 +28,8 @@
 
 ## 코드
 
+- Next.js 16. API가 학습 데이터와 다를 수 있다. 쓰기 전에 `node_modules/next/dist/docs/`를 읽는다. `middleware`는 `proxy`다.
+- shadcn/ui는 Base UI 기반. `asChild` 대신 `render`. `Button`을 `Link`로 렌더할 때 `nativeButton={false}`.
 - 변경은 요청된 범위만.
 - 생성 API 키는 환경변수. `.env.example`에는 이름만.
 - 사이트 수집/생성 실패를 숨기지 않는다.

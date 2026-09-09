@@ -1,0 +1,3 @@
+jasper-web-user-dashboard.png
+https://mobbin.com/explore/screens/da5430b2-0d91-4923-a9ad-84c34370d199
+앱 셸 + 홈(A3) 기준. 사이드바, 본문 카드, 헤드라인, 입력 박스, 바로가기 칩, 최근 목록.
