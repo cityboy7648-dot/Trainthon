@@ -1,6 +1,6 @@
 # 캠페인 2: 한 상품, 세 장면
 
-상태: 레퍼런스 후보 제시. 사용자 선택 후 파일 저장과 에이전트 API 구현을 진행한다.
+상태: 후보 1·2 승인 및 이미지 4장 저장 완료. 에이전트 API는 미구현.
 
 ## 기준
 
@@ -26,13 +26,20 @@
 
 ## 레퍼런스 후보
 
-아래는 미승인 후보다. 선택된 자료만 `reference/campaigns/campaign-2/`에 파일로 저장한다.
+후보 1·2를 사용자가 승인했다. 원본 이미지와 [출처](../../reference/campaigns/campaign-2/source.txt)는 `reference/campaigns/campaign-2/`에 저장했다. 후보 3은 미선택이다.
 
 1. [V by Very — Fashion Three Style](https://www.bauermedia.co.uk/case-studies/fashion-three-style/): 피그마의 기획 근거. 대표 아이템을 유지하며 여러 스타일을 제시하는 방식.
 2. [Dida Ritchie — One Bag, Three Ways](https://www.didaritchie.com/blogs/the-edit/one-bag-three-ways-2): 같은 가방을 세 가지 룩으로 제안하는 편집 구성.
 3. [JS Colore — One Bag, Three Different Looks](https://www.jscolore.com/blog/icerik/one-bag-three-different-looks): 같은 토트백을 다른 상황과 스타일링으로 보여 주는 구성.
 
-사용자는 여러 후보를 선택하거나 다른 레퍼런스 링크를 제공할 수 있다. 선택 전 승인된 레퍼런스는 0개다.
+승인된 파일:
+
+- `v-by-very-fashion-three-style.jpg`
+- `dida-ritchie-look-1.jpg`
+- `dida-ritchie-look-2.jpg`
+- `dida-ritchie-look-3.jpg`
+
+Dida Ritchie 자료의 왼쪽 착장 사진은 분위기 참고이고, 오른쪽 상품 조합에서 동일한 가방을 반복한다. 에이전트는 이를 구분하고 실제 생성물에서는 선택한 대표 상품의 정체성을 유지한다.
 
 ## 후속 에이전트 API
 

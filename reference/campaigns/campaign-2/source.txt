@@ -1,0 +1,25 @@
+캠페인: 02 한 상품, 세 장면
+선택일: 2026-09-09
+선택: 사용자가 후보 1(V by Very), 2(Dida Ritchie)를 승인. 후보 3은 미선택.
+용도: 내부 기획 및 에이전트 레퍼런스. 제품 카드에 원본을 노출하지 않는다.
+
+파일: v-by-very-fashion-three-style.jpg
+출처: https://www.bauermedia.co.uk/case-studies/fashion-three-style/
+이미지: https://www.bauermedia.co.uk/wordpress/wp-content/uploads/2018/11/m6ghynejtzjjsbvengi8.jpg
+내용: V by Very 대표 사례 이미지 (3분할 스타일링)
+
+파일: dida-ritchie-look-1.jpg
+출처: https://www.didaritchie.com/blogs/the-edit/one-bag-three-ways-2
+이미지: https://cdn.shopify.com/s/files/1/2697/3918/files/1_7c9c7e72-db7e-4c30-9764-8377f18e6deb.jpg?v=1709746368
+내용: Dida Ritchie Look 1 (착장 영감 사진과 동일 가방의 상품 조합)
+
+파일: dida-ritchie-look-2.jpg
+출처: https://www.didaritchie.com/blogs/the-edit/one-bag-three-ways-2
+이미지: https://cdn.shopify.com/s/files/1/2697/3918/files/2_a82c0ec4-1c84-4255-989d-905bbaa7e6fb.jpg?v=1709746612
+내용: Dida Ritchie Look 2 (착장 영감 사진과 동일 가방의 상품 조합)
+
+파일: dida-ritchie-look-3.jpg
+출처: https://www.didaritchie.com/blogs/the-edit/one-bag-three-ways-2
+이미지: https://cdn.shopify.com/s/files/1/2697/3918/files/3_5c55a575-ceb9-4434-ab36-43e3d78ff8ad.jpg?v=1709746870
+내용: Dida Ritchie Look 3 (착장 영감 사진과 동일 가방의 상품 조합)
+
