@@ -15,6 +15,7 @@ import { assertCompleteAnalysis, normalizeBrandProfile } from "./normalize-brand
 import { extractBrandEvidencePrompt, mergeBrandProfilePrompt } from "./prompt";
 
 const MAX_CHUNK_CHARACTERS = 240_000;
+const MAX_CONCURRENT_EXTRACTIONS = 2;
 const MAX_PAGE_CHARACTERS = 180_000;
 const MAX_MERGE_CHARACTERS = 2_500_000;
 
@@ -80,26 +81,34 @@ export async function analyzeBrand(
 ): Promise<{ profile: BrandProfileData; usage: TokenUsage }> {
   const collected = await collectSite(sourceUrl, context);
   const chunks = createPageChunks(collected.pages);
-  const evidence: BrandEvidence[] = [];
-  let usage = emptyTokenUsage();
+  const extracted: Array<{ output: BrandEvidence; usage: TokenUsage }> = [];
 
-  for (const [index, chunk] of chunks.entries()) {
-    const extracted = await parseStructuredOutput(
-      brandEvidenceSchema,
-      "brand_evidence",
-      extractBrandEvidencePrompt,
-      JSON.stringify({
-        source_url: sourceUrl,
-        homepage_branding: collected.branding,
-        chunk: index + 1,
-        total_chunks: chunks.length,
-        pages: chunk,
+  for (let start = 0; start < chunks.length; start += MAX_CONCURRENT_EXTRACTIONS) {
+    const batch = await Promise.all(
+      chunks.slice(start, start + MAX_CONCURRENT_EXTRACTIONS).map((chunk, offset) => {
+        const index = start + offset;
+        return parseStructuredOutput(
+          brandEvidenceSchema,
+          "brand_evidence",
+          extractBrandEvidencePrompt,
+          JSON.stringify({
+            source_url: sourceUrl,
+            homepage_branding: collected.branding,
+            chunk: index + 1,
+            total_chunks: chunks.length,
+            pages: chunk,
+          }),
+          context,
+        );
       }),
-      context,
     );
-    evidence.push(extracted.output);
-    usage = addTokenUsage(usage, extracted.usage);
+    extracted.push(...batch);
   }
+  const evidence: BrandEvidence[] = extracted.map((result) => result.output);
+  let usage = extracted.reduce(
+    (total, result) => addTokenUsage(total, result.usage),
+    emptyTokenUsage(),
+  );
 
   const mergeInput = JSON.stringify({
     source_url: sourceUrl,
