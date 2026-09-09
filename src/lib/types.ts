@@ -290,5 +290,4 @@ export type CampaignBriefProps = {
 export type CampaignDetailsProps = {
   campaign: CampaignPreview | undefined;
   onClose: () => void;
-  onSelect?: () => void;
 };
