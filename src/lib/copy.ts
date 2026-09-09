@@ -1,4 +1,24 @@
 export const copy = {
+  campaignTwo: {
+    question: "어떤 상품을 홍보할까요?",
+    description: "브랜드에서 추출한 상품 중 하나를 선택해 주세요.",
+    productList: "대표 상품 선택",
+    missingTitle: "선택할 상품이 없어요",
+    missingDescription: "브랜드 탭에서 상품 추출 결과를 확인해 주세요.",
+    brandLink: "브랜드 확인하기",
+    generate: "이 상품으로 캠페인 만들기",
+    submitting: "캠페인을 시작하고 있어요",
+    selected: "선택됨",
+    generating: "선택한 상품으로 이미지를 만들고 있어요.",
+    complete: "캠페인 이미지가 완성됐어요.",
+    failed: "일부 이미지를 만들지 못했어요.",
+    retry: "선택한 상품으로 다시 만들기",
+    progress: (done: number, total: number) => `${total}장 중 ${done}장 완료`,
+    position: (day: number, format: string) =>
+      `D${day} · ${format === "story" ? "스토리" : format === "carousel" ? "캐러셀" : "피드"}`,
+    imageAlt: (name: string) => `${name} 캠페인 이미지`,
+    imageMissing: "상품 이미지 없음",
+  },
   dashboard: {
     headline: "우리 브랜드의",
     headlineSecond: "다음 캠페인",

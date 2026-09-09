@@ -3,11 +3,12 @@ import { zodTextFormat } from "openai/helpers/zod";
 import type { z } from "zod";
 import { getProviderApiKey } from "@/lib/env";
 import { copy } from "@/lib/copy";
-import { AppError } from "@/lib/errors";
+import { AppError, campaignErrors } from "@/lib/errors";
 import { log, type LogContext } from "@/lib/log";
 import type { TokenUsage } from "@/lib/types";
 
 const MODEL = "gpt-5.5";
+const IMAGE_MODEL = "gpt-image-2";
 const TIMEOUT_MS = 75_000;
 
 let client: OpenAI | undefined;
@@ -28,6 +29,7 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
   instructions: string,
   input: string,
   context: LogContext,
+  imageUrls: string[] = [],
 ): Promise<{ output: z.output<Schema>; usage: TokenUsage }> {
   const client = getOpenAiClient();
   const startedAt = performance.now();
@@ -38,7 +40,17 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
       reasoning: { effort: "low" },
       input: [
         { role: "system", content: instructions },
-        { role: "user", content: input },
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: input },
+            ...imageUrls.map((image_url) => ({
+              type: "input_image" as const,
+              image_url,
+              detail: "low" as const,
+            })),
+          ],
+        },
       ],
       text: {
         format: zodTextFormat(schema, schemaName),
@@ -78,5 +90,67 @@ export async function parseStructuredOutput<Schema extends z.ZodType>(
     }
 
     throw new AppError("analysis_failed", "AI가 수집된 사이트 정보를 분석하지 못했다.");
+  }
+}
+
+export async function generateCampaignImage(
+  prompt: string,
+  imageUrls: string[],
+  story: boolean,
+  context: LogContext,
+): Promise<Buffer> {
+  if (!context.runId || !context.assetId)
+    throw new AppError("generation_failed", campaignErrors.create);
+  const startedAt = performance.now();
+  try {
+    const response = await getOpenAiClient().responses.create({
+      model: MODEL,
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: prompt },
+            ...imageUrls.map((image_url) => ({
+              type: "input_image" as const,
+              image_url,
+              detail: "high" as const,
+            })),
+          ],
+        },
+      ],
+      tools: [
+        {
+          type: "image_generation",
+          model: IMAGE_MODEL,
+          quality: "high",
+          size: story ? "1152x2048" : "1024x1280",
+          output_format: "png",
+        },
+      ],
+      tool_choice: { type: "image_generation" },
+    });
+    const result = response.output.find((item) => item.type === "image_generation_call");
+    if (!result || result.type !== "image_generation_call" || !result.result) {
+      throw new AppError("generation_failed", campaignErrors.image);
+    }
+    log.info("campaign.image", context, {
+      model: IMAGE_MODEL,
+      durationMs: Math.round(performance.now() - startedAt),
+      inputTokens: response.usage?.input_tokens,
+      outputTokens: response.usage?.output_tokens,
+    });
+    return Buffer.from(result.result, "base64");
+  } catch (error) {
+    log.error("campaign.image_failed", context, {
+      model: IMAGE_MODEL,
+      durationMs: Math.round(performance.now() - startedAt),
+    });
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      "generation_failed",
+      error instanceof OpenAI.APIError && error.status === 429
+        ? copy.brandAnalysis.aiRateLimited
+        : campaignErrors.image,
+    );
   }
 }

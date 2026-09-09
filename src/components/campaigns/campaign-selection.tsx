@@ -3,6 +3,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { CampaignBrief } from "@/components/campaigns/campaign-brief";
+import { CampaignProductPicker } from "@/components/campaigns/campaign-product-picker";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
 import { CampaignDetails } from "@/components/campaigns/campaign-details";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,11 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
-    if (key === "campaign") params.delete("preview");
+    if (key === "campaign") {
+      params.delete("preview");
+      params.delete("product");
+      params.delete("run");
+    }
     const query = params.toString();
     window.history.pushState(null, "", query ? `${pathname}?${query}` : pathname);
   }
@@ -36,7 +41,11 @@ export function CampaignSelection({ campaigns }: CampaignSelectionProps) {
           <ArrowLeft className="size-4" aria-hidden="true" />
           {copy.campaigns.backToSelection}
         </Button>
-        <CampaignBrief key={selected.key} campaign={selected} />
+        {selected.key === "one_product_three_scenes" ? (
+          <CampaignProductPicker />
+        ) : (
+          <CampaignBrief key={selected.key} campaign={selected} />
+        )}
       </div>
     );
   }

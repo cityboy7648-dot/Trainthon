@@ -56,3 +56,20 @@ export class AppError extends Error {
     this.cause = cause;
   }
 }
+
+export const campaignErrors = {
+  login: "캠페인을 만들려면 로그인해 주세요.",
+  brand: "저장된 브랜드를 찾지 못했어요.",
+  products: "상품 목록을 불러오지 못했어요.",
+  staleProduct: "상품 정보가 바뀌었어요. 목록을 새로 불러온 뒤 다시 선택해 주세요.",
+  productImage: "상품 이미지가 없어 같은 상품을 유지하며 생성할 수 없어요.",
+  create: "캠페인을 시작하지 못했어요.",
+  rateLimited: "최근에 캠페인을 시작했어요. 1분 뒤 다시 시도해 주세요.",
+  result: "캠페인 결과를 불러오지 못했어요.",
+  save: "캠페인 결과를 저장하지 못했어요.",
+  plan: "AI가 세 장면 구성을 완료하지 못했어요.",
+  image: "AI가 이미지를 생성하지 못했어요.",
+  timeout: "생성 제한 시간을 초과했어요. 새 캠페인으로 다시 시도해 주세요.",
+  request: "요청 형식이 올바르지 않아요.",
+  origin: "현재 사이트에서 다시 시도해 주세요.",
+};
