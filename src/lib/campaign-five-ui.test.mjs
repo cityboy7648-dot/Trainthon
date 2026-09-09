@@ -185,17 +185,36 @@ test("리얼 사용기는 대표 상품 이미지와 가격을 표시하고 선�
   globalThis.campaignQuery = "";
 });
 
-test("리얼 사용기 상세는 생성 중 스켈레톤을 보여 준다", async () => {
+test("리얼 사용기 상세는 다른 캠페인과 같은 작업 화면에 피드 5칸을 보여 준다", async () => {
   const { CampaignWorkspaceResult } =
     await import("../components/campaigns/campaign-workspace-result.tsx");
-  globalThis.detailCampaign = { key: "real_usage" };
-  const html = renderCampaignSelection(
-    await CampaignWorkspaceResult({ id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee" }),
-  );
+  globalThis.detailCampaign = {
+    id: "run",
+    key: "real_usage",
+    name: "리얼 사용기",
+    brand: "브랜드",
+    startDate: "2026-09-10",
+    status: "processing",
+    posts: [1, 2, 3, 4, 5].map((day) => ({
+      id: `asset-${day}`,
+      status: day === 1 ? "done" : "pending",
+      image_url: null,
+      meta: {
+        day,
+        position: day,
+        format: "feed",
+        product: { name: "선택 상품" },
+        scene: null,
+        caption: null,
+        error: null,
+      },
+    })),
+  };
+  globalThis.campaignQuery = "";
+  const html = renderCampaignSelection(await CampaignWorkspaceResult({ id: "run" }));
   assert.match(html, /리얼 사용기/);
-  assert.match(html, /aria-busy="true"/);
-  assert.match(html, /같은 상품과 인물로 이미지 5장을 만들고 있어요/);
-  assert.doesNotMatch(html, /게시 일정/);
+  assert.match(html, /게시 일정/);
+  assert.equal((html.match(/data-selected=/g) ?? []).length, 5);
 });
 
 test("선택 후에도 카드 세 개 아래에 선택 버튼과 상품 선택 영역을 유지한다", async () => {

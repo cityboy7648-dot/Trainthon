@@ -20,10 +20,10 @@ export async function handleCampaign4Request(request: Request) {
     } catch {
       throw new AppError("invalid_request");
     }
-    const started = await startCampaign4Run(input);
-    after(() => generateCampaign4(started));
+    const run = await startCampaign4Run(input);
+    after(() => generateCampaign4(run, crypto.randomUUID()));
     return Response.json(
-      { runId: started.runId, stage: "generating" },
+      { runId: run.runId, stage: "generating" },
       { status: 202, headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

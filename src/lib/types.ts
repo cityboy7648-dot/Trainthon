@@ -157,7 +157,6 @@ export const campaign4PlanSchema = z.object({
   day4: campaign4PostSchema,
   day5: campaign4PostSchema,
 });
-export type Campaign4Plan = z.infer<typeof campaign4PlanSchema>;
 export type Campaign4ProductOptions = {
   brandId: string;
   brandName: string;
@@ -308,26 +307,11 @@ export const campaign4ImageMetaSchema = z.object({
   position: z.number().int().min(1).max(5),
   format: z.literal("feed"),
   product: brandProductSchema,
-  scene: z.string().min(1),
-  caption: z.string().min(1),
+  scene: z.string().nullable().default(null),
+  caption: z.string().nullable().default(null),
   error: z.string().nullable().default(null),
 });
 export type Campaign4ImageMeta = z.infer<typeof campaign4ImageMetaSchema>;
-export const campaign4ResultSchema = z.object({
-  runId: z.uuid(),
-  status: campaignAssetStatusSchema,
-  cause: z.string().nullable(),
-  assets: z.array(
-    z.object({
-      id: z.uuid(),
-      status: campaignAssetStatusSchema,
-      imageUrl: z.url().nullable(),
-      meta: campaign4ImageMetaSchema,
-    }),
-  ),
-});
-export type Campaign4ResultData = z.infer<typeof campaign4ResultSchema>;
-export type Campaign4ResultProps = { runId: string };
 
 export const dashboardAssetMetaSchema = z.object({
   day: z.number().int().positive().nullish(),

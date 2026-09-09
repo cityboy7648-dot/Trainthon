@@ -62,6 +62,7 @@ export const generatedCampaignKeys = [
   "signature_grid",
   "one_product_three_scenes",
   "complete_set",
+  "real_usage",
 ] as const;
 
 export function isGeneratedCampaign(key: string) {
@@ -70,6 +71,7 @@ export function isGeneratedCampaign(key: string) {
 
 export function previewModes(key: string): CampaignPreviewMode[] {
   if (key === "complete_set") return ["feed", "pinterest", "carousel"];
+  if (key === "real_usage") return ["feed"];
   return key === "signature_grid" ? ["feed", "grid"] : ["feed", "story", "carousel"];
 }
 
