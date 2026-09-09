@@ -239,39 +239,6 @@ export type CampaignPreview = {
   }[];
 };
 
-export type CampaignStatus = "processing" | "done" | "draft";
-
-export type CreatedCampaignPreview = {
-  id: string;
-  status: CampaignStatus;
-  campaign: CampaignPreview;
-};
-
-export type CampaignStatusCounts = Record<CampaignStatus, number>;
-
-export type CampaignOverviewState =
-  | { mode: "create" }
-  | {
-      mode: "gallery";
-      status: CampaignStatus;
-      campaigns: CreatedCampaignPreview[];
-      counts: CampaignStatusCounts;
-    };
-
-export type CampaignOverviewProps = {
-  searchParams: Promise<{ status?: string }>;
-};
-
-export type CampaignGalleryProps = {
-  status: CampaignStatus;
-  campaigns: CreatedCampaignPreview[];
-  counts: CampaignStatusCounts;
-};
-
-export type CampaignGalleryCardsProps = {
-  campaigns: CreatedCampaignPreview[];
-};
-
 export type CampaignCardProps = {
   campaign: CampaignPreview;
   selected: boolean;

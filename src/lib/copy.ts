@@ -23,6 +23,7 @@ export const copy = {
     headline: "우리 브랜드의",
     headlineSecond: "다음 캠페인",
     recentTasks: "최근 끝낸 작업",
+    historyPending: "작업 이력 연결을 준비하고 있어요",
     summary: "브랜드와 캠페인 요약",
     myBrand: "내 브랜드",
     brandSettings: "브랜드 정보 보기",
