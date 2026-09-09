@@ -1,12 +1,17 @@
+import { redirect } from "next/navigation";
 import { HomeHeader } from "@/components/home/home-header";
 import { HomePrompt } from "@/components/home/home-prompt";
 import { copy } from "@/lib/copy";
 import { getSessionUser } from "@/lib/data/session";
-import { isPreviewAnalysis } from "@/lib/env";
-import { homeErrorFromSearch } from "@/lib/home";
+import { isPreviewAnalysis, isProduction } from "@/lib/env";
+import { homeErrorFromSearch, shouldRedirectPreviewHome } from "@/lib/home";
 import type { HomePageProps } from "@/lib/types";
 
 export default async function HomePage({ searchParams }: HomePageProps) {
+  if (shouldRedirectPreviewHome(isProduction, isPreviewAnalysis)) {
+    redirect("/dashboard");
+  }
+
   const user = await getSessionUser();
   const canSubmitUrl = isPreviewAnalysis || Boolean(user);
   const { error, cause } = await searchParams;

@@ -4,8 +4,15 @@ import {
   homeAnalysisFailureHref,
   homeErrorFromSearch,
   resolveUrlSubmission,
+  shouldRedirectPreviewHome,
   toBrandSourceUrl,
 } from "./home.ts";
+
+test("미리보기 홈은 대시보드로 보낸다", () => {
+  assert.equal(shouldRedirectPreviewHome(false, true), true);
+  assert.equal(shouldRedirectPreviewHome(false, false), false);
+  assert.equal(shouldRedirectPreviewHome(true, true), false);
+});
 
 test("로그인하지 않은 URL 제출은 로그인 요청으로 바꾼다", () => {
   assert.deepEqual(resolveUrlSubmission("https://example.com", false), {
