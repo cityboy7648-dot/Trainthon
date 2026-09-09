@@ -6,7 +6,7 @@ export function DashboardSkeleton() {
     <div
       aria-busy="true"
       aria-label={copy.dashboard.refreshing}
-      className="font-shell text-shell-ink flex h-dvh min-h-0 flex-1 flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 lg:p-8"
+      className="font-shell text-shell-ink flex h-dvh min-h-0 flex-col gap-6 overflow-hidden p-6 lg:flex-row lg:gap-8 lg:p-8"
     >
       <section className="flex min-h-0 min-w-0 flex-1 flex-col lg:py-4">
         <h1 className="shrink-0 text-3xl leading-tight font-medium tracking-tight xl:text-4xl">

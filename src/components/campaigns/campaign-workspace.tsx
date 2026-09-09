@@ -88,23 +88,38 @@ export function CampaignWorkspace({ campaign, onPreviewEdit, onRetry }: Campaign
               {retrying ? c.retrying : c.retry}
             </Button>
           )}
-          <Button
-            variant="outline"
-            disabled={downloading || !campaign.posts.some((p) => p.image_url)}
-            className="bg-background rounded-shell h-9 gap-2 px-4 text-xs"
-            onClick={() =>
-              startDownload(async () => {
-                const result = await downloadCampaignArchive(
-                  campaign.id,
-                  onPreviewEdit ? campaign : undefined,
-                );
-                if (!result.ok) showErrorNotice(result.code, result.cause);
-              })
-            }
-          >
-            <Download className="size-4" />
-            {downloading ? c.downloading : c.download}
-          </Button>
+          {onPreviewEdit ? (
+            <Button
+              variant="outline"
+              disabled={downloading || !campaign.posts.some((p) => p.image_url)}
+              className="bg-background rounded-shell h-9 gap-2 px-4 text-xs"
+              onClick={() =>
+                startDownload(async () => {
+                  const result = await downloadCampaignArchive(campaign);
+                  if (!result.ok) showErrorNotice(result.code, result.cause);
+                })
+              }
+            >
+              <Download className="size-4" />
+              {downloading ? c.downloading : c.download}
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              disabled={!campaign.posts.some((p) => p.image_url)}
+              nativeButton={false}
+              render={
+                <a
+                  href={`/api/campaigns/${encodeURIComponent(campaign.id)}/download`}
+                  download={`campaign-${campaign.id}.zip`}
+                />
+              }
+              className="bg-background rounded-shell h-9 gap-2 px-4 text-xs"
+            >
+              <Download className="size-4" />
+              {c.download}
+            </Button>
+          )}
         </div>
       </header>
       <CampaignGenerationProgress campaign={campaign} />
