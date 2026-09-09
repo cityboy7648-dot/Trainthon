@@ -6,15 +6,11 @@ import { BrandSummary } from "@/components/brand-assets/brand-summary";
 import { ProductCatalog } from "@/components/brand-assets/product-catalog";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/lib/copy";
-import { isPreviewAnalysis } from "@/lib/env";
 import type { BrandProfileProps } from "@/lib/types";
 
-export function BrandProfile({ profile }: BrandProfileProps) {
+export function BrandProfile({ profile, onChange }: BrandProfileProps) {
   return (
-    <div
-      data-source={isPreviewAnalysis ? "server" : "mock"}
-      className="font-shell mx-auto w-full max-w-7xl px-6 py-8 lg:px-10"
-    >
+    <div data-source="server" className="font-shell mx-auto w-full max-w-7xl px-6 py-8 lg:px-10">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <a
@@ -42,23 +38,12 @@ export function BrandProfile({ profile }: BrandProfileProps) {
       </header>
 
       <div className="mt-9 grid gap-8 border-b pb-8 lg:grid-cols-2 lg:gap-10">
-        <BrandSummary
-          name={profile.name}
-          industry={profile.industry}
-          tagline={profile.tagline}
-          logoUrl={profile.logo_url}
-          sourceUrl={profile.source_url}
-        />
+        <BrandSummary profile={profile} onChange={onChange} />
         <BrandPalette palette={profile.palette} />
       </div>
 
-      <BrandMood
-        font_feel={profile.font_feel}
-        voice={profile.voice}
-        mood_keywords={profile.mood_keywords}
-        target_audience={profile.target_audience}
-      />
-      <ProductCatalog products={profile.products} />
+      <BrandMood profile={profile} onChange={onChange} />
+      <ProductCatalog profile={profile} />
     </div>
   );
 }

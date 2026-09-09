@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, Gauge, LogOut, UserRound } from "lucide-react";
+import { CircleHelp, Gauge, LogOut, Settings, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,15 +35,12 @@ export function NavUser({ user, compact = false }: NavUserProps) {
           <UserRound className="size-4.5" />
         </span>
         {!compact && (
-          <>
-            <span className="grid flex-1 text-left group-data-[collapsed=true]/shell:hidden">
-              <strong className="text-shell-ink text-shell-nav font-semibold">{user.name}</strong>
-              <small className="text-shell-icon text-shell-caption font-normal">
-                {copy.sidebar.plan}
-              </small>
-            </span>
-            <ChevronsUpDown className="text-shell-icon size-3.5 group-data-[collapsed=true]/shell:hidden" />
-          </>
+          <span className="grid flex-1 text-left group-data-[collapsed=true]/shell:hidden">
+            <strong className="text-shell-ink text-shell-nav font-semibold">{user.name}</strong>
+            <small className="text-shell-icon text-shell-caption font-normal">
+              {copy.sidebar.plan}
+            </small>
+          </span>
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -56,6 +53,14 @@ export function NavUser({ user, compact = false }: NavUserProps) {
           <p className="text-muted-foreground text-xs">{user.email}</p>
         </div>
         <DropdownMenuSeparator />
+        <DropdownMenuItem disabled title={copy.sidebar.pending}>
+          <CircleHelp />
+          {copy.sidebar.support}
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled title={copy.sidebar.pending}>
+          <Settings />
+          {copy.sidebar.account}
+        </DropdownMenuItem>
         <DropdownMenuItem disabled title={copy.sidebar.pending}>
           <Gauge />
           {copy.sidebar.usage}

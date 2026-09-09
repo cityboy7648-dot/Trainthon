@@ -1,9 +1,11 @@
 // MOCK: 예시 데이터. 서버 연결 전 임시.
-import { toBrandSourceUrl } from "@/lib/home";
 import type { BrandProfileData } from "@/lib/types";
 
-const mockBrandProfile = {
+export const mockAdminEmail = "admin@margo.test";
+
+export const mockCompletedBrandProfile = {
   name: "빈앤블룸",
+  address: "서울시 성동구 연무장길 10",
   tagline: "매일 구운 빵과 직접 로스팅한 커피를 만드는 동네 카페",
   industry: "카페 · 베이커리",
   logo_url: "/mock/brand-assets/logo.svg",
@@ -86,17 +88,6 @@ const mockBrandProfile = {
     },
   ],
   target_audience: "좋은 커피와 갓 구운 빵을 찾는 20–40대 지역 고객",
-  source_url: "https://beanandbloom.coffee",
+  source_url: "https://beanandbloom.coffee/",
   analyzed_at: "2026-09-09T10:30:00Z",
 } satisfies BrandProfileData;
-
-const MOCK_ANALYSIS_DELAY_MS = 1200;
-
-export async function getMockBrandProfile(sourceUrl: string): Promise<BrandProfileData> {
-  await new Promise((resolve) => setTimeout(resolve, MOCK_ANALYSIS_DELAY_MS));
-
-  return {
-    ...mockBrandProfile,
-    source_url: toBrandSourceUrl(sourceUrl),
-  };
-}

@@ -4,22 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@font-face {
-  font-family: "Margo Poppins";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/poppins-regular.ttf") format("truetype");
-}
-@font-face {
-  font-family: "Margo Poppins";
-  font-style: normal;
-  font-weight: 600 700;
-  font-display: swap;
-  src: url("/fonts/poppins-semibold.ttf") format("truetype");
-}
 @theme {
-  --font-shell: "Margo Poppins", Pretendard, "Apple SD Gothic Neo", sans-serif;
+  --font-shell: var(--font-poppins);
   --spacing-shell: 250px;
   --spacing-shell-tablet: 210px;
   --spacing-shell-compact: 190px;
@@ -58,6 +44,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-heading: var(--font-serif);
+  --font-brand: var(--font-brand);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

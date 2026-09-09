@@ -13,9 +13,13 @@ export function initializeBrandSession(owner: string) {
   }
 }
 
-export function hasAnalyzedBrandProfile(): boolean {
+export function readActiveBrandUrl(): string | null {
   const url = sessionStorage.getItem(activeKey);
-  return Boolean(url && readAnalyzedBrandProfile(url));
+  return url && readAnalyzedBrandProfile(url) ? url : null;
+}
+
+export function hasAnalyzedBrandProfile(): boolean {
+  return Boolean(readActiveBrandUrl());
 }
 
 export function saveAnalyzedBrandProfile(url: string, profile: BrandProfileData) {

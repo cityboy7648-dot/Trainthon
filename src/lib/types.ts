@@ -11,7 +11,7 @@ export type AppSidebarProps = {
 };
 
 export type AppAccessProps = {
-  user: SessionUser;
+  user: SessionUser | null;
   children: import("react").ReactNode;
 };
 
@@ -62,18 +62,30 @@ const httpUrlSchema = z
   .pipe(z.url())
   .refine((value) => /^https?:\/\//i.test(value), "HTTP 또는 HTTPS 주소여야 한다.");
 
+// 로컬 mock 이미지는 http가 아니다.
+const mockAssetUrlSchema = z.string().regex(/^\/mock\/brand-assets\/[A-Za-z0-9._/-]+$/);
+const brandImageUrlSchema = z.union([
+  httpUrlSchema,
+  mockAssetUrlSchema,
+  z
+    .string()
+    .max(3_000_000)
+    .regex(/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/),
+]);
+
 export const brandProductSchema = z.object({
   name: z.string().trim().min(1),
-  image_url: httpUrlSchema.nullable(),
+  image_url: brandImageUrlSchema.nullable(),
   description: nullableTextSchema,
   price: nullableTextSchema,
 });
 
 export const brandProfileSchema = z.object({
-  name: z.string().trim().min(1),
+  name: z.string().trim(),
+  address: nullableTextSchema.optional(),
   tagline: nullableTextSchema,
   industry: nullableTextSchema,
-  logo_url: httpUrlSchema.nullable(),
+  logo_url: brandImageUrlSchema.nullable(),
   palette: z.array(z.string().regex(/^#[0-9A-Fa-f]{6}$/)),
   font_feel: nullableTextSchema,
   voice: nullableTextSchema,
@@ -98,6 +110,8 @@ const brandProductModelSchema = brandProductSchema.extend({
   image_url: modelUrlSchema,
 });
 const brandProfileModelSchema = brandProfileDraftSchema.extend({
+  name: nullableTextSchema,
+  address: nullableTextSchema,
   logo_url: modelUrlSchema,
   products: z.array(brandProductModelSchema),
 });
@@ -134,6 +148,7 @@ export type CollectedSite = {
 
 export type BrandProfileProps = {
   profile: BrandProfileData;
+  onChange?: (profile: BrandProfileData) => void;
 };
 
 export type BrandProfileRouteProps = {
@@ -149,28 +164,53 @@ export type BrandProfileResultProps = {
 };
 
 export type BrandProfileRequestResult =
-  { ok: true; profile: BrandProfileData } | { ok: false; cause?: string };
+  | { ok: true; profile: BrandProfileData; questions: BrandCompletionQuestion[] }
+  | { ok: false; cause?: string };
 
-export type BrandSummaryProps = {
-  name: BrandProfileData["name"];
-  industry: BrandProfileData["industry"];
-  tagline: BrandProfileData["tagline"];
-  logoUrl: BrandProfileData["logo_url"];
-  sourceUrl: BrandProfileData["source_url"];
+export type BrandCompletionQuestion = {
+  field:
+    | "name"
+    | "address"
+    | "industry"
+    | "tagline"
+    | "logo_url"
+    | "palette"
+    | "mood_keywords"
+    | "font_feel"
+    | "voice"
+    | "target_audience"
+    | "products"
+    | `products.${number}.price`;
+  title: string;
+  suggestions: string[];
+  kind: "text" | "logo" | "colors" | "list" | "products";
+  optional: boolean;
 };
+
+export type EditableBrandValueProps = {
+  profile: BrandProfileData;
+  question: BrandCompletionQuestion;
+  value: string | null;
+  cause: string;
+  onChange?: (profile: BrandProfileData) => void;
+  className?: string;
+};
+
+export type EditableBrandLogoProps = BrandProfileProps;
+
+export type BrandMoodKeywordProps = BrandProfileProps & { index: number };
+
+export type MissingBrandValueProps = { cause: string };
+
+export type BrandSummaryProps = BrandProfileProps;
 
 export type BrandPaletteProps = {
   palette: BrandProfileData["palette"];
 };
 
-export type BrandMoodProps = Pick<
-  BrandProfileData,
-  "font_feel" | "voice" | "mood_keywords" | "target_audience"
->;
+export type BrandMoodProps = BrandProfileProps;
 
-export type ProductCatalogProps = {
-  products: BrandProfileData["products"];
-};
+export type ProductCatalogProps = Pick<BrandProfileProps, "profile">;
 
 export type CampaignPreview = {
   key: string;

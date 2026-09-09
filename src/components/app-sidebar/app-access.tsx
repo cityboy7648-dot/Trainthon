@@ -7,20 +7,32 @@ import { HomeHeader } from "@/components/home/home-header";
 import { HomeSkeleton } from "@/components/home/home-skeleton";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { MockBadge } from "@/components/mock-badge";
-import { hasAnalyzedBrandProfile, initializeBrandSession } from "@/lib/brand-profile-session";
+import {
+  hasAnalyzedBrandProfile,
+  initializeBrandSession,
+  readActiveBrandUrl,
+  saveAnalyzedBrandProfile,
+} from "@/lib/brand-profile-session";
 import { copy } from "@/lib/copy";
+import { isPreviewAnalysis, isProduction } from "@/lib/env";
 import type { AppAccessProps } from "@/lib/types";
+import { mockAdminEmail, mockCompletedBrandProfile } from "@/mock/brand-profile"; // MOCK
 
 export function AppAccess({ user, children }: AppAccessProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [access, setAccess] = useState({ owner: "", ready: false });
+  const owner = user?.email ?? "preview";
+  const mockReady = !isProduction && !isPreviewAnalysis && owner === mockAdminEmail;
 
   useEffect(() => {
     const update = () => {
-      initializeBrandSession(user.email);
+      initializeBrandSession(owner);
+      if (mockReady && readActiveBrandUrl() !== mockCompletedBrandProfile.source_url) {
+        saveAnalyzedBrandProfile(mockCompletedBrandProfile.source_url, mockCompletedBrandProfile);
+      }
       const ready = hasAnalyzedBrandProfile();
-      setAccess({ owner: user.email, ready });
+      setAccess({ owner, ready });
       if (!ready && pathname !== "/analyzing") router.replace("/");
     };
     const frame = requestAnimationFrame(update);
@@ -29,9 +41,9 @@ export function AppAccess({ user, children }: AppAccessProps) {
       cancelAnimationFrame(frame);
       window.removeEventListener("brand-profile-change", update);
     };
-  }, [pathname, router, user.email]);
+  }, [mockReady, owner, pathname, router]);
 
-  if (access.owner !== user.email || (!access.ready && pathname !== "/analyzing")) {
+  if (access.owner !== owner || (!access.ready && pathname !== "/analyzing")) {
     return <HomeSkeleton />;
   }
 
@@ -52,7 +64,7 @@ export function AppAccess({ user, children }: AppAccessProps) {
       <AppSidebar user={user} />
       <main
         aria-label={copy.sidebar.workspace}
-        data-source="server"
+        data-source={mockReady ? "mock" : "server"}
         className="bg-background flex min-h-dvh min-w-0 flex-1 flex-col"
       >
         {children}

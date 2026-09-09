@@ -2,6 +2,9 @@
 
 import { analyzeBrand } from "@/lib/agents/brand-analysis/analyze-brand";
 import { copy } from "@/lib/copy";
+import { getBrandCompletionQuestions } from "@/lib/brand-completion";
+import { getSessionUser } from "@/lib/data/session";
+import { isPreviewAnalysis } from "@/lib/env";
 import { AppError } from "@/lib/errors";
 import { toBrandSourceUrl } from "@/lib/home";
 import type { LogContext } from "@/lib/log";
@@ -48,13 +51,19 @@ export async function getBrandProfile(sourceUrl: string): Promise<BrandProfileDa
 }
 
 export async function requestBrandProfile(sourceUrl: string): Promise<BrandProfileRequestResult> {
+  const user = await getSessionUser();
+  if (!user && !isPreviewAnalysis) {
+    return { ok: false, cause: copy.login.required };
+  }
+
   const parsed = brandAnalysisRequestSchema.safeParse({ url: sourceUrl });
   if (!parsed.success) {
     return { ok: false, cause: copy.brandAnalysis.invalidUrl };
   }
 
   try {
-    return { ok: true, profile: await getBrandProfile(parsed.data.url) };
+    const profile = await getBrandProfile(parsed.data.url);
+    return { ok: true, profile, questions: getBrandCompletionQuestions(profile) };
   } catch (error) {
     if (error instanceof AppError) {
       return { ok: false, cause: error.cause };

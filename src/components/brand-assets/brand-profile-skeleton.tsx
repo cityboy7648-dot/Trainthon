@@ -1,15 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { copy } from "@/lib/copy";
-import { isPreviewAnalysis } from "@/lib/env";
 
 const PRODUCT_SKELETON_COUNT = 12;
 
 export function BrandProfileSkeleton() {
   return (
-    <div
-      data-source={isPreviewAnalysis ? "server" : "mock"}
-      className="font-shell mx-auto w-full max-w-7xl px-6 py-8 lg:px-10"
-    >
+    <div data-source="server" className="font-shell mx-auto w-full max-w-7xl px-6 py-8 lg:px-10">
       <header className="flex items-start justify-between gap-5">
         <div>
           <Skeleton className="h-4 w-44" />

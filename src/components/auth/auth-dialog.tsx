@@ -15,7 +15,16 @@ import type { AuthDialogProps } from "@/lib/types";
 
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [signingUp, setSigningUp] = useState(false);
+  const [opened, setOpened] = useState(open);
   const heading = signingUp ? copy.signUp : copy.login;
+
+  if (open !== opened) {
+    setOpened(open);
+    // 닫은 뒤 회원가입 상태를 남기면, URL을 다시 눌렀을 때 회원가입 창이 유지된다.
+    if (open) {
+      setSigningUp(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal>
