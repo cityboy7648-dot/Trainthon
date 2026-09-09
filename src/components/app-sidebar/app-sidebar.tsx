@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { CircleHelp, PanelLeftClose, PanelLeftOpen, Plus, Settings } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/app-sidebar/nav-main";
@@ -21,23 +21,14 @@ export function AppSidebar({ user }: AppSidebarProps) {
       className="group/shell bg-shell-background border-shell-border font-shell w-shell max-xl:w-shell-tablet max-lg:w-shell-compact max-md:w-shell-mobile data-[collapsed=true]:w-shell-rail max-md:data-[collapsed=true]:w-shell-mobile max-md:data-[collapsed=false]:w-shell sticky top-0 flex h-dvh shrink-0 flex-col border-r px-4 pt-6 pb-4 data-[collapsed=true]:px-2 max-md:data-[collapsed=false]:fixed max-md:data-[collapsed=false]:z-30 max-md:data-[collapsed=false]:shadow-xl"
     >
       <header className="min-h-shell-header flex items-center gap-2 px-1.5 group-data-[collapsed=true]/shell:flex-col group-data-[collapsed=true]/shell:gap-3 group-data-[collapsed=true]/shell:px-0">
-        <Image
-          src="/margo-icon.png"
-          alt={copy.sidebar.logo}
-          width={30}
-          height={30}
-          className="size-7.5 shrink-0 object-contain"
-        />
-        <strong className="text-shell-ink text-shell-brand flex-1 font-semibold tracking-tight group-data-[collapsed=true]/shell:hidden">
-          {copy.sidebar.name}
-        </strong>
+        <BrandMark />
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
           aria-label={collapsed ? copy.sidebar.expand : copy.sidebar.collapse}
           aria-expanded={!collapsed}
-          className="text-shell-icon hover:bg-shell-active size-shell-control rounded-shell"
+          className="text-shell-icon hover:bg-shell-active size-shell-control rounded-shell ml-auto group-data-[collapsed=true]/shell:ml-0"
         >
           {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
         </Button>
