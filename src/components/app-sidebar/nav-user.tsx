@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { copy } from "@/lib/copy";
+import { signOut } from "@/lib/data/auth";
 import type { NavUserProps } from "@/lib/types";
 
 export function NavUser({ user }: NavUserProps) {
@@ -45,10 +46,12 @@ export function NavUser({ user }: NavUserProps) {
           <Gauge />
           {copy.sidebar.usage}
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <LogOut />
-          {copy.sidebar.signOut}
-        </DropdownMenuItem>
+        <form action={signOut}>
+          <DropdownMenuItem render={<button type="submit" />} nativeButton className="w-full">
+            <LogOut />
+            {copy.sidebar.signOut}
+          </DropdownMenuItem>
+        </form>
       </DropdownMenuContent>
     </DropdownMenu>
   );

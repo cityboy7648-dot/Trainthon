@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 315" role="img" aria-labelledby="title">
+  <title id="title">커피 원두와 드립백</title>
+  <rect width="560" height="315" fill="#FFFDF8"/>
+  <ellipse cx="280" cy="261" rx="184" ry="18" fill="#26352A" opacity=".1"/>
+  <path d="M112 61h153l16 194H96Z" fill="#26352A"/>
+  <rect x="132" y="105" width="113" height="89" rx="5" fill="#F2E8D5"/>
+  <path d="M190 126c15-3 24-13 27-27-15 4-24 13-27 27Zm-5 11c-13-2-21-9-26-20 13 0 23 7 26 20Z" fill="#26352A"/>
+  <text x="189" y="173" text-anchor="middle" font-family="Georgia, serif" font-size="26" fill="#26352A">B&amp;B</text>
+  <rect x="313" y="91" width="74" height="134" rx="5" fill="#F2E8D5" stroke="#D7CBB7" stroke-width="4"/>
+  <rect x="397" y="109" width="74" height="116" rx="5" fill="#FFFFFF" stroke="#D7CBB7" stroke-width="4"/>
+  <path d="M332 128h37M416 145h37" stroke="#D97745" stroke-width="7" stroke-linecap="round"/>
+</svg>

@@ -8,15 +8,15 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/app-sidebar/nav-main";
 import { NavUser } from "@/components/app-sidebar/nav-user";
 import { copy } from "@/lib/copy";
-import { mockUser } from "@/mock/session"; // MOCK
+import type { AppSidebarProps } from "@/lib/types";
 
-export function AppSidebar() {
+export function AppSidebar({ user }: AppSidebarProps) {
   const { open, openMobile, isMobile, toggleSidebar } = useSidebar();
   const collapsed = isMobile ? !openMobile : !open;
   return (
     <aside
       aria-label={copy.sidebar.label}
-      data-source="mock"
+      data-source="server"
       data-collapsed={collapsed}
       className="group/shell bg-shell-background border-shell-border font-shell w-shell max-xl:w-shell-tablet max-lg:w-shell-compact max-md:w-shell-mobile data-[collapsed=true]:w-shell-rail max-md:data-[collapsed=true]:w-shell-mobile max-md:data-[collapsed=false]:w-shell sticky top-0 flex h-dvh shrink-0 flex-col border-r px-4 pt-6 pb-4 data-[collapsed=true]:px-2 max-md:data-[collapsed=false]:fixed max-md:data-[collapsed=false]:z-30 max-md:data-[collapsed=false]:shadow-xl"
     >
@@ -74,7 +74,7 @@ export function AppSidebar() {
         </Button>
       </nav>
       <footer className="min-h-shell-footer flex items-center pt-2.5">
-        <NavUser user={mockUser} />
+        {user && <NavUser user={user} />}
       </footer>
     </aside>
   );

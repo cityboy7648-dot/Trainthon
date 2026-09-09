@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 315" role="img" aria-labelledby="title">
+  <title id="title">수제 디저트</title>
+  <rect width="560" height="315" fill="#F2E8D5"/>
+  <circle cx="222" cy="165" r="104" fill="#8A5434"/>
+  <circle cx="184" cy="128" r="14" fill="#252525"/><circle cx="253" cy="111" r="12" fill="#252525"/><circle cx="277" cy="178" r="15" fill="#252525"/><circle cx="196" cy="209" r="13" fill="#252525"/>
+  <path d="M337 81h112v171H337z" fill="#D6A35D"/>
+  <path d="M325 81h136l-14-25H340Z" fill="#FFFDF8"/>
+  <path d="M337 81c24 19 89 20 112 0" fill="none" stroke="#FFFDF8" stroke-width="17"/>
+  <path d="M355 119h76" stroke="#F6D88C" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="331" cy="262" rx="165" ry="15" fill="#26352A" opacity=".1"/>
+</svg>

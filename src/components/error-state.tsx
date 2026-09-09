@@ -13,17 +13,16 @@ export function ErrorState({ code, cause, onRetry }: ErrorStateProps) {
   return (
     <div
       role="alert"
-      className="border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center gap-2 rounded-xl border px-6 py-12 text-center"
+      className="font-shell border-shell-border bg-shell-background rounded-shell flex flex-col gap-1 border px-3.5 py-3"
     >
-      <p className="text-destructive text-sm font-medium">{message.title}</p>
-      <p className="text-muted-foreground max-w-sm text-sm">{message.description}</p>
-      {cause && (
-        <p className="bg-muted text-muted-foreground max-w-md rounded-md px-2 py-1 font-mono text-xs">
-          {cause}
-        </p>
-      )}
+      <p className="text-destructive text-shell-nav font-semibold">{message.title}</p>
+      <p className="text-shell-muted text-shell-nav">{message.description}</p>
+      {cause && <p className="text-shell-icon text-shell-caption">{cause}</p>}
       {onRetry && (
-        <Button variant="outline" size="sm" className="mt-2" onClick={onRetry}>
+        <Button
+          onClick={onRetry}
+          className="border-shell-border text-shell-ink hover:bg-shell-hover h-shell-control rounded-shell mt-2 self-start border bg-transparent px-3 text-xs font-medium shadow-none"
+        >
           {copy.common.retry}
         </Button>
       )}
