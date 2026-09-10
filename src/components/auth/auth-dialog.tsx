@@ -40,17 +40,19 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             {heading.description}
           </DialogDescription>
         </DialogHeader>
-        {signingUp ? <SignUpForm /> : <LoginForm />}
-        <p className="text-shell-muted text-shell-nav text-center">
-          {signingUp ? copy.signUp.loginPrompt : copy.login.signUpPrompt}{" "}
-          <button
-            type="button"
-            onClick={() => setSigningUp(!signingUp)}
-            className="text-shell-ink hover:bg-shell-hover active:bg-shell-active rounded-shell cursor-pointer px-1.5 py-0.5 font-medium underline underline-offset-2"
-          >
-            {signingUp ? copy.login.title : copy.signUp.title}
-          </button>
-        </p>
+        {signingUp ? <SignUpForm onBack={() => setSigningUp(false)} /> : <LoginForm />}
+        {!signingUp && (
+          <p className="text-shell-muted text-shell-nav text-center">
+            {copy.login.signUpPrompt}{" "}
+            <button
+              type="button"
+              onClick={() => setSigningUp(true)}
+              className="text-shell-ink hover:bg-shell-hover active:bg-shell-active rounded-shell cursor-pointer px-1.5 py-0.5 font-medium underline underline-offset-2"
+            >
+              {copy.signUp.title}
+            </button>
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );
