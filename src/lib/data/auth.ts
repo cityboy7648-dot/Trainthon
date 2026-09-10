@@ -16,6 +16,24 @@ const signInSchema = z.object({
   password: z.string().min(1).max(72),
 });
 
+const signUpSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, copy.signUp.nameRequired)
+      .max(50, copy.signUp.nameTooLong)
+      .refine((value) => !/[\p{C}]/u.test(value), copy.signUp.nameInvalid),
+    email: z.string().trim().toLowerCase().pipe(emailSchema),
+    password: z.string().min(8, copy.signUp.passwordTooShort).max(72, copy.signUp.passwordTooLong),
+    passwordConfirm: z.string(),
+    consent: z.literal("on", copy.signUp.consentRequired),
+  })
+  .refine((value) => value.password === value.passwordConfirm, {
+    message: copy.signUp.passwordMismatch,
+    path: ["passwordConfirm"],
+  });
+
 function authLogContext() {
   return { requestId: crypto.randomUUID(), runId: null, assetId: null };
 }
@@ -44,8 +62,41 @@ export async function signIn(_previous: SignInResult, formData: FormData): Promi
   return null;
 }
 
-export async function signUp(): Promise<SignUpResult> {
-  return { name: "", email: "", cause: copy.signUp.description };
+export async function signUp(_previous: SignUpResult, formData: FormData): Promise<SignUpResult> {
+  const name = String(formData.get("name") ?? "");
+  const email = readEmail(formData);
+  const parsed = signUpSchema.safeParse({
+    name,
+    email,
+    password: formData.get("password"),
+    passwordConfirm: formData.get("passwordConfirm"),
+    consent: formData.get("consent"),
+  });
+  if (!parsed.success) {
+    return { name, email, cause: parsed.error.issues[0].message };
+  }
+
+  const supabase = await createSessionWriter();
+  const { data, error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      data: {
+        name: parsed.data.name,
+        consented_at: new Date().toISOString(),
+      },
+    },
+  });
+  if (error) {
+    log.error("auth.sign_up_failed", authLogContext(), { cause: error.message });
+    return { name, email };
+  }
+  if (!data.session) {
+    return { name, email, cause: copy.signUp.confirmSent };
+  }
+
+  revalidatePath("/", "layout");
+  return null;
 }
 
 export async function signOut() {
